@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg: #f9fafb;
+  --color-primary: #2563eb;
+  --color-secondary: #64748b;
+  --color-text: #22223b;
+  --color-card-bg: #fff;
+  --color-border: #e5e7eb;
 }
 
 @theme inline {
@@ -20,7 +24,84 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--color-secondary);
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  transition: box-shadow 0.2s;
+}
+.card:hover {
+  box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+}
+
+.tag {
+  display: inline-block;
+  background: var(--color-secondary);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.85em;
+  padding: 0.15em 0.6em;
+  margin-right: 0.5em;
+  margin-bottom: 0.2em;
+}
+
+@media (max-width: 600px) {
+  .container {
+    max-width: 100%;
+    padding: 1.2rem 0.5rem;
+  }
+  .card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  h1, h2 {
+    font-size: 1.25rem !important;
+  }
+  .tag {
+    font-size: 0.78em;
+    padding: 0.12em 0.5em;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .container {
+    max-width: 95vw;
+    padding: 1.5rem 1rem;
+  }
+  .card {
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  h1, h2 {
+    font-size: 1.5rem !important;
+  }
 }
