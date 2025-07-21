@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# antelacus.com 博客项目
 
-## Getting Started
+## 项目简介
 
-First, run the development server:
+本项目为 antelacus.com 个人博客网站，旨在打造一个支持 Markdown 写作、图片发布、社交媒体内容同步的高可定制化博客平台。网站将部署在 Vercel，使用 Next.js 框架，绑定自有域名 www.antelacus.com。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 项目目标与需求
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 方便编辑和发布内容（支持 Markdown 语法）
+- 免费托管，自动化部署
+- 可定制性强，后续可扩展
+- 支持图片、社交媒体内容展示
+- （可选）支持移动端编辑/发布
+- （可选）支持与 Notion、社交媒体内容同步
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 技术选型
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **框架**：Next.js（React 生态，支持静态生成和高度定制）
+- **部署平台**：Vercel（与 Next.js 深度集成，自动化部署）
+- **代码托管**：GitHub
+- **内容格式**：Markdown/MDX
+- **域名**：antelacus.com（Cloudflare 保护）
 
-## Learn More
+## 博客开发方式对比与选型说明
 
-To learn more about Next.js, take a look at the following resources:
+### 主要方式对比
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| 方式                   | 易编辑 | 可定制 | 免费 | 移动端 | 社交同步 | Notion同步 |
+|------------------------|--------|--------|------|--------|----------|------------|
+| 静态博客+托管          | ★★★    | ★★★    | ★★★  | ★★     | ★★       | ★（需配置） |
+| 现成博客平台           | ★★★    | ★      | ★★   | ★★★    | ★★       | ☆          |
+| Notion+第三方生成器    | ★★★    | ★★     | ★★   | ★★★    | ★        | ★★★        |
+| 低代码/无代码平台      | ★★★    | ★      | ★     | ★★★    | ★★       | ★★         |
+| 纯手写/自研            | ★      | ★★★    | ★★★  | ★      | ★★★      | ★          |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Next.js 与主流静态博客生成器对比
 
-## Deploy on Vercel
+| 生成器   | 语言/生态 | 上手难度 | 主题/插件 | 可定制性 | 适合场景         | 备注           |
+|----------|-----------|----------|-----------|----------|------------------|----------------|
+| Next.js  | React/JS  | ★★★★     | ★★        | ★★★★     | 博客+复杂网站    | 全能，需JS基础  |
+| Hexo     | Node.js   | ★★       | ★★★★      | ★★       | 纯博客           | 中文生态好      |
+| Hugo     | Go        | ★★★      | ★★★★      | ★★★      | 博客/文档/大站点 | 生成极快        |
+| Jekyll   | Ruby      | ★★★      | ★★★       | ★★       | 博客             | GitHub Pages原生|
+| Astro    | 多框架    | ★★★      | ★★★       | ★★★★     | 博客/文档/官网   | 新一代，极快    |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**最终选型：Next.js + Vercel**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 你有 Next.js + Vercel 的经验，部署体验好。
+- 可定制性极高，未来可扩展性强。
+- 生态丰富，支持 Markdown/MDX，适合个人博客和后续功能拓展。
+
+## 开发计划
+
+- [ ] 初始化项目文件夹和 README
+- [ ] 搭建 Next.js 框架
+- [ ] 配置 Vercel 自动部署
+- [ ] 实现 Markdown 博客功能（支持图片、社交媒体内容展示）
+- [ ] 域名绑定（www.antelacus.com）
+- [ ] 优化样式和用户体验
+- [ ] （可选）实现 Notion/社交媒体内容同步
+- [ ] （可选）移动端编辑/发布体验优化
+
+## 开发进度记录
+
+- 2025-07-21：项目初始化，创建 README
+
+---
+
+> 本 README 将持续更新，记录项目开发的每一步进展、遇到的问题与解决方案。 
