@@ -4,6 +4,7 @@ import { getAllPhotosMeta } from '../lib/gallery';
 import PostCard from '../components/PostCard';
 import NoteCard from '../components/NoteCard';
 import PhotoCard from '../components/PhotoCard';
+import MasonryGrid from '../components/MasonryGrid';
 
 export default async function HomePage() {
   const [posts, notes, photos] = await Promise.all([
@@ -17,17 +18,20 @@ export default async function HomePage() {
     ...posts.map(p => ({
       type: 'post' as const,
       date: p.date,
-      component: <PostCard key={`post-${p.slug}`} post={p} />,
+      slug: p.slug,
+      component: <PostCard post={p} />,
     })),
     ...notes.map(n => ({
       type: 'note' as const,
       date: n.date,
-      component: <NoteCard key={`note-${n.slug}`} note={n} />,
+      slug: n.slug,
+      component: <NoteCard note={n} />,
     })),
     ...photos.map(photo => ({
       type: 'photo' as const,
       date: photo.date,
-      component: <PhotoCard key={`photo-${photo.slug}`} photo={photo} />,
+      slug: photo.slug,
+      component: <PhotoCard photo={photo} />,
     })),
   ];
 
@@ -45,9 +49,13 @@ export default async function HomePage() {
       </section>
       
       <section className="homepage-feed">
-        <div className="masonry">
-          {feed.map(item => item.component)}
-        </div>
+        <MasonryGrid columns={3} gap={20}>
+          {feed.map((item, index) => (
+            <div key={`${item.type}-${item.slug}`} style={{ animationDelay: `${index * 0.1}s` }}>
+              {item.component}
+            </div>
+          ))}
+        </MasonryGrid>
       </section>
     </main>
   );

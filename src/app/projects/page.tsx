@@ -10,7 +10,6 @@ export default async function ProjectsPage() {
   const projects = await getAllProjectsMeta();
   return (
     <main>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>作品展示</h1>
       {projects.length === 0 && <p>暂无项目。</p>}
       {projects.map(p => (
         <article className="card" key={p.slug} style={{ marginBottom: '1.2rem' }}>

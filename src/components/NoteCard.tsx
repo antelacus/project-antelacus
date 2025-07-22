@@ -3,25 +3,16 @@ import Link from 'next/link';
 import { NoteMeta } from '../lib/notes';
 
 export default function NoteCard({ note }: { note: NoteMeta }) {
-  const showCover = note.cover && note.cover.trim() !== '';
+  // 截断summary，确保显示"未完整"的感觉
+  const truncateSummary = (text: string, maxLength: number = 80) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).replace(/\s+\S*$/, '');
+  };
+
+  const displaySummary = note.summary ? truncateSummary(note.summary) : '';
 
   return (
-    <article className="card masonry-item">
-      {showCover && (
-        <div className="card-cover">
-          <img 
-            src={note.cover} 
-            alt={note.title} 
-            className="card-cover-image"
-            onError={(e) => {
-              const coverDiv = e.currentTarget.parentElement;
-              if (coverDiv) {
-                coverDiv.style.display = 'none';
-              }
-            }}
-          />
-        </div>
-      )}
+    <article className="card masonry-item note-card">
       <div className="card-content">
         <div className="card-meta">
           <span className="card-type">灵光一闪</span>
@@ -35,7 +26,18 @@ export default function NoteCard({ note }: { note: NoteMeta }) {
           </Link>
         </h2>
         {note.summary && (
-          <p className="card-summary">{note.summary}</p>
+          <div className="note-preview">
+            <p className="card-summary">
+              {displaySummary}
+              {note.summary.length > 80 && <span className="ellipsis">...</span>}
+            </p>
+            <div className="read-more-hint">
+              <Link href={`/notes/${note.slug}`} className="read-more-link">
+                <span>阅读完整内容</span>
+                <span className="arrow">→</span>
+              </Link>
+            </div>
+          </div>
         )}
         <div className="card-author">
           <span>AnteLacus</span>

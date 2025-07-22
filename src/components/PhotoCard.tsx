@@ -3,14 +3,14 @@ import Link from 'next/link';
 import { PhotoMeta } from '../lib/gallery';
 
 export default function PhotoCard({ photo }: { photo: PhotoMeta }) {
-  const showCover = photo.image && photo.image.trim() !== '';
+  const showCover = photo.coverImage && photo.coverImage.trim() !== '';
 
   return (
-    <article className="card masonry-item">
+    <article className="card masonry-item photo-card">
       {showCover && (
         <div className="card-cover">
           <img 
-            src={photo.image} 
+            src={photo.coverImage} 
             alt={photo.caption || photo.title || ''} 
             className="card-cover-image"
             onError={(e) => {
@@ -20,6 +20,14 @@ export default function PhotoCard({ photo }: { photo: PhotoMeta }) {
               }
             }}
           />
+          <div className="photo-overlay">
+            <div className="photo-count">
+              <span className="photo-count-icon">📷</span>
+              <span className="photo-count-text">
+                {photo.photoCount} 张
+              </span>
+            </div>
+          </div>
         </div>
       )}
       <div className="card-content">
@@ -30,14 +38,16 @@ export default function PhotoCard({ photo }: { photo: PhotoMeta }) {
           </time>
         </div>
         <h2 className="card-title">
-          {photo.title ? (
-            <Link href={`/gallery/${photo.slug}`} className="card-title-link">
-              {photo.title}
-            </Link>
-          ) : (
-            <span className="card-title-text">摄影作品</span>
-          )}
+          <Link href={`/gallery/${photo.slug}`} className="card-title-link">
+            {photo.title}
+          </Link>
         </h2>
+        {photo.location && (
+          <div className="photo-location">
+            <span className="location-icon">📍</span>
+            <span className="location-text">{photo.location}</span>
+          </div>
+        )}
         {photo.caption && (
           <p className="card-summary">{photo.caption}</p>
         )}

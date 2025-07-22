@@ -6,13 +6,6 @@ export const metadata = {
 export default function AboutPage() {
   return (
     <main className="about-page">
-      <div className="about-hero">
-        <h1 className="about-title">关于我</h1>
-        <p className="about-description">
-          欢迎来到我的数字花园，这里记录着我的思考轨迹、创作历程和技术探索。
-        </p>
-      </div>
-
       <div className="about-content">
         <section className="about-section">
           <h2 className="section-title">个人简介</h2>

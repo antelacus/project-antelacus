@@ -10,7 +10,6 @@ export default async function PostsPage() {
   const posts = await getAllPostsMeta();
   return (
     <main>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>深度思考</h1>
       {posts.length === 0 && <p>暂无内容。</p>}
       {posts.map(post => (
         <article className="card" key={post.slug} style={{ marginBottom: '1rem' }}>
