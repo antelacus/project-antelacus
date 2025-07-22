@@ -1,7 +1,9 @@
 import { getAllPostsMeta } from '../lib/posts';
 import { getAllNotesMeta } from '../lib/notes';
 import { getAllPhotosMeta } from '../lib/gallery';
-import Link from 'next/link';
+import PostCard from '../components/PostCard';
+import NoteCard from '../components/NoteCard';
+import PhotoCard from '../components/PhotoCard';
 
 export default async function HomePage() {
   const [posts, notes, photos] = await Promise.all([
@@ -10,61 +12,43 @@ export default async function HomePage() {
     getAllPhotosMeta(),
   ]);
 
-  // unify
+  // 统一内容流，按时间排序
   const feed = [
     ...posts.map(p => ({
       type: 'post' as const,
       date: p.date,
-      component: (
-        <article className="card masonry-item" key={`post-${p.slug}`}>
-          {p.cover && (
-            <img src={p.cover} alt={p.title} style={{ width: '100%', borderRadius: '6px', marginBottom: '0.8rem', objectFit: 'cover' }} />
-          )}
-          <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.3rem' }}>
-            <Link href={`/posts/${p.slug}`}>{p.title}</Link>
-          </h2>
-          <div style={{ color: 'var(--color-secondary)', fontSize: '0.85rem', marginBottom: '0.4rem' }}>{new Date(p.date).toLocaleDateString('zh-CN')}</div>
-          {p.summary && <p style={{ margin: 0 }}>{p.summary}</p>}
-        </article>
-      ),
+      component: <PostCard key={`post-${p.slug}`} post={p} />,
     })),
     ...notes.map(n => ({
       type: 'note' as const,
       date: n.date,
-      component: (
-        <article className="card masonry-item" key={`note-${n.slug}`}>
-          <h2 style={{ margin: '0 0 0.4rem 0', fontSize: '1.2rem' }}>
-            <Link href={`/notes/${n.slug}`}>{n.title}</Link>
-          </h2>
-          <div style={{ color: 'var(--color-secondary)', fontSize: '0.85rem', marginBottom: '0.4rem' }}>{new Date(n.date).toLocaleDateString('zh-CN')}</div>
-          {n.summary && <p style={{ margin: 0 }}>{n.summary}</p>}
-        </article>
-      ),
+      component: <NoteCard key={`note-${n.slug}`} note={n} />,
     })),
     ...photos.map(photo => ({
       type: 'photo' as const,
       date: photo.date,
-      component: (
-        <div className="masonry-item" key={`photo-${photo.slug}`} style={{ breakInside: 'avoid', marginBottom: '1rem' }}>
-          <a href={photo.sourceUrl || photo.image} target="_blank" rel="noopener noreferrer">
-            <img src={photo.image} alt={photo.caption || ''} style={{ width: '100%', borderRadius: '6px', objectFit: 'cover' }} />
-          </a>
-          {photo.caption && <p style={{ fontSize: '0.9rem', marginTop: '0.4rem' }}>{photo.caption}</p>}
-        </div>
-      ),
+      component: <PhotoCard key={`photo-${photo.slug}`} photo={photo} />,
     })),
   ];
 
   feed.sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <main>
-      <section style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>欢迎来到 AnteLacus</h1>
+    <main className="homepage">
+      <section className="homepage-hero">
+        <div className="hero-content">
+          <h1 className="hero-title">欢迎来到 AnteLacus</h1>
+          <p className="hero-description">
+            这里记录我的思考、创意和生活片段 —— 长内容、灵感速记、照片分享，以及正在进行的项目。
+          </p>
+        </div>
       </section>
-      <div className="masonry">
-        {feed.map(item => item.component)}
-      </div>
+      
+      <section className="homepage-feed">
+        <div className="masonry">
+          {feed.map(item => item.component)}
+        </div>
+      </section>
     </main>
   );
 }

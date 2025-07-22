@@ -1,12 +1,45 @@
+"use client";
 import { PhotoMeta } from '../lib/gallery';
 
 export default function PhotoCard({ photo }: { photo: PhotoMeta }) {
   return (
-    <div className="masonry-item" key={photo.slug} style={{ breakInside: 'avoid', marginBottom: '1rem' }}>
-      <a href={photo.sourceUrl || photo.image} target="_blank" rel="noopener noreferrer">
-        <img src={photo.image} alt={photo.caption || ''} style={{ width: '100%', borderRadius: '6px', objectFit: 'cover' }} />
-      </a>
-      {photo.caption && <p style={{ fontSize: '0.9rem', marginTop: '0.4rem' }}>{photo.caption}</p>}
-    </div>
+    <article className="masonry-item photo-card">
+      <div className="photo-container">
+        <a 
+          href={photo.sourceUrl || photo.image} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="photo-link"
+        >
+          <img 
+            src={photo.image} 
+            alt={photo.caption || ''} 
+            className="photo-image"
+          />
+          <div className="photo-overlay">
+            <span className="photo-view-hint">点击查看原图</span>
+          </div>
+        </a>
+                 {(photo.caption || photo.sourceUrl) && (
+           <div className="photo-info">
+             {photo.caption && (
+               <p className="photo-caption">{photo.caption}</p>
+             )}
+             <div className="photo-meta">
+               <time className="photo-date">
+                 {new Date(photo.date).toLocaleDateString('zh-CN')}
+               </time>
+               {photo.sourceUrl && (
+                 <span className="photo-source">
+                   {photo.sourceUrl.includes('instagram') ? '📷 Instagram' : 
+                    photo.sourceUrl.includes('twitter') || photo.sourceUrl.includes('x.com') ? '🐦 X' : 
+                    '🔗 原始来源'}
+                 </span>
+               )}
+             </div>
+           </div>
+         )}
+      </div>
+    </article>
   );
 } 
