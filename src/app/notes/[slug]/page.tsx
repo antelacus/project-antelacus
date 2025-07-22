@@ -6,9 +6,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const note = await getNoteBySlug(slug);
   if (!note) {
-    return { title: '笔记未找到 | antelacus.com' };
+    return { title: '笔记未找到' };
   }
-  return { title: `${note.title} | antelacus.com`, description: note.summary || '' };
+  return { title: note.title, description: note.summary || '' };
 }
 
 export default async function NotePage({ params }: { params: Promise<{ slug: string }> }) {

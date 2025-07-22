@@ -85,6 +85,28 @@ a:hover {
   display: flex;
   align-items: center;
 }
+
+/* Logo Brand */
+.logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1.5rem;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.logo-brand:hover {
+  opacity: 0.8;
+}
+.brand-name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--color-text);
+}
+.logo-icon {
+  flex-shrink: 0;
+}
+
 .nav-links a {
   color: var(--color-text);
   transition: color 0.2s;

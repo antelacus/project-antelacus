@@ -67,8 +67,13 @@
 - [x] 完善基础样式与响应式布局
 - [x] 添加基础页面（About、404）
 - [x] 优化 SEO
-- [ ] （可选）社交媒体内容双向同步（X / Instagram 选定帖子 ↔ 网站文章）
-- [x] 统一卡片组件、默认值、内容校验脚本
+- [x] 统一卡片组件（PostCard / NoteCard / PhotoCard）
+- [x] Masonry 首页聚合流（Posts + Notes + Photos）
+- [x] Next.js 15 动态路由 params Promise 化兼容
+- [x] 默认值与字段可选处理，旧内容向前兼容
+- [x] Zod + ts-node 内容校验脚本 (`npm run validate:content`)
+- [x] 社交媒体内容同步（X / Instagram 选定帖子）
+- [ ] UI升级
 
 ## 内容发布与模板指引
 

@@ -60,7 +60,7 @@ export default async function HomePage() {
   return (
     <main>
       <section style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>欢迎来到 antelacus.com</h1>
+        <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>欢迎来到 AnteLacus</h1>
       </section>
       <div className="masonry">
         {feed.map(item => item.component)}

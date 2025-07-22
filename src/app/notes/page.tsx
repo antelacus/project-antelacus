@@ -2,7 +2,7 @@ import { getAllNotesMeta } from '../../lib/notes';
 import Link from 'next/link';
 
 export const metadata = {
-  title: '灵感速记 | antelacus.com',
+  title: '灵感速记',
   description: '短内容与同步 X 帖子合集。',
 };
 

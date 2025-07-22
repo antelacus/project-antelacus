@@ -2,7 +2,7 @@ import { getAllProjectsMeta } from '../../lib/projects';
 import Link from 'next/link';
 
 export const metadata = {
-  title: '项目 | antelacus.com',
+  title: '项目',
   description: '个人开源项目展示。',
 };
 

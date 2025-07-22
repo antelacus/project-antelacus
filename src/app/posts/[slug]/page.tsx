@@ -8,12 +8,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const post = await getPostBySlug(slug);
   if (!post) {
     return {
-      title: '文章未找到 | antelacus.com',
+      title: '文章未找到',
       description: '你访问的文章不存在或已被删除。',
     };
   }
   return {
-    title: `${post.title} | antelacus.com`,
+    title: post.title,
     description: post.summary || '',
     openGraph: {
       title: post.title,

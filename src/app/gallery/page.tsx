@@ -1,7 +1,7 @@
 import { getAllPhotosMeta } from '../../lib/gallery';
 
 export const metadata = {
-  title: '相册 | antelacus.com',
+  title: '相册',
   description: '精选 Instagram 照片集。',
 };
 
