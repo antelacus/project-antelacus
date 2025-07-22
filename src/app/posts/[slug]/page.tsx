@@ -2,8 +2,6 @@ import { getPostBySlug } from '../../../lib/posts';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
-import type { Metadata, ResolvingMetadata } from 'next';
-interface PageProps { params: { slug: string }; searchParams: { [key: string]: string | string[] | undefined } }
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const post = await getPostBySlug(params.slug);
@@ -26,7 +24,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function PostPage({ params }: PageProps) {
+export default async function PostPage({ params }: { params: { slug: string } }) {
   const post = await getPostBySlug(params.slug);
   if (!post) {
     return (
