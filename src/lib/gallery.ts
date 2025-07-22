@@ -4,10 +4,10 @@ import matter from 'gray-matter';
 
 export interface PhotoMeta {
   slug: string;
+  title?: string;
   date: string;
   caption?: string;
   image: string; // url or path
-  sourceUrl?: string; // Instagram link
 }
 
 export interface Photo extends PhotoMeta {
@@ -26,10 +26,10 @@ export async function getAllPhotosMeta(): Promise<PhotoMeta[]> {
     const { data } = matter(source);
     photos.push({
       slug: file.replace(/\.mdx$/, ''),
+      title: data.title,
       date: data.date,
       caption: data.caption,
       image: data.image,
-      sourceUrl: data.sourceUrl,
     });
   }
   photos.sort((a, b) => b.date.localeCompare(a.date));
@@ -43,10 +43,10 @@ export async function getPhotoBySlug(slug: string): Promise<Photo | null> {
     const { data, content } = matter(source);
     return {
       slug,
+      title: data.title,
       date: data.date,
       caption: data.caption,
       image: data.image,
-      sourceUrl: data.sourceUrl,
       content,
     };
   } catch (e) {

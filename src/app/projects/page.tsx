@@ -2,7 +2,7 @@ import { getAllProjectsMeta } from '../../lib/projects';
 import Link from 'next/link';
 
 export const metadata = {
-  title: '项目',
+  title: '作品展示',
   description: '个人开源项目展示。',
 };
 
@@ -10,7 +10,7 @@ export default async function ProjectsPage() {
   const projects = await getAllProjectsMeta();
   return (
     <main>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>我的项目</h1>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>作品展示</h1>
       {projects.length === 0 && <p>暂无项目。</p>}
       {projects.map(p => (
         <article className="card" key={p.slug} style={{ marginBottom: '1.2rem' }}>

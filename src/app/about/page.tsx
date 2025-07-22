@@ -1,28 +1,114 @@
 export const metadata = {
-  title: '关于本站',
+  title: '关于我',
   description: '关于 AnteLacus 博客和站长的介绍。',
 };
 
 export default function AboutPage() {
   return (
-    <main>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem' }}>关于本站</h1>
-      <p style={{ color: 'var(--color-secondary)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>
-        AnteLacus 是一个专注于技术、生活与思考的个人博客，旨在记录成长、分享开发经验与见解。
-      </p>
-      <section style={{ marginBottom: '1.2rem' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.5rem' }}>关于站长</h2>
-        <p style={{ color: 'var(--color-text)' }}>
-          你好！我是 AnteLacus，一名热爱编程与写作的开发者，喜欢探索新技术、记录生活点滴。
+    <main className="about-page">
+      <div className="about-hero">
+        <h1 className="about-title">关于我</h1>
+        <p className="about-description">
+          欢迎来到我的数字花园，这里记录着我的思考轨迹、创作历程和技术探索。
         </p>
-      </section>
-      <section>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.5rem' }}>联系方式</h2>
-        <ul style={{ color: 'var(--color-text)', fontSize: '1em' }}>
-          <li>邮箱：hi@antelacus.com</li>
-          <li>GitHub：<a href="https://github.com/antelacus" target="_blank" rel="noopener noreferrer">antelacus</a></li>
-        </ul>
-      </section>
+      </div>
+
+      <div className="about-content">
+        <section className="about-section">
+          <h2 className="section-title">个人简介</h2>
+          <div className="section-content">
+            <p>
+              你好！我是 <strong>AnteLacus</strong>，一名热爱技术创新的开发者和思考者。
+              我相信技术的力量能够改变世界，同时也珍视生活中的每一个灵感瞬间。
+            </p>
+            <p>
+              在这个博客中，我分享我的<strong>深度思考</strong>、记录<strong>灵光一闪</strong>的创意瞬间、
+              展示我眼中的<strong>光影世界</strong>，以及我正在进行的<strong>技术项目</strong>。
+            </p>
+          </div>
+        </section>
+
+        <section className="about-section">
+          <h2 className="section-title">我的项目</h2>
+          <div className="section-content">
+            <p>
+              最近我开发了 <a href="https://goodman.antelacus.com" target="_blank" rel="noopener noreferrer" className="project-link">
+                <strong>Goodman</strong>
+              </a> - 一个AI财务助手，帮助财会人员提高工作效率，实现了从文档处理到财务分析的全流程自动化。
+            </p>
+            <p>
+              这个项目让我深刻体会到了现代AI工具的强大，也让我更加相信技术与专业知识结合的无限可能。
+            </p>
+          </div>
+        </section>
+
+        <section className="about-section">
+          <h2 className="section-title">联系我</h2>
+          <div className="section-content">
+            <p>我很乐意与同样热爱技术和创作的朋友交流，欢迎通过以下方式联系我：</p>
+            
+            <div className="contact-grid">
+              <a href="mailto:me@antelacus.com" className="contact-item">
+                <div className="contact-icon">✉️</div>
+                <div className="contact-info">
+                  <div className="contact-label">邮箱</div>
+                  <div className="contact-value">me@antelacus.com</div>
+                </div>
+              </a>
+
+              <a href="https://github.com/antelacus" target="_blank" rel="noopener noreferrer" className="contact-item">
+                <div className="contact-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                </div>
+                <div className="contact-info">
+                  <div className="contact-label">GitHub</div>
+                  <div className="contact-value">@antelacus</div>
+                </div>
+              </a>
+
+              <a href="https://x.com/antelacus110787" target="_blank" rel="noopener noreferrer" className="contact-item">
+                <div className="contact-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </div>
+                <div className="contact-info">
+                  <div className="contact-label">X (Twitter)</div>
+                  <div className="contact-value">@antelacus110787</div>
+                </div>
+              </a>
+
+              <a href="https://instagram.com/antelacus" target="_blank" rel="noopener noreferrer" className="contact-item">
+                <div className="contact-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                </div>
+                <div className="contact-info">
+                  <div className="contact-label">Instagram</div>
+                  <div className="contact-value">@antelacus</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="about-section">
+          <h2 className="section-title">关于这个博客</h2>
+          <div className="section-content">
+            <p>
+              这个博客使用 <strong>Next.js</strong> 构建，部署在 <strong>Vercel</strong> 上，
+              采用了地中海风情的<strong>西班牙弗拉门戈热情</strong>色彩方案。
+            </p>
+            <p>
+              所有内容都以 <strong>Markdown</strong> 格式编写，确保专注于内容创作本身。
+              如果你对技术实现感兴趣，欢迎查看项目的源代码。
+            </p>
+          </div>
+        </section>
+      </div>
     </main>
   );
 } 

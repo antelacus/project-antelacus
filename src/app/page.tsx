@@ -39,7 +39,7 @@ export default async function HomePage() {
         <div className="hero-content">
           <h1 className="hero-title">欢迎来到 AnteLacus</h1>
           <p className="hero-description">
-            这里记录我的思考、创意和生活片段 —— 长内容、灵感速记、照片分享，以及正在进行的项目。
+            这里记录我的思考、创意和生活片段 —— 深度思考、灵光一闪、光影记录，以及精彩的作品展示。
           </p>
         </div>
       </section>

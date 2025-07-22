@@ -7,8 +7,7 @@ export interface NoteMeta {
   title: string;
   date: string;
   summary?: string;
-  type?: 'note' | 'tweet';
-  tweetId?: string;
+  cover?: string;
 }
 
 export interface Note extends NoteMeta {
@@ -30,8 +29,7 @@ export async function getAllNotesMeta(): Promise<NoteMeta[]> {
       title: data.title,
       date: data.date,
       summary: data.summary,
-      type: data.type || 'note',
-      tweetId: data.tweetId,
+      cover: data.cover,
     });
   }
   notes.sort((a, b) => b.date.localeCompare(a.date));
@@ -48,8 +46,7 @@ export async function getNoteBySlug(slug: string): Promise<Note | null> {
       title: data.title,
       date: data.date,
       summary: data.summary,
-      type: data.type || 'note',
-      tweetId: data.tweetId,
+      cover: data.cover,
       content,
     };
   } catch (e) {

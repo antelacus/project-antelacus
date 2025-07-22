@@ -64,11 +64,11 @@ export default function Nav() {
         
         {/* 桌面端导航链接 */}
         <nav className="nav-links desktop-nav">
-          <Link href="/posts" className={`nav-link ${isActivePage('/posts') ? 'active' : ''}`}>长内容</Link>
-          <Link href="/notes" className={`nav-link ${isActivePage('/notes') ? 'active' : ''}`}>灵感速记</Link>
-          <Link href="/gallery" className={`nav-link ${isActivePage('/gallery') ? 'active' : ''}`}>相册</Link>
-          <Link href="/projects" className={`nav-link ${isActivePage('/projects') ? 'active' : ''}`}>项目</Link>
-          <Link href="/about" className={`nav-link ${isActivePage('/about') ? 'active' : ''}`}>关于</Link>
+          <Link href="/posts" className={`nav-link ${isActivePage('/posts') ? 'active' : ''}`}>深度思考</Link>
+          <Link href="/notes" className={`nav-link ${isActivePage('/notes') ? 'active' : ''}`}>灵光一闪</Link>
+          <Link href="/gallery" className={`nav-link ${isActivePage('/gallery') ? 'active' : ''}`}>光影记录</Link>
+          <Link href="/projects" className={`nav-link ${isActivePage('/projects') ? 'active' : ''}`}>作品展示</Link>
+          <Link href="/about" className={`nav-link ${isActivePage('/about') ? 'active' : ''}`}>关于我</Link>
         </nav>
 
         {/* 联系方式按钮 */}
@@ -136,19 +136,19 @@ export default function Nav() {
       <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
         <nav className="mobile-nav-links">
           <Link href="/posts" className={`mobile-nav-link ${isActivePage('/posts') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            长内容
+            深度思考
           </Link>
           <Link href="/notes" className={`mobile-nav-link ${isActivePage('/notes') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            灵感速记
+            灵光一闪
           </Link>
           <Link href="/gallery" className={`mobile-nav-link ${isActivePage('/gallery') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            相册
+            光影记录
           </Link>
           <Link href="/projects" className={`mobile-nav-link ${isActivePage('/projects') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            项目
+            作品展示
           </Link>
           <Link href="/about" className={`mobile-nav-link ${isActivePage('/about') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            关于
+            关于我
           </Link>
         </nav>
       </div>

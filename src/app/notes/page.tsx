@@ -2,7 +2,7 @@ import { getAllNotesMeta } from '../../lib/notes';
 import Link from 'next/link';
 
 export const metadata = {
-  title: '灵感速记',
+  title: '灵光一闪',
   description: '短内容与同步 X 帖子合集。',
 };
 
@@ -10,7 +10,7 @@ export default async function NotesPage() {
   const notes = await getAllNotesMeta();
   return (
     <main>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>灵感速记</h1>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>灵光一闪</h1>
       {notes.length === 0 && <p>暂无内容。</p>}
       {notes.map(note => (
         <article className="card" key={note.slug} style={{ marginBottom: '1rem' }}>

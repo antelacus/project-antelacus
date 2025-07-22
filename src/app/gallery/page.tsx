@@ -1,7 +1,7 @@
 import { getAllPhotosMeta } from '../../lib/gallery';
 
 export const metadata = {
-  title: '相册',
+  title: '光影记录',
   description: '精选 Instagram 照片集。',
 };
 
@@ -9,7 +9,7 @@ export default async function GalleryPage() {
   const photos = await getAllPhotosMeta();
   return (
     <main>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>相册</h1>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1.2rem' }}>光影记录</h1>
       {photos.length === 0 && <p>暂无照片。</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
         {photos.map(photo => (
