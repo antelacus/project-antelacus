@@ -2,16 +2,18 @@ import { getNoteBySlug } from '../../../lib/notes';
 import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const note = await getNoteBySlug(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const note = await getNoteBySlug(slug);
   if (!note) {
     return { title: '笔记未找到 | antelacus.com' };
   }
   return { title: `${note.title} | antelacus.com`, description: note.summary || '' };
 }
 
-export default async function NotePage({ params }: { params: { slug: string } }) {
-  const note = await getNoteBySlug(params.slug);
+export default async function NotePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const note = await getNoteBySlug(slug);
   if (!note) {
     return (
       <main style={{ textAlign: 'center', marginTop: '4rem' }}>
