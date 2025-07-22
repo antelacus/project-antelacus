@@ -9,7 +9,7 @@ interface MasonryGridProps {
 
 export default function MasonryGrid({ 
   children, 
-  columns = 3, 
+  columns = 4, 
   gap = 20 
 }: MasonryGridProps) {
   const [columnItems, setColumnItems] = useState<ReactElement[][]>([]);
@@ -19,12 +19,14 @@ export default function MasonryGrid({
     // 响应式列数计算
     const updateColumns = () => {
       const width = window.innerWidth;
-      if (width <= 768) {
+      if (width <= 640) {
         setCurrentColumns(1); // 移动端1列
       } else if (width <= 1024) {
-        setCurrentColumns(2); // 平板端2列
+        setCurrentColumns(2); // 小平板2列
+      } else if (width <= 1400) {
+        setCurrentColumns(3); // 大平板3列
       } else {
-        setCurrentColumns(columns); // 桌面端使用传入的列数
+        setCurrentColumns(columns); // 桌面端使用传入的列数（4列）
       }
     };
 

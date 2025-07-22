@@ -23,7 +23,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
     );
   }
   return (
-    <main>
+    <main className="container-wide">
       <article className="card" style={{ marginTop: '2rem' }}>
         <h1 style={{ fontSize: '1.8rem', marginBottom: '0.6rem' }}>{note.title}</h1>
         <div style={{ color: 'var(--color-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{new Date(note.date).toLocaleDateString('zh-CN')}</div>

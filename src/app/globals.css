@@ -43,9 +43,10 @@
   /* === 响应式宽度系统 === */
   --width-navigation: 1200px;
   --width-content-wide: 900px;     /* 文章详情、About页面 */
-  --width-content-normal: 800px;   /* 首页卡片流 */
+  --width-content-normal: 900px;   /* 内容列表页面 */
   --width-content-narrow: 700px;   /* 特殊内容 */
-  --width-masonry-column: 320px;   /* Masonry列宽优化 */
+  --width-homepage: 1200px;        /* 首页瀑布流专用 */
+  --width-masonry-column: 280px;   /* Masonry列宽优化 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -171,7 +172,6 @@ a:focus {
 }
 
 .note-card .card-title {
-  font-size: 1.2rem;
   line-height: 1.4;
 }
 
@@ -375,7 +375,7 @@ a:focus {
 
 .card-title {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -1084,6 +1084,9 @@ p {
 
 .homepage-feed {
   position: relative;
+  max-width: var(--width-homepage);
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 /* === 响应式主页设计 === */

@@ -38,7 +38,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     );
   }
   return (
-    <main>
+    <main className="container-wide">
       <article className="card" style={{ marginTop: '2rem' }}>
         {post.cover && (
           <img src={post.cover} alt={post.title} style={{ width: '100%', borderRadius: '6px', marginBottom: '1.2rem', maxHeight: 320, objectFit: 'cover' }} />

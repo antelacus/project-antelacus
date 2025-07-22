@@ -49,7 +49,7 @@ export default async function HomePage() {
       </section>
       
       <section className="homepage-feed">
-        <MasonryGrid columns={3} gap={20}>
+        <MasonryGrid columns={4} gap={20}>
           {feed.map((item, index) => (
             <div key={`${item.type}-${item.slug}`} style={{ animationDelay: `${index * 0.1}s` }}>
               {item.component}

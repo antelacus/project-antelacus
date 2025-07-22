@@ -15,7 +15,7 @@ const truncateSummary = (text: string, maxLength: number = 80) => {
 export default async function NotesPage() {
   const notes = await getAllNotesMeta();
   return (
-    <main>
+    <main className="container">
       {notes.length === 0 && <p>暂无内容。</p>}
       {notes.map(note => {
         const displaySummary = note.summary ? truncateSummary(note.summary) : '';
