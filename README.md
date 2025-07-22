@@ -67,8 +67,47 @@
 - [x] 完善基础样式与响应式布局
 - [x] 添加基础页面（About、404）
 - [x] 优化 SEO
-- [ ] （可选）集成评论、社交分享
-- [ ] （可选）内容管理自动化（如 Notion、CMS）
+- [ ] （可选）社交媒体内容双向同步（X / Instagram 选定帖子 ↔ 网站文章）
+- [x] 统一卡片组件、默认值、内容校验脚本
+
+## 内容发布与模板指引
+
+> 以下指南帮助你记住如何为 4 类内容添加文件，以及修改模板时的影响范围。
+
+### 1. 发布步骤（4 类内容通用）
+1. 在 `src/content/<posts|notes|gallery|projects>/` 新建 `.mdx` 文件。
+2. 填写对应 front-matter 字段（见下表）。
+3. 写正文（照片/推文可留空）。
+4. `git add && commit && push`，Vercel 自动部署。
+
+### 2. 必填字段快速对照
+
+| 类型 | 目录 | 必填字段 |
+| ---- | ---- | -------- |
+| Post | posts | `title` `date` |
+| Note | notes | `date` (`type: tweet + tweetId` 仅推文) |
+| Photo| gallery | `date` `image` |
+| Project | projects | `name` `description` `repo` |
+
+> 其他字段如 `cover`、`tags`、`caption` 均为可选，组件内部有默认处理。
+
+### 3. 修改模板的流程
+
+* **样式 / 布局** → 只改 `src/components/*Card.tsx` 等组件，一改全站生效。
+* **新增字段**
+  1. 在相应 `lib/*.ts` 中把字段设为可选并给默认。
+  2. 在 Card 组件里决定如何展示。
+  3. 仅在新内容的 front-matter 中填该字段即可；旧文件保持兼容。
+
+### 4. 内容校验脚本
+
+运行 `npm run validate:content`（已在 `package.json` scripts 中配置），执行 `scripts/validate-content.ts`：
+
+```bash
+npx ts-node scripts/validate-content.ts
+```
+
+若缺必填字段将报错并返回非 0 状态码，可在 CI 中使用。
 
 ## 开发进度记录
 
