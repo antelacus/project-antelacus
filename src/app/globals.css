@@ -1502,11 +1502,10 @@ p {
   margin: 0 auto;
 }
 
-/* === Gallery Header 美化 === */
+/* === Gallery Header 简化 === */
 .gallery-header {
   position: relative;
   margin-bottom: 2rem;
-  padding: 3rem 0 0 0;
 }
 
 .gallery-meta {
@@ -1527,10 +1526,7 @@ p {
   gap: 0.5rem;
   margin-bottom: 1rem;
   font-size: 0.9rem;
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 10;
+  padding-top: 0.5rem;
 }
 
 .breadcrumb-link {
@@ -1627,7 +1623,6 @@ p {
 @media (max-width: 768px) {
   .gallery-header {
     margin-bottom: 1.5rem;
-    padding: 2rem 0 0 0;
   }
   
   .gallery-meta {
@@ -1657,8 +1652,6 @@ p {
   }
   
   .gallery-breadcrumb {
-    top: 0.5rem;
-    left: 0.5rem;
     font-size: 0.8rem;
   }
 }
