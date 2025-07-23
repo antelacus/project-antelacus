@@ -1497,9 +1497,9 @@ p {
 
 /* === Gallery 详情页面样式 === */
 .gallery-detail {
+  padding: 1rem 1rem 2rem 1rem;
   max-width: var(--width-content-wide);
   margin: 0 auto;
-  padding: 2rem 1rem;
 }
 
 /* === Gallery Header 美化 === */
@@ -1528,7 +1528,7 @@ p {
   margin-bottom: 1rem;
   font-size: 0.9rem;
   position: absolute;
-  top: 5rem;
+  top: 1rem;
   left: 1rem;
   z-index: 10;
 }
@@ -1657,13 +1657,9 @@ p {
   }
   
   .gallery-breadcrumb {
-    top: 4rem;
+    top: 0.5rem;
     left: 0.5rem;
     font-size: 0.8rem;
-  }
-  
-  .gallery-detail {
-    padding-top: 5rem;
   }
 }
 
@@ -2086,10 +2082,6 @@ p {
   padding: 2rem 1rem;
 }
 
-.gallery-detail {
-  padding-top: 6rem;
-}
-
 .gallery-detail article.card {
   margin-top: 1rem;
 }
@@ -2097,6 +2089,10 @@ p {
 @media (min-width: 1024px) {
   .post-detail-container,
   .note-detail-container {
+    padding: 2rem 2rem;
+  }
+  
+  .gallery-detail {
     padding: 2rem 2rem;
   }
 }
