@@ -6,9 +6,11 @@ import { PhotoInfo } from '../lib/gallery';
 
 interface PhotoViewerProps {
   photos: PhotoInfo[];
+  location?: string;
+  date?: string;
 }
 
-export default function PhotoViewer({ photos }: PhotoViewerProps) {
+export default function PhotoViewer({ photos, location, date }: PhotoViewerProps) {
   const galleryRef = useRef<HTMLDivElement>(null);
   const lightboxRef = useRef<PhotoSwipeLightbox | null>(null);
 
@@ -33,9 +35,9 @@ export default function PhotoViewer({ photos }: PhotoViewerProps) {
       wheelToZoom: true,
       // 开启预加载
       preload: [1, 1],
-      // 禁用默认点击关闭行为
-      clickToCloseNonZoomable: false,
+      // 关键：单击只切换控件和信息，双击才缩放，桌面端也一致
       tapAction: 'toggle-controls',
+      imageClickAction: 'toggle-controls',
       doubleTapAction: 'zoom',
     });
 
@@ -92,6 +94,19 @@ export default function PhotoViewer({ photos }: PhotoViewerProps) {
 
       // 初始更新照片信息
       updatePhotoInfo(photoInfoElement, pswp);
+
+      // 只保留关闭按钮，隐藏其他控件
+      const ui = pswp.element?.querySelector('.pswp__ui');
+      if (ui) {
+        // 隐藏所有按钮，后面再显示关闭按钮
+        ui.querySelectorAll('.pswp__button').forEach(btn => {
+          if (!btn.classList.contains('pswp__button--close')) {
+            (btn as HTMLElement).style.display = 'none';
+          } else {
+            (btn as HTMLElement).style.display = '';
+          }
+        });
+      }
     });
 
     // 监听幻灯片切换，更新照片信息
@@ -138,34 +153,21 @@ export default function PhotoViewer({ photos }: PhotoViewerProps) {
 
   // 更新照片信息内容
   const updatePhotoInfo = (element: HTMLElement, pswp: { currIndex: number }) => {
-    const currentIndex = pswp.currIndex;
-    const photo = photos[currentIndex];
-    
-    if (!photo) return;
-    
+    // 只显示帖子级别的location和date
     const counter = element.querySelector('.photo-counter');
     const details = element.querySelector('.photo-details');
-    
+    const currentIndex = pswp.currIndex;
     if (counter) {
       counter.textContent = `${currentIndex + 1} / ${photos.length}`;
     }
-    
     if (details) {
       let detailsHTML = '';
-      
-      if (photo.caption) {
-        detailsHTML += `<div class="detail-item"><span class="label">说明:</span> ${photo.caption}</div>`;
+      if (location) {
+        detailsHTML += `<div class="detail-item"><span class="label">地点:</span> ${location}</div>`;
       }
-      if (photo.location) {
-        detailsHTML += `<div class="detail-item"><span class="label">地点:</span> ${photo.location}</div>`;
+      if (date) {
+        detailsHTML += `<div class="detail-item"><span class="label">时间:</span> ${date}</div>`;
       }
-      if (photo.camera) {
-        detailsHTML += `<div class="detail-item"><span class="label">相机:</span> ${photo.camera}</div>`;
-      }
-      if (photo.settings) {
-        detailsHTML += `<div class="detail-item"><span class="label">参数:</span> ${photo.settings}</div>`;
-      }
-      
       details.innerHTML = detailsHTML;
     }
   };

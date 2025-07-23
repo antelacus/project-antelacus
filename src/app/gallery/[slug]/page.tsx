@@ -77,7 +77,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <div className="gallery-photos">
-        <PhotoViewer photos={photo.photos} />
+        <PhotoViewer photos={photo.photos} location={photo.location} date={photo.date} />
       </div>
 
       {photo.content && (

@@ -50,10 +50,16 @@ export default async function HomePage() {
     <main className="homepage">
       <section className="homepage-hero">
         <div className="hero-content">
-          <h1 className="hero-title">欢迎来到 AnteLacus</h1>
+          <h1 className="hero-title">创意与思考的数字花园</h1>
           <p className="hero-description">
-            这里记录我的思考、创意和生活片段 —— 专栏文章、思维闪念、视觉创作，以及实验室项目。
+            在这里，每一篇文章都是用心雕琢的思考结晶，每一张照片都承载着独特的故事，每一个项目都体现着对技术与美学的追求。
           </p>
+          <div className="hero-highlights">
+            <span className="highlight-item">📝 深度思考</span>
+            <span className="highlight-item">📸 视觉美学</span>
+            <span className="highlight-item">🔬 技术探索</span>
+            <span className="highlight-item">💡 创意实验</span>
+          </div>
         </div>
       </section>
       
