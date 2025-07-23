@@ -64,10 +64,10 @@ export default function Nav() {
         
         {/* 桌面端导航链接 */}
         <nav className="nav-links desktop-nav">
-          <Link href="/posts" className={`nav-link ${isActivePage('/posts') ? 'active' : ''}`}>深度思考</Link>
-          <Link href="/notes" className={`nav-link ${isActivePage('/notes') ? 'active' : ''}`}>灵光一闪</Link>
-          <Link href="/gallery" className={`nav-link ${isActivePage('/gallery') ? 'active' : ''}`}>光影记录</Link>
-          <Link href="/projects" className={`nav-link ${isActivePage('/projects') ? 'active' : ''}`}>作品展示</Link>
+          <Link href="/posts" className={`nav-link ${isActivePage('/posts') ? 'active' : ''}`}>专栏</Link>
+          <Link href="/notes" className={`nav-link ${isActivePage('/notes') ? 'active' : ''}`}>闪念</Link>
+          <Link href="/gallery" className={`nav-link ${isActivePage('/gallery') ? 'active' : ''}`}>视觉</Link>
+          <Link href="/projects" className={`nav-link ${isActivePage('/projects') ? 'active' : ''}`}>实验室</Link>
           <Link href="/about" className={`nav-link ${isActivePage('/about') ? 'active' : ''}`}>关于我</Link>
         </nav>
 
@@ -136,16 +136,16 @@ export default function Nav() {
       <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
         <nav className="mobile-nav-links">
           <Link href="/posts" className={`mobile-nav-link ${isActivePage('/posts') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            深度思考
+            专栏
           </Link>
           <Link href="/notes" className={`mobile-nav-link ${isActivePage('/notes') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            灵光一闪
+            闪念
           </Link>
           <Link href="/gallery" className={`mobile-nav-link ${isActivePage('/gallery') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            光影记录
+            视觉
           </Link>
           <Link href="/projects" className={`mobile-nav-link ${isActivePage('/projects') ? 'active' : ''}`} onClick={closeMobileMenu}>
-            作品展示
+            实验室
           </Link>
           <Link href="/about" className={`mobile-nav-link ${isActivePage('/about') ? 'active' : ''}`} onClick={closeMobileMenu}>
             关于我

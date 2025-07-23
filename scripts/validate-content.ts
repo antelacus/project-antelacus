@@ -5,10 +5,32 @@ import { getAllPhotosMeta } from '../src/lib/gallery';
 import { getAllProjectsMeta } from '../src/lib/projects';
 
 async function run() {
-  const postSchema = z.object({ title: z.string(), date: z.string() });
-  const noteSchema = z.object({ title: z.string().optional(), date: z.string() });
-  const photoSchema = z.object({ image: z.string(), date: z.string() });
-  const projectSchema = z.object({ name: z.string(), description: z.string(), repo: z.string() });
+  const postSchema = z.object({ 
+    title: z.string(), 
+    date: z.string(),
+    tags: z.array(z.string()).optional(),
+  });
+  
+  const noteSchema = z.object({ 
+    title: z.string(), 
+    date: z.string(),
+    tags: z.array(z.string()).optional(),
+  });
+  
+  const photoSchema = z.object({ 
+    title: z.string(),
+    date: z.string(),
+    imageFolder: z.string(),
+    tags: z.array(z.string()).optional(),
+  });
+  
+  const projectSchema = z.object({ 
+    name: z.string(), 
+    description: z.string(), 
+    repo: z.string(),
+    date: z.string(),
+    tags: z.array(z.string()).optional(),
+  });
 
   let errorCount = 0;
   const posts = await getAllPostsMeta();

@@ -15,8 +15,8 @@ export default function AboutPage() {
               我相信技术的力量能够改变世界，同时也珍视生活中的每一个灵感瞬间。
             </p>
             <p>
-              在这个博客中，我分享我的<strong>深度思考</strong>、记录<strong>灵光一闪</strong>的创意瞬间、
-              展示我眼中的<strong>光影世界</strong>，以及我正在进行的<strong>技术项目</strong>。
+              在这个博客中，我分享我的<strong>专栏文章</strong>、记录<strong>思维闪念</strong>的创意瞬间、
+              展示我眼中的<strong>视觉世界</strong>，以及我正在进行的<strong>实验室项目</strong>。
             </p>
           </div>
         </section>

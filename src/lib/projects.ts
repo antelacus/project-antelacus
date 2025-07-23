@@ -7,8 +7,12 @@ export interface ProjectMeta {
   name: string;
   description: string;
   repo: string;
-  tags?: string[];
-  star?: number;
+  date: string;         // 项目发布/更新时间
+  tags?: string[];      // 项目标签
+  star?: number;        // GitHub星数
+  status?: string;      // 项目状态（active/archived/beta）
+  demo?: string;        // 在线演示链接
+  cover?: string;       // 项目封面图
 }
 
 export interface Project extends ProjectMeta {
@@ -30,10 +34,16 @@ export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
       name: data.name,
       description: data.description,
       repo: data.repo,
+      date: data.date,
       tags: data.tags || [],
       star: data.star,
+      status: data.status,
+      demo: data.demo,
+      cover: data.cover,
     });
   }
+  // 按日期倒序排列
+  projects.sort((a, b) => b.date.localeCompare(a.date));
   return projects;
 }
 
@@ -47,8 +57,12 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
       name: data.name,
       description: data.description,
       repo: data.repo,
+      date: data.date,
       tags: data.tags || [],
       star: data.star,
+      status: data.status,
+      demo: data.demo,
+      cover: data.cover,
       content,
     };
   } catch (e) {

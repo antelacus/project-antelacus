@@ -1,16 +1,19 @@
 import { getAllPostsMeta } from '../lib/posts';
 import { getAllNotesMeta } from '../lib/notes';
 import { getAllPhotosMeta } from '../lib/gallery';
+import { getAllProjectsMeta } from '../lib/projects';
 import PostCard from '../components/PostCard';
 import NoteCard from '../components/NoteCard';
 import PhotoCard from '../components/PhotoCard';
+import ProjectCard from '../components/ProjectCard';
 import MasonryGrid from '../components/MasonryGrid';
 
 export default async function HomePage() {
-  const [posts, notes, photos] = await Promise.all([
+  const [posts, notes, photos, projects] = await Promise.all([
     getAllPostsMeta(),
     getAllNotesMeta(),
     getAllPhotosMeta(),
+    getAllProjectsMeta(),
   ]);
 
   // 统一内容流，按时间排序
@@ -33,6 +36,12 @@ export default async function HomePage() {
       slug: photo.slug,
       component: <PhotoCard photo={photo} />,
     })),
+    ...projects.map(project => ({
+      type: 'project' as const,
+      date: project.date,
+      slug: project.slug,
+      component: <ProjectCard project={project} />,
+    })),
   ];
 
   feed.sort((a, b) => b.date.localeCompare(a.date));
@@ -43,7 +52,7 @@ export default async function HomePage() {
         <div className="hero-content">
           <h1 className="hero-title">欢迎来到 AnteLacus</h1>
           <p className="hero-description">
-            这里记录我的思考、创意和生活片段 —— 深度思考、灵光一闪、光影记录，以及精彩的作品展示。
+            这里记录我的思考、创意和生活片段 —— 专栏文章、思维闪念、视觉创作，以及实验室项目。
           </p>
         </div>
       </section>

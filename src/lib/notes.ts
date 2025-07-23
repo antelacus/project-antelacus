@@ -8,6 +8,7 @@ export interface NoteMeta {
   date: string;
   summary?: string;
   cover?: string;
+  tags?: string[];     // 统一标签系统
 }
 
 export interface Note extends NoteMeta {
@@ -30,6 +31,7 @@ export async function getAllNotesMeta(): Promise<NoteMeta[]> {
       date: data.date,
       summary: data.summary,
       cover: data.cover,
+      tags: data.tags || [],
     });
   }
   notes.sort((a, b) => b.date.localeCompare(a.date));
@@ -47,6 +49,7 @@ export async function getNoteBySlug(slug: string): Promise<Note | null> {
       date: data.date,
       summary: data.summary,
       cover: data.cover,
+      tags: data.tags || [],
       content,
     };
   } catch (e) {

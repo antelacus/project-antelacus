@@ -18,22 +18,26 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
     return (
       <main style={{ textAlign: 'center', marginTop: '4rem' }}>
         <h1 style={{ fontSize: '2rem', color: 'var(--color-secondary)' }}>笔记未找到</h1>
-        <Link href="/notes" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>返回列表</Link>
+        <Link href="/notes" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>返回闪念</Link>
       </main>
     );
   }
   return (
-    <main className="container-wide">
-      <article className="card" style={{ marginTop: '2rem' }}>
+    <main className="gallery-detail">
+      <div className="gallery-header">
+        <div className="gallery-breadcrumb">
+          <Link href="/notes" className="breadcrumb-link">闪念</Link>
+          <span className="breadcrumb-separator">›</span>
+          <span className="breadcrumb-current">{note.title}</span>
+        </div>
+      </div>
+      <article className="card" style={{ marginTop: '0' }}>
         <h1 style={{ fontSize: '1.8rem', marginBottom: '0.6rem' }}>{note.title}</h1>
         <div style={{ color: 'var(--color-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{new Date(note.date).toLocaleDateString('zh-CN')}</div>
         <div style={{ color: 'var(--color-text)', lineHeight: 1.7 }}>
           <MDXRemote source={note.content} />
         </div>
       </article>
-      <div style={{ textAlign: 'center', margin: '2rem 0 0 0' }}>
-        <Link href="/notes" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>← 返回列表</Link>
-      </div>
     </main>
   );
 } 

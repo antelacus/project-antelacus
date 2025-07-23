@@ -1,9 +1,9 @@
 import { getAllProjectsMeta } from '../../lib/projects';
-import Link from 'next/link';
+import ProjectCard from '../../components/ProjectCard';
 
 export const metadata = {
-  title: '作品展示',
-  description: '个人开源项目展示。',
+  title: '实验室',
+  description: '技术实验与创意项目展示。',
 };
 
 export default async function ProjectsPage() {
@@ -11,19 +11,8 @@ export default async function ProjectsPage() {
   return (
     <main className="container">
       {projects.length === 0 && <p>暂无项目。</p>}
-      {projects.map(p => (
-        <article className="card" key={p.slug} style={{ marginBottom: '1.2rem' }}>
-          <h2 style={{ margin: '0 0 0.4rem 0', fontSize: '1.4rem' }}>{p.name}</h2>
-          <div style={{ color: 'var(--color-secondary)', fontSize: '0.95rem', marginBottom: '0.6rem' }}>{p.description}</div>
-          <div style={{ marginBottom: '0.6rem' }}>
-            <a href={p.repo} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
-              GitHub 仓库 ↗
-            </a>
-          </div>
-          {p.tags && p.tags.map(tag => (
-            <span className="tag" key={tag}>{tag}</span>
-          ))}
-        </article>
+      {projects.map(project => (
+        <ProjectCard key={project.slug} project={project} />
       ))}
     </main>
   );

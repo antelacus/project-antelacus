@@ -23,6 +23,7 @@ export interface PhotoMeta {
   coverImage: string; // 封面图路径（第一张照片）
   photoCount: number; // 照片数量
   photos: PhotoInfo[]; // 所有照片信息
+  tags?: string[];    // 统一标签系统
 }
 
 export interface Photo extends PhotoMeta {
@@ -77,6 +78,7 @@ export async function getAllPhotosMeta(): Promise<PhotoMeta[]> {
       coverImage: photosInFolder[0]?.path || '',
       photoCount: photosInFolder.length,
       photos: photosInFolder,
+      tags: data.tags || [],
     });
   }
   
@@ -103,6 +105,7 @@ export async function getPhotoBySlug(slug: string): Promise<Photo | null> {
       coverImage: photosInFolder[0]?.path || '',
       photoCount: photosInFolder.length,
       photos: photosInFolder,
+      tags: data.tags || [],
       content,
     };
   } catch (e) {

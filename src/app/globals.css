@@ -148,6 +148,24 @@ a:focus {
   }
 }
 
+/* === 卡片链接样式 === */
+.card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-link:hover {
+  color: inherit;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.card-link:hover .card {
+  box-shadow: var(--shadow-md);
+}
+
 /* === 现代化卡片系统 === */
 .card {
   background: var(--color-card-bg);
@@ -161,7 +179,82 @@ a:focus {
   overflow: hidden;
 }
 
-/* === 灵光一闪卡片优化 === */
+/* === 专栏列表卡片样式 === */
+.post-list-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem;
+  margin-bottom: 1.2rem;
+  min-height: 110px;
+  gap: 1.2rem;
+  box-sizing: border-box;
+}
+
+.post-list-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-list-title {
+  margin: 0 0 0.4rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text);
+}
+
+.post-list-date {
+  color: var(--color-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.post-list-tags {
+  margin-bottom: 0.4rem;
+}
+
+.post-list-tag {
+  display: inline-block;
+  background-color: var(--color-card-bg);
+  color: var(--color-secondary);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-right: 0.4rem;
+  border: 1px solid var(--color-border);
+}
+
+.post-list-summary {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post-list-cover {
+  flex-shrink: 0;
+  margin-left: 1.2rem;
+}
+
+.post-list-image {
+  width: 180px;
+  height: 135px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #eee;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  display: block;
+  max-width: 100%;
+}
+
+/* === 闪念卡片优化 === */
 .note-card {
   padding: 1rem;
   margin-bottom: 1rem;
@@ -175,13 +268,90 @@ a:focus {
   line-height: 1.4;
 }
 
+/* === 实验室项目卡片样式 === */
+.project-card {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.project-status {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.status-active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.status-beta {
+  background: var(--color-secondary);
+  color: white;
+}
+
+.status-archived {
+  background: var(--color-text-muted);
+  color: white;
+  opacity: 0.7;
+}
+
+.project-links {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--color-card-bg);
+  transition: all 0.2s ease;
+}
+
+.project-link:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.link-icon {
+  font-size: 0.9rem;
+}
+
+.project-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  color: var(--color-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.star-icon {
+  font-size: 0.8rem;
+}
+
 .note-card .card-summary {
   font-size: 0.9rem;
   line-height: 1.5;
   margin-bottom: 0.5rem;
 }
 
-/* === 光影记录卡片样式 === */
+/* === 视觉作品卡片样式 === */
 .photo-card .card-cover {
   position: relative;
   overflow: hidden;
@@ -195,23 +365,37 @@ a:focus {
   bottom: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.6) 0%,
     rgba(0, 0, 0, 0) 30%,
-    rgba(0, 0, 0, 0) 70%,
-    rgba(0, 0, 0, 0.5) 100%
+    rgba(0, 0, 0, 0) 60%,
+    rgba(0, 0, 0, 0.7) 100%
   );
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.75rem;
 }
 
-.photo-card:hover .photo-overlay {
+.card-link:hover .photo-overlay {
   opacity: 1;
 }
 
+.card-link:hover .card-cover-image {
+  filter: blur(1px);
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+
+.photo-info {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
 .photo-count {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -221,6 +405,18 @@ a:focus {
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
   font-weight: 500;
+  backdrop-filter: blur(4px);
+  align-self: flex-start;
+}
+
+.photo-caption {
+  color: white;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
   backdrop-filter: blur(4px);
 }
 
@@ -245,60 +441,11 @@ a:focus {
   font-weight: 500;
 }
 
-/* === 灵光一闪预览样式 === */
-.note-preview {
-  position: relative;
-}
-
-.note-card:hover .read-more-hint {
-  background: var(--color-bg-secondary);
-  margin-left: -1rem;
-  margin-right: -1rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-bottom: 0.5rem;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  border-top-color: var(--color-primary-light);
-}
-
+/* === 闪念预览样式 === */
 .ellipsis {
   color: var(--color-text-muted);
   font-weight: 500;
   margin-left: 2px;
-}
-
-.read-more-hint {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border-subtle);
-  animation: fadeInUp 0.3s ease-out 0.1s both;
-}
-
-.read-more-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: var(--color-primary);
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  opacity: 0.8;
-}
-
-.read-more-link:hover {
-  color: var(--color-primary-hover);
-  opacity: 1;
-  gap: 0.4rem;
-}
-
-.read-more-link .arrow {
-  transition: transform 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.read-more-link:hover .arrow {
-  transform: translateX(2px);
 }
 
 .card::before {
@@ -380,14 +527,8 @@ a:focus {
   line-height: 1.3;
 }
 
-.card-title-link,
 .card-title-text {
   color: var(--color-text);
-  transition: color 0.2s ease;
-}
-
-.card-title-link:hover {
-  color: var(--color-primary);
 }
 
 .card-summary {
@@ -924,21 +1065,7 @@ a:focus {
     margin-bottom: 0.875rem;
   }
   
-  .note-card .read-more-hint {
-    margin-top: 0.4rem;
-    padding-top: 0.4rem;
-  }
-  
-  .note-card .read-more-link {
-    font-size: 0.75rem;
-  }
-  
-  .note-card:hover .read-more-hint {
-    margin-left: -0.875rem;
-    margin-right: -0.875rem;
-    padding-left: 0.875rem;
-    padding-right: 0.875rem;
-  }
+
   
   .brand-name {
     font-size: 1.1rem;
@@ -1193,13 +1320,7 @@ p {
 .masonry-item:nth-child(6) { animation-delay: 0.6s; }
 
 /* === Gallery 列表页面样式 === */
-.gallery-page {
-  max-width: var(--width-content-normal);
-  margin: 0 auto;
-  padding: 1rem 1rem 2rem 1rem;
-}
-
-/* Gallery page header styles removed as titles are now handled by navigation */
+/* Gallery page now uses .container class for consistency */
 
 .gallery-empty {
   text-align: center;
@@ -1228,11 +1349,7 @@ p {
 }
 
 @media (max-width: 768px) {
-  .gallery-page {
-    padding: 1rem 1rem 1.5rem 1rem;
-  }
-
-  /* Gallery page title styles removed */
+  /* Gallery page responsive styles removed - now handled by .container */
 
   .gallery-content .masonry-grid {
     gap: 15px;

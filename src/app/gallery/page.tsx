@@ -3,15 +3,15 @@ import PhotoCard from '../../components/PhotoCard';
 import MasonryGrid from '../../components/MasonryGrid';
 
 export const metadata = {
-  title: '光影记录',
-  description: '摄影作品与光影记录合集。',
+  title: '视觉',
+  description: '摄影作品与视觉创作合集。',
 };
 
 export default async function GalleryPage() {
   const photos = await getAllPhotosMeta();
   
   return (
-    <main className="gallery-page">
+    <main className="container">
       {photos.length === 0 ? (
         <div className="gallery-empty">
           <p>暂无照片作品。</p>

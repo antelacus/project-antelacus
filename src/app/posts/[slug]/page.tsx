@@ -33,13 +33,20 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       <main style={{ textAlign: 'center', marginTop: '4rem' }}>
         <h1 style={{ fontSize: '2rem', color: 'var(--color-secondary)' }}>文章未找到</h1>
         <p>你访问的文章不存在或已被删除。</p>
-        <Link href="/" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>返回首页</Link>
+        <Link href="/posts" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>返回专栏</Link>
       </main>
     );
   }
   return (
-    <main className="container-wide">
-      <article className="card" style={{ marginTop: '2rem' }}>
+    <main className="gallery-detail">
+      <div className="gallery-header">
+        <div className="gallery-breadcrumb">
+          <Link href="/posts" className="breadcrumb-link">专栏</Link>
+          <span className="breadcrumb-separator">›</span>
+          <span className="breadcrumb-current">{post.title}</span>
+        </div>
+      </div>
+      <article className="card" style={{ marginTop: '0' }}>
         {post.cover && (
           <img src={post.cover} alt={post.title} style={{ width: '100%', borderRadius: '6px', marginBottom: '1.2rem', maxHeight: 320, objectFit: 'cover' }} />
         )}
@@ -54,9 +61,6 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           <MDXRemote source={post.content} />
         </div>
       </article>
-      <div style={{ textAlign: 'center', margin: '2.5rem 0 0 0' }}>
-        <Link href="/" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>← 返回首页</Link>
-      </div>
     </main>
   );
 } 
