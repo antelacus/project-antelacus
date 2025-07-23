@@ -1,7 +1,7 @@
 import './globals.css';
 import React from 'react';
 import Nav from '../components/Nav';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
   title: {
@@ -15,6 +15,14 @@ export const metadata: Metadata = {
     shortcut: '/logo-icon.svg',
     apple: '/logo-icon.svg',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -11,8 +11,10 @@ export default async function PostsPage() {
   return (
     <main className="container">
       {posts.length === 0 && <p>暂无内容。</p>}
-      {posts.map(post => (
-        <PostListCard key={post.slug} post={post} />
+      {posts.map((post, index) => (
+        <div key={post.slug} style={{ animationDelay: `${index * 0.1}s` }}>
+          <PostListCard post={post} />
+        </div>
       ))}
     </main>
   );

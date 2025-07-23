@@ -11,8 +11,10 @@ export default async function NotesPage() {
   return (
     <main className="container">
       {notes.length === 0 && <p>暂无内容。</p>}
-      {notes.map(note => (
-        <NoteCard key={note.slug} note={note} />
+      {notes.map((note, index) => (
+        <div key={note.slug} style={{ animationDelay: `${index * 0.1}s` }}>
+          <NoteCard note={note} showType={false} />
+        </div>
       ))}
     </main>
   );

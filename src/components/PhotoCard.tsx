@@ -2,7 +2,12 @@
 import Link from 'next/link';
 import { PhotoMeta } from '../lib/gallery';
 
-export default function PhotoCard({ photo }: { photo: PhotoMeta }) {
+interface PhotoCardProps {
+  photo: PhotoMeta;
+  showType?: boolean;   // 是否显示类别标识（首页显示，专门页面不显示）
+}
+
+export default function PhotoCard({ photo, showType = true }: PhotoCardProps) {
   const showCover = photo.coverImage && photo.coverImage.trim() !== '';
 
   return (
@@ -38,7 +43,7 @@ export default function PhotoCard({ photo }: { photo: PhotoMeta }) {
         )}
         <div className="card-content">
           <div className="card-meta">
-            <span className="card-type">视觉</span>
+            {showType && <span className="card-type">视觉</span>}
             <time className="card-date">
               {new Date(photo.date).toLocaleDateString('zh-CN')}
             </time>
@@ -61,9 +66,6 @@ export default function PhotoCard({ photo }: { photo: PhotoMeta }) {
               ))}
             </div>
           )}
-          <div className="card-author">
-            <span>AnteLacus</span>
-          </div>
         </div>
       </article>
     </Link>

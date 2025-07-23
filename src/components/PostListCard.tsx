@@ -5,7 +5,7 @@ import { PostMeta } from '../lib/posts';
 export default function PostListCard({ post }: { post: PostMeta }) {
   return (
     <Link href={`/posts/${post.slug}`} className="card-link">
-      <article className="card post-list-card">
+      <article className="card post-list-card masonry-item">
         <div className="post-list-content">
           <h2 className="post-list-title">
             {post.title}

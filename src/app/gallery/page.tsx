@@ -21,7 +21,7 @@ export default async function GalleryPage() {
           <MasonryGrid columns={3} gap={20}>
             {photos.map((photo, index) => (
               <div key={photo.slug} style={{ animationDelay: `${index * 0.1}s` }}>
-                <PhotoCard photo={photo} />
+                <PhotoCard photo={photo} showType={false} />
               </div>
             ))}
           </MasonryGrid>

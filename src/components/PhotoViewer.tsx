@@ -1,5 +1,7 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
+import PhotoSwipeLightbox from 'photoswipe/lightbox';
+import 'photoswipe/style.css';
 import { PhotoInfo } from '../lib/gallery';
 
 interface PhotoViewerProps {
@@ -7,178 +9,192 @@ interface PhotoViewerProps {
 }
 
 export default function PhotoViewer({ photos }: PhotoViewerProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 键盘导航
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (selectedIndex === null) return;
-
-    switch (event.key) {
-      case 'ArrowLeft':
-        event.preventDefault();
-        setSelectedIndex(prev => prev === null ? null : Math.max(0, prev - 1));
-        break;
-      case 'ArrowRight':
-        event.preventDefault();
-        setSelectedIndex(prev => prev === null ? null : Math.min(photos.length - 1, prev + 1));
-        break;
-      case 'Escape':
-        event.preventDefault();
-        setSelectedIndex(null);
-        break;
-    }
-  }, [selectedIndex, photos.length]);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const lightboxRef = useRef<PhotoSwipeLightbox | null>(null);
 
   useEffect(() => {
-    if (selectedIndex !== null) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (!galleryRef.current) return;
 
+    // 初始化PhotoSwipe lightbox
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: galleryRef.current,
+      children: 'a',
+      pswpModule: () => import('photoswipe'),
+      // 缩放和手势配置
+      zoom: true,
+      initialZoomLevel: 'fit',
+      secondaryZoomLevel: 1.5,
+      maxZoomLevel: 3,
+      // 移动端手势优化
+      allowPanToNext: false, // 禁用拖拽切换，优先缩放
+      pinchToClose: false, // 禁用捏合关闭，避免意外退出
+      closeOnVerticalDrag: true,
+      // 鼠标滚轮缩放
+      wheelToZoom: true,
+      // 开启预加载
+      preload: [1, 1],
+      // 禁用默认点击关闭行为
+      clickToCloseNonZoomable: false,
+      tapAction: 'toggle-controls',
+      doubleTapAction: 'zoom',
+    });
+
+    // 监听beforeOpen事件，确保正确的图片尺寸
+    lightbox.on('beforeOpen', () => {
+      // 为每个链接预设默认尺寸，防止拉伸
+      const links = galleryRef.current?.querySelectorAll('a');
+      links?.forEach((link) => {
+        if (!link.dataset.pswpWidth) {
+          link.dataset.pswpWidth = '1920';
+          link.dataset.pswpHeight = '1080';
+        }
+      });
+    });
+
+    // 监听内容加载，动态获取真实尺寸
+    lightbox.on('contentLoad', (e) => {
+      const { content } = e;
+      
+      if (content.type === 'image' && content.data.src) {
+        const img = new Image();
+        img.onload = () => {
+          // 更新PhotoSwipe的内容尺寸
+          content.width = img.naturalWidth;
+          content.height = img.naturalHeight;
+        };
+        img.src = content.data.src;
+      }
+    });
+
+    // 监听PhotoSwipe实例初始化
+    lightbox.on('firstUpdate', () => {
+      const pswp = lightboxRef.current?.pswp;
+      if (!pswp) return;
+
+      // 添加自定义照片信息UI
+      const photoInfoElement = createPhotoInfoElement();
+      pswp.scrollWrap?.appendChild(photoInfoElement);
+
+      // 监听点击事件来切换信息显示
+      const handleClick = (e: Event) => {
+        // 检查是否点击在图片上（而不是控件上）
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('pswp__img') || target.closest('.pswp__zoom-wrap')) {
+          // 隐藏首次使用提示
+          if (pswp.container) {
+            pswp.container.classList.add('hint-used');
+          }
+          togglePhotoInfo(photoInfoElement);
+        }
+      };
+
+      pswp.scrollWrap?.addEventListener('click', handleClick);
+
+      // 初始更新照片信息
+      updatePhotoInfo(photoInfoElement, pswp);
+    });
+
+    // 监听幻灯片切换，更新照片信息
+    lightbox.on('change', () => {
+      const pswp = lightboxRef.current?.pswp;
+      if (!pswp) return;
+      
+      const photoInfoElement = pswp.scrollWrap?.querySelector('.custom-photo-info') as HTMLElement;
+      if (photoInfoElement) {
+        updatePhotoInfo(photoInfoElement, pswp);
+      }
+    });
+
+    // 初始化lightbox
+    lightbox.init();
+    lightboxRef.current = lightbox;
+
+    // 清理函数
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      if (lightboxRef.current) {
+        lightboxRef.current.destroy();
+        lightboxRef.current = null;
+      }
     };
-  }, [handleKeyDown, selectedIndex]);
+  }, []);
 
-  const openPhoto = (index: number) => {
-    setSelectedIndex(index);
+  // 创建照片信息元素
+  const createPhotoInfoElement = () => {
+    const element = document.createElement('div');
+    element.className = 'custom-photo-info';
+    element.innerHTML = `
+      <div class="photo-info-content">
+        <div class="photo-counter"></div>
+        <div class="photo-details"></div>
+      </div>
+    `;
+    return element;
   };
 
-  const closeViewer = () => {
-    setSelectedIndex(null);
+  // 切换照片信息显示/隐藏
+  const togglePhotoInfo = (element: HTMLElement) => {
+    element.classList.toggle('visible');
   };
 
-  const goToPrevious = () => {
-    setSelectedIndex(prev => prev === null ? null : Math.max(0, prev - 1));
-  };
-
-  const goToNext = () => {
-    setSelectedIndex(prev => prev === null ? null : Math.min(photos.length - 1, prev + 1));
-  };
-
-  const handleOverlayClick = (event: React.MouseEvent) => {
-    if (event.target === event.currentTarget) {
-      closeViewer();
+  // 更新照片信息内容
+  const updatePhotoInfo = (element: HTMLElement, pswp: { currIndex: number }) => {
+    const currentIndex = pswp.currIndex;
+    const photo = photos[currentIndex];
+    
+    if (!photo) return;
+    
+    const counter = element.querySelector('.photo-counter');
+    const details = element.querySelector('.photo-details');
+    
+    if (counter) {
+      counter.textContent = `${currentIndex + 1} / ${photos.length}`;
+    }
+    
+    if (details) {
+      let detailsHTML = '';
+      
+      if (photo.caption) {
+        detailsHTML += `<div class="detail-item"><span class="label">说明:</span> ${photo.caption}</div>`;
+      }
+      if (photo.location) {
+        detailsHTML += `<div class="detail-item"><span class="label">地点:</span> ${photo.location}</div>`;
+      }
+      if (photo.camera) {
+        detailsHTML += `<div class="detail-item"><span class="label">相机:</span> ${photo.camera}</div>`;
+      }
+      if (photo.settings) {
+        detailsHTML += `<div class="detail-item"><span class="label">参数:</span> ${photo.settings}</div>`;
+      }
+      
+      details.innerHTML = detailsHTML;
     }
   };
 
   return (
-    <>
-      {/* 照片网格 */}
-      <div className="photo-grid">
-        {photos.map((photo, index) => (
-          <div 
-            key={photo.filename}
-            className="photo-grid-item"
-            onClick={() => openPhoto(index)}
-          >
-            <img
-              src={photo.path}
-              alt={photo.caption || `照片 ${index + 1}`}
-              className="photo-grid-image"
-              loading="lazy"
-            />
-            <div className="photo-grid-overlay">
-              <div className="photo-grid-info">
-                <span className="photo-number">{index + 1}</span>
-              </div>
+    <div ref={galleryRef} className="photo-grid">
+      {photos.map((photo, index) => (
+        <a
+          key={photo.filename}
+          href={photo.path}
+          data-pswp-width="1920"
+          data-pswp-height="1080"
+          target="_blank"
+          rel="noreferrer"
+          className="photo-grid-item"
+        >
+          <img
+            src={photo.path}
+            alt={photo.caption || `照片 ${index + 1}`}
+            className="photo-grid-image"
+            loading="lazy"
+          />
+          <div className="photo-grid-overlay">
+            <div className="photo-grid-info">
+              <span className="photo-number">{index + 1}</span>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* 照片放大浏览器 */}
-      {selectedIndex !== null && (
-        <div className="photo-lightbox" onClick={handleOverlayClick}>
-          <div className="lightbox-overlay">
-            {/* 关闭按钮 */}
-            <button 
-              className="lightbox-close" 
-              onClick={closeViewer}
-              aria-label="关闭照片浏览器"
-            >
-              ✕
-            </button>
-
-            {/* 上一张按钮 */}
-            {selectedIndex > 0 && (
-              <button 
-                className="lightbox-nav lightbox-nav-prev" 
-                onClick={goToPrevious}
-                aria-label="上一张照片"
-              >
-                ‹
-              </button>
-            )}
-
-            {/* 下一张按钮 */}
-            {selectedIndex < photos.length - 1 && (
-              <button 
-                className="lightbox-nav lightbox-nav-next" 
-                onClick={goToNext}
-                aria-label="下一张照片"
-              >
-                ›
-              </button>
-            )}
-
-            {/* 照片容器 */}
-            <div className="lightbox-content">
-              <img
-                src={photos[selectedIndex].path}
-                alt={photos[selectedIndex].caption || `照片 ${selectedIndex + 1}`}
-                className="lightbox-image"
-                onLoad={() => setIsLoading(false)}
-                onLoadStart={() => setIsLoading(true)}
-              />
-
-              {isLoading && (
-                <div className="lightbox-loading">
-                  <div className="loading-spinner"></div>
-                </div>
-              )}
-            </div>
-
-            {/* 照片信息 */}
-            <div className="lightbox-info">
-              <div className="photo-meta">
-                <div className="photo-meta-item">
-                  <span className="meta-label">照片</span>
-                  <span className="meta-value">{selectedIndex + 1} / {photos.length}</span>
-                </div>
-                {photos[selectedIndex].caption && (
-                  <div className="photo-meta-item">
-                    <span className="meta-label">说明</span>
-                    <span className="meta-value">{photos[selectedIndex].caption}</span>
-                  </div>
-                )}
-                {photos[selectedIndex].location && (
-                  <div className="photo-meta-item">
-                    <span className="meta-label">地点</span>
-                    <span className="meta-value">{photos[selectedIndex].location}</span>
-                  </div>
-                )}
-                {photos[selectedIndex].camera && (
-                  <div className="photo-meta-item">
-                    <span className="meta-label">相机</span>
-                    <span className="meta-value">{photos[selectedIndex].camera}</span>
-                  </div>
-                )}
-                {photos[selectedIndex].settings && (
-                  <div className="photo-meta-item">
-                    <span className="meta-label">参数</span>
-                    <span className="meta-value">{photos[selectedIndex].settings}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+        </a>
+      ))}
+    </div>
   );
 } 

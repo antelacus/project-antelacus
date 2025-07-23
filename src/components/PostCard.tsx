@@ -2,7 +2,12 @@
 import Link from 'next/link';
 import { PostMeta } from '../lib/posts';
 
-export default function PostCard({ post }: { post: PostMeta }) {
+interface PostCardProps {
+  post: PostMeta;
+  showType?: boolean;   // 是否显示类别标识（首页显示，专门页面不显示）
+}
+
+export default function PostCard({ post, showType = true }: PostCardProps) {
   const showCover = post.cover && post.cover.trim() !== '';
 
   return (
@@ -25,7 +30,7 @@ export default function PostCard({ post }: { post: PostMeta }) {
         )}
         <div className="card-content">
           <div className="card-meta">
-            <span className="card-type">专栏</span>
+            {showType && <span className="card-type">专栏</span>}
             <time className="card-date">
               {new Date(post.date).toLocaleDateString('zh-CN')}
             </time>
@@ -36,9 +41,6 @@ export default function PostCard({ post }: { post: PostMeta }) {
           {post.summary && (
             <p className="card-summary">{post.summary}</p>
           )}
-          <div className="card-author">
-            <span>AnteLacus</span>
-          </div>
           {post.tags && post.tags.length > 0 && (
             <div className="card-tags">
               {post.tags.map((tag) => (

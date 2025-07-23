@@ -2,7 +2,12 @@
 import Link from 'next/link';
 import { NoteMeta } from '../lib/notes';
 
-export default function NoteCard({ note }: { note: NoteMeta }) {
+interface NoteCardProps {
+  note: NoteMeta;
+  showType?: boolean;   // 是否显示类别标识（首页显示，专门页面不显示）
+}
+
+export default function NoteCard({ note, showType = true }: NoteCardProps) {
   // 截断summary，确保显示"未完整"的感觉
   const truncateSummary = (text: string, maxLength: number = 80) => {
     if (text.length <= maxLength) return text;
@@ -16,7 +21,7 @@ export default function NoteCard({ note }: { note: NoteMeta }) {
       <article className="card masonry-item note-card">
         <div className="card-content">
           <div className="card-meta">
-            <span className="card-type">闪念</span>
+            {showType && <span className="card-type">闪念</span>}
             <time className="card-date">
               {new Date(note.date).toLocaleDateString('zh-CN')}
             </time>
@@ -39,9 +44,6 @@ export default function NoteCard({ note }: { note: NoteMeta }) {
               ))}
             </div>
           )}
-          <div className="card-author">
-            <span>AnteLacus</span>
-          </div>
         </div>
       </article>
     </Link>

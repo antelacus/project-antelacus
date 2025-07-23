@@ -11,8 +11,10 @@ export default async function ProjectsPage() {
   return (
     <main className="container">
       {projects.length === 0 && <p>暂无项目。</p>}
-      {projects.map(project => (
-        <ProjectCard key={project.slug} project={project} />
+      {projects.map((project, index) => (
+        <div key={project.slug} style={{ animationDelay: `${index * 0.1}s` }}>
+          <ProjectCard project={project} showType={false} showLinks={true} />
+        </div>
       ))}
     </main>
   );
