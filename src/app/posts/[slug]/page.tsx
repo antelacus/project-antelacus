@@ -39,14 +39,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   }
   return (
     <main className="gallery-detail">
-      <div className="gallery-header">
-        <div className="gallery-breadcrumb">
-          <Link href="/posts" className="breadcrumb-link">专栏</Link>
-          <span className="breadcrumb-separator">›</span>
-          <span className="breadcrumb-current">{post.title}</span>
-        </div>
+      <div className="gallery-breadcrumb">
+        <Link href="/posts" className="breadcrumb-link">专栏</Link>
+        <span className="breadcrumb-separator">›</span>
+        <span className="breadcrumb-current">{post.title}</span>
       </div>
-      <article className="card" style={{ marginTop: '0' }}>
+      <article className="card">
         {post.cover && (
           <img src={post.cover} alt={post.title} style={{ width: '100%', borderRadius: '6px', marginBottom: '1.2rem', maxHeight: 320, objectFit: 'cover' }} />
         )}

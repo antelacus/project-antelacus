@@ -24,14 +24,12 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
   }
   return (
     <main className="gallery-detail">
-      <div className="gallery-header">
-        <div className="gallery-breadcrumb">
-          <Link href="/notes" className="breadcrumb-link">闪念</Link>
-          <span className="breadcrumb-separator">›</span>
-          <span className="breadcrumb-current">{note.title}</span>
-        </div>
+      <div className="gallery-breadcrumb">
+        <Link href="/notes" className="breadcrumb-link">闪念</Link>
+        <span className="breadcrumb-separator">›</span>
+        <span className="breadcrumb-current">{note.title}</span>
       </div>
-      <article className="card" style={{ marginTop: '0' }}>
+      <article className="card">
         <h1 style={{ fontSize: '1.8rem', marginBottom: '0.6rem' }}>{note.title}</h1>
         <div style={{ color: 'var(--color-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{note.date}</div>
         <div style={{ color: 'var(--color-text)', lineHeight: 1.7 }}>
