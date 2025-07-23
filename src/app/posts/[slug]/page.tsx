@@ -51,7 +51,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           <img src={post.cover} alt={post.title} style={{ width: '100%', borderRadius: '6px', marginBottom: '1.2rem', maxHeight: 320, objectFit: 'cover' }} />
         )}
         <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>{post.title}</h1>
-        <div style={{ color: 'var(--color-secondary)', fontSize: '1em', marginBottom: '0.7em' }}>{new Date(post.date).toLocaleDateString('zh-CN')}</div>
+        <div style={{ color: 'var(--color-secondary)', fontSize: '1em', marginBottom: '0.7em' }}>{post.date}</div>
         <div style={{ marginBottom: '1.2em' }}>
           {post.tags && post.tags.map(tag => (
             <span className="tag" key={tag}>{tag}</span>

@@ -33,7 +33,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
       </div>
       <article className="card" style={{ marginTop: '0' }}>
         <h1 style={{ fontSize: '1.8rem', marginBottom: '0.6rem' }}>{note.title}</h1>
-        <div style={{ color: 'var(--color-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{new Date(note.date).toLocaleDateString('zh-CN')}</div>
+        <div style={{ color: 'var(--color-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{note.date}</div>
         <div style={{ color: 'var(--color-text)', lineHeight: 1.7 }}>
           <MDXRemote source={note.content} />
         </div>

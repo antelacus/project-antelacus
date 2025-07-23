@@ -32,7 +32,7 @@ export default function PostCard({ post, showType = true }: PostCardProps) {
           <div className="card-meta">
             {showType && <span className="card-type">专栏</span>}
             <time className="card-date">
-              {new Date(post.date).toLocaleDateString('zh-CN')}
+              {post.date}
             </time>
           </div>
           <h2 className="card-title">

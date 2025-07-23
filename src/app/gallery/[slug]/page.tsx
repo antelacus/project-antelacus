@@ -53,11 +53,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
           <h1 className="gallery-title">{photo.title}</h1>
           <div className="gallery-info">
             <time className="gallery-date">
-              {new Date(photo.date).toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+              {photo.date}
             </time>
             {photo.location && (
               <span className="gallery-location">

@@ -23,7 +23,7 @@ export default function NoteCard({ note, showType = true }: NoteCardProps) {
           <div className="card-meta">
             {showType && <span className="card-type">闪念</span>}
             <time className="card-date">
-              {new Date(note.date).toLocaleDateString('zh-CN')}
+              {note.date}
             </time>
           </div>
           <h2 className="card-title">

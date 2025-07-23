@@ -32,7 +32,7 @@ export default function ProjectCard({ project, showLinks = false, showType = tru
         <div className="card-meta">
           {showType && <span className="card-type">实验室</span>}
           <time className="card-date">
-            {new Date(project.date).toLocaleDateString('zh-CN')}
+            {project.date}
           </time>
           {project.status && (
             <span className={`project-status status-${project.status}`}>

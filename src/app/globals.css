@@ -2210,3 +2210,24 @@ p {
     scroll-behavior: auto !important;
   }
 }
+
+/* === 文章详情排版优化 === */
+.gallery-detail article.card p {
+  margin-bottom: 1rem;
+}
+
+.gallery-detail article.card ul,
+.gallery-detail article.card ol {
+  margin: 0 0 1rem 1.5rem;
+  padding-left: 0; /* reset default to avoid double indent if any */
+}
+
+.gallery-detail article.card li {
+  margin-bottom: 0.5rem;
+}
+
+.gallery-detail article.card h2,
+.gallery-detail article.card h3,
+.gallery-detail article.card h4 {
+  margin-top: 1.75rem; /* extra space before headings */
+}

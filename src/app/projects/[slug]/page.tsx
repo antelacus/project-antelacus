@@ -54,11 +54,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           {project.name}
         </h1>
         <div style={{ color: 'var(--color-secondary)', fontSize: '1em', marginBottom: '0.7em' }}>
-          {new Date(project.date).toLocaleDateString('zh-CN')}
+          {project.date}
           {project.status && (
             <span className={`project-status status-${project.status}`} style={{ marginLeft: '1rem' }}>
-              {project.status === 'active' ? '活跃' : 
-               project.status === 'beta' ? '测试' : 
+              {project.status === 'active' ? '活跃' :
+               project.status === 'beta' ? '测试' :
                project.status === 'archived' ? '归档' : project.status}
             </span>
           )}
@@ -111,4 +111,4 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       </article>
     </main>
   );
-} 
+}

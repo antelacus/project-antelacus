@@ -11,7 +11,7 @@ export default function PostListCard({ post }: { post: PostMeta }) {
             {post.title}
           </h2>
           <div className="post-list-date">
-            {new Date(post.date).toLocaleDateString('zh-CN')}
+            {post.date}
           </div>
           {post.tags && post.tags.length > 0 && (
             <div className="post-list-tags">

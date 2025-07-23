@@ -45,7 +45,7 @@ export default function PhotoCard({ photo, showType = true }: PhotoCardProps) {
           <div className="card-meta">
             {showType && <span className="card-type">视觉</span>}
             <time className="card-date">
-              {new Date(photo.date).toLocaleDateString('zh-CN')}
+              {photo.date}
             </time>
           </div>
           <h2 className="card-title">
