@@ -53,7 +53,7 @@ export default function Nav() {
       <div className="nav-inner">
         <Link href="/" className="logo-brand" onClick={closeMobileMenu}>
           <Image 
-            src="/logo-icon.svg" 
+            src="/images/common/logo-icon.svg" 
             alt="AnteLacus Logo" 
             width={24} 
             height={24} 

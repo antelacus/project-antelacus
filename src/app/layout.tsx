@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   description: 'AnteLacus 个人博客 - 记录思考、分享创意',
   keywords: ['博客', '个人网站', 'AnteLacus'],
   icons: {
-    icon: '/logo-icon.svg',
-    shortcut: '/logo-icon.svg',
-    apple: '/logo-icon.svg',
+    icon: '/images/common/logo-icon.svg',
+    shortcut: '/images/common/logo-icon.svg',
+    apple: '/images/common/logo-icon.svg',
   },
 };
 
@@ -29,9 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-CN">
       <head>
-        <link rel="icon" href="/logo-icon.svg" type="image/svg+xml" />
-        <link rel="shortcut icon" href="/logo-icon.svg" />
-        <link rel="apple-touch-icon" href="/logo-icon.svg" />
+        <link rel="icon" href="/images/common/logo-icon.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/images/common/logo-icon.svg" />
+        <link rel="apple-touch-icon" href="/images/common/logo-icon.svg" />
       </head>
       <body>
         <Nav />

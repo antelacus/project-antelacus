@@ -33,7 +33,7 @@ export interface Photo extends PhotoMeta {
 }
 
 const GALLERY_DIR = path.join(process.cwd(), 'src/content/gallery');
-const PUBLIC_GALLERY_DIR = path.join(process.cwd(), 'public/gallery');
+const PUBLIC_GALLERY_DIR = path.join(process.cwd(), 'public/images/gallery');
 
 // 获取照片文件夹中的所有照片
 async function getPhotosFromFolder(folderName: string): Promise<PhotoInfo[]> {
@@ -47,7 +47,7 @@ async function getPhotosFromFolder(folderName: string): Promise<PhotoInfo[]> {
     
     return imageFiles.map(filename => ({
       filename,
-      path: `/gallery/${folderName}/${filename}`,
+      path: `/images/gallery/${folderName}/${filename}`,
       // 可以在这里添加EXIF读取逻辑
     }));
   } catch (error) {

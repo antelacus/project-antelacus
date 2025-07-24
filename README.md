@@ -97,7 +97,47 @@
 - `.photo-card`：视觉卡片样式
 - `.project-card`：实验室项目卡片样式
 
-### （四）统一标签管理系统
+### （四）图片资源管理架构
+
+#### 📁 统一文件组织结构
+
+**推荐的目录结构：**
+```
+public/images/                    # 统一的图片根目录
+├── posts/                       # 专栏文章图片
+│   ├── covers/                  # 封面图片
+│   └── content/                 # 文章内容图片
+│       └── {post-slug}/         # 按文章分组
+├── notes/                       # 闪念笔记图片  
+│   └── {note-slug}/             # 按笔记分组
+├── gallery/                     # 视觉作品
+│   ├── {album-name}/            # 按相册分组
+│   └── {album-name}/
+├── projects/                    # 实验室项目图片
+│   └── {project-name}/          # 按项目分组
+└── common/                      # 通用图片（logo、图标等）
+    ├── logo-icon.svg
+    ├── file.svg
+    └── ...
+```
+
+#### 🎯 路径规范与优势
+
+**路径命名规范：**
+- 封面图：`/images/posts/covers/{slug}-cover.{ext}`
+- 内容图：`/images/posts/content/{slug}/{description}.{ext}`
+- 笔记图：`/images/notes/{slug}/image{number}.{ext}`
+- 相册图：`/images/gallery/{album-name}/{original-filename}`
+- 项目图：`/images/projects/{project-name}/{description}.{ext}`
+- 通用图标：`/images/common/{icon-name}.svg`
+
+**架构优势：**
+1. **统一管理**：所有图片资源集中在 `/images` 下，避免根目录杂乱
+2. **扩展友好**：支持多尺寸版本、WebP格式、CDN集成
+3. **语义清晰**：路径即分类，便于理解和维护
+4. **批量操作**：便于图片优化、压缩、格式转换等批量处理
+
+### （五）统一标签管理系统
 
 #### 标签架构设计
 
@@ -193,7 +233,13 @@
 - [x] **缓存策略**：文章列表缓存1小时，单篇文章缓存2小时
 - [x] **加载性能**：首次点击从1秒降至200-300ms，重复访问接近瞬时
 
-### （八）已移除功能（技术债务清理）
+### （八）资源管理优化 ✅ 📁
+- [x] **图片资源重构**：统一迁移到 `/public/images/` 目录，按内容类型分类管理
+- [x] **路径规范化**：建立清晰的图片路径命名规范，便于维护和扩展
+- [x] **MDX兼容性修复**：解决Notion迁移内容的图片引用、数学公式、HTML标签问题
+- [x] **响应式图片展示**：支持并列图片布局，移动端自适应换行
+
+### （九）已移除功能（技术债务清理）
 - [x] ~~社交媒体内容同步（X / Instagram 选定帖子）~~ - 已移除，专注原创内容
 
 ---
@@ -219,7 +265,7 @@
 4. `git add && commit && push`，Vercel 自动部署
 
 **视觉作品专用流程：**
-1. 在 `public/gallery/` 创建照片文件夹：`YYYY-MM-DD-theme-name`
+1. 在 `public/images/gallery/` 创建照片文件夹：`YYYY-MM-DD-theme-name`
 2. 将照片文件放入文件夹（建议按数字顺序命名：01.jpg, 02.jpg...）
 3. 在 `src/content/gallery/` 新建对应的 `.mdx` 文件
 4. 设置 `imageFolder` 字段指向照片文件夹名
@@ -227,7 +273,7 @@
 
 **示例：**
 ```
-public/gallery/2025-01-22-sunset/
+public/images/gallery/2025-01-22-sunset/
   ├── 01.jpg  ← 封面图（第一张照片）
   ├── 02.jpg
   └── 03.jpg
