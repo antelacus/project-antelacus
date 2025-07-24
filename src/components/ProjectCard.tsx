@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import { ProjectMeta } from '../lib/projects';
 
 interface ProjectCardProps {
@@ -15,16 +16,15 @@ export default function ProjectCard({ project, showLinks = false, showType = tru
     <article className="card masonry-item project-card">
       {showCover && (
         <div className="card-cover">
-          <img 
-            src={project.cover} 
-            alt={project.name} 
+          <Image
+            src={project.cover!}
+            alt={project.name}
             className="card-cover-image"
-            onError={(e) => {
-              const coverDiv = e.currentTarget.parentElement;
-              if (coverDiv) {
-                coverDiv.style.display = 'none';
-              }
-            }}
+            width={400}
+            height={160}
+            style={{ objectFit: 'cover' }}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
           />
         </div>
       )}
@@ -92,7 +92,7 @@ export default function ProjectCard({ project, showLinks = false, showType = tru
 
   // 如果不显示链接（在首页），则包裹Link使整个卡片可点击
   return (
-    <Link href={`/projects/${project.slug}`} className="card-link">
+    <Link href={`/projects/${project.slug}`} className="card-link" prefetch={true}>
       {cardContent}
     </Link>
   );

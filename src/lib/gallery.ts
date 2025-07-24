@@ -1,6 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import matter from 'gray-matter';
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
 export interface PhotoInfo {
   filename: string;
@@ -54,7 +56,7 @@ async function getPhotosFromFolder(folderName: string): Promise<PhotoInfo[]> {
   }
 }
 
-export async function getAllPhotosMeta(): Promise<PhotoMeta[]> {
+const getAllPhotosMetaUncached = async (): Promise<PhotoMeta[]> => {
   const files = await fs.readdir(GALLERY_DIR);
   const photos: PhotoMeta[] = [];
   
@@ -84,9 +86,18 @@ export async function getAllPhotosMeta(): Promise<PhotoMeta[]> {
   
   photos.sort((a, b) => b.date.localeCompare(a.date));
   return photos;
-}
+};
 
-export async function getPhotoBySlug(slug: string): Promise<Photo | null> {
+export const getAllPhotosMeta = unstable_cache(
+  getAllPhotosMetaUncached,
+  ['photos-meta'],
+  {
+    revalidate: 3600,
+    tags: ['gallery']
+  }
+);
+
+const getPhotoBySlugUncached = async (slug: string): Promise<Photo | null> => {
   const filePath = path.join(GALLERY_DIR, `${slug}.mdx`);
   try {
     const source = await fs.readFile(filePath, 'utf-8');
@@ -111,4 +122,15 @@ export async function getPhotoBySlug(slug: string): Promise<Photo | null> {
   } catch (e) {
     return null;
   }
-} 
+};
+
+export const getPhotoBySlug = cache(
+  unstable_cache(
+    getPhotoBySlugUncached,
+    ['photo'],
+    {
+      revalidate: 7200,
+      tags: ['gallery']
+    }
+  )
+); 

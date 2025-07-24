@@ -2,6 +2,7 @@ import { getPostBySlug } from '../../../lib/posts';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -46,7 +47,21 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
       </div>
       <article className="card">
         {post.cover && (
-          <img src={post.cover} alt={post.title} style={{ width: '100%', borderRadius: '6px', marginBottom: '1.2rem', maxHeight: 320, objectFit: 'cover' }} />
+          <Image
+            src={post.cover}
+            alt={post.title}
+            width={800}
+            height={320}
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '320px',
+              borderRadius: '6px',
+              marginBottom: '1.2rem',
+              objectFit: 'cover'
+            }}
+            priority={true}
+          />
         )}
         <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>{post.title}</h1>
         <div style={{ color: 'var(--color-secondary)', fontSize: '1em', marginBottom: '0.7em' }}>{post.date}</div>

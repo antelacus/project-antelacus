@@ -1,10 +1,11 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import { PostMeta } from '../lib/posts';
 
 export default function PostListCard({ post }: { post: PostMeta }) {
   return (
-    <Link href={`/posts/${post.slug}`} className="card-link">
+    <Link href={`/posts/${post.slug}`} className="card-link" prefetch={true}>
       <article className="card post-list-card masonry-item">
         <div className="post-list-content">
           <h2 className="post-list-title">
@@ -28,16 +29,15 @@ export default function PostListCard({ post }: { post: PostMeta }) {
         </div>
         {post.cover && (
           <div className="post-list-cover">
-            <img
+            <Image
               src={post.cover}
               alt={post.title}
               className="post-list-image"
-              onError={(e) => {
-                const coverDiv = e.currentTarget.parentElement;
-                if (coverDiv) {
-                  coverDiv.style.display = 'none';
-                }
-              }}
+              width={180}
+              height={135}
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 100vw, 180px"
+              priority={false}
             />
           </div>
         )}

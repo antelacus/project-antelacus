@@ -1,6 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import matter from 'gray-matter';
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
 export interface NoteMeta {
   slug: string;
@@ -17,7 +19,7 @@ export interface Note extends NoteMeta {
 
 const NOTES_DIR = path.join(process.cwd(), 'src/content/notes');
 
-export async function getAllNotesMeta(): Promise<NoteMeta[]> {
+const getAllNotesMetaUncached = async (): Promise<NoteMeta[]> => {
   const files = await fs.readdir(NOTES_DIR);
   const notes: NoteMeta[] = [];
   for (const file of files) {
@@ -36,9 +38,18 @@ export async function getAllNotesMeta(): Promise<NoteMeta[]> {
   }
   notes.sort((a, b) => b.date.localeCompare(a.date));
   return notes;
-}
+};
 
-export async function getNoteBySlug(slug: string): Promise<Note | null> {
+export const getAllNotesMeta = unstable_cache(
+  getAllNotesMetaUncached,
+  ['notes-meta'],
+  {
+    revalidate: 3600,
+    tags: ['notes']
+  }
+);
+
+const getNoteBySlugUncached = async (slug: string): Promise<Note | null> => {
   const filePath = path.join(NOTES_DIR, `${slug}.mdx`);
   try {
     const source = await fs.readFile(filePath, 'utf-8');
@@ -55,4 +66,15 @@ export async function getNoteBySlug(slug: string): Promise<Note | null> {
   } catch (e) {
     return null;
   }
-} 
+};
+
+export const getNoteBySlug = cache(
+  unstable_cache(
+    getNoteBySlugUncached,
+    ['note'],
+    {
+      revalidate: 7200,
+      tags: ['notes']
+    }
+  )
+); 

@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import { PhotoMeta } from '../lib/gallery';
 
 interface PhotoCardProps {
@@ -11,20 +12,19 @@ export default function PhotoCard({ photo, showType = true }: PhotoCardProps) {
   const showCover = photo.coverImage && photo.coverImage.trim() !== '';
 
   return (
-    <Link href={`/gallery/${photo.slug}`} className="card-link">
+    <Link href={`/gallery/${photo.slug}`} className="card-link" prefetch={true}>
       <article className="card masonry-item photo-card">
         {showCover && (
           <div className="card-cover">
-            <img 
-              src={photo.coverImage} 
-              alt={photo.caption || photo.title || ''} 
+            <Image
+              src={photo.coverImage!}
+              alt={photo.caption || photo.title || ''}
               className="card-cover-image"
-              onError={(e) => {
-                const coverDiv = e.currentTarget.parentElement;
-                if (coverDiv) {
-                  coverDiv.style.display = 'none';
-                }
-              }}
+              width={400}
+              height={300}
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={false}
             />
             <div className="photo-overlay">
               <div className="photo-info">

@@ -17,7 +17,7 @@ export default function NoteCard({ note, showType = true }: NoteCardProps) {
   const displaySummary = note.summary ? truncateSummary(note.summary) : '';
 
   return (
-    <Link href={`/notes/${note.slug}`} className="card-link">
+    <Link href={`/notes/${note.slug}`} className="card-link" prefetch={true}>
       <article className="card masonry-item note-card">
         <div className="card-content">
           <div className="card-meta">

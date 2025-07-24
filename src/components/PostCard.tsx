@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import { PostMeta } from '../lib/posts';
 
 interface PostCardProps {
@@ -11,20 +12,19 @@ export default function PostCard({ post, showType = true }: PostCardProps) {
   const showCover = post.cover && post.cover.trim() !== '';
 
   return (
-    <Link href={`/posts/${post.slug}`} className="card-link">
+    <Link href={`/posts/${post.slug}`} className="card-link" prefetch={true}>
       <article className="card masonry-item">
         {showCover && (
           <div className="card-cover">
-            <img 
-              src={post.cover} 
-              alt={post.title} 
+            <Image
+              src={post.cover!}
+              alt={post.title}
               className="card-cover-image"
-              onError={(e) => {
-                const coverDiv = e.currentTarget.parentElement;
-                if (coverDiv) {
-                  coverDiv.style.display = 'none';
-                }
-              }}
+              width={400}
+              height={160}
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={false}
             />
           </div>
         )}

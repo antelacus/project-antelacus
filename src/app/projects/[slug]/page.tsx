@@ -1,5 +1,6 @@
 import { getProjectBySlug } from '../../../lib/projects';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -36,16 +37,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       </div>
       <article className="card">
         {project.cover && (
-          <img 
-            src={project.cover} 
-            alt={project.name} 
-            style={{ 
-              width: '100%', 
-              borderRadius: '6px', 
-              marginBottom: '1.2rem', 
-              maxHeight: 320, 
-              objectFit: 'cover' 
-            }} 
+          <Image
+            src={project.cover}
+            alt={project.name}
+            width={800}
+            height={320}
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '320px',
+              borderRadius: '6px',
+              marginBottom: '1.2rem',
+              objectFit: 'cover'
+            }}
+            priority={true}
           />
         )}
         <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>

@@ -1,6 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import matter from 'gray-matter';
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
 export interface ProjectMeta {
   slug: string;
@@ -21,7 +23,7 @@ export interface Project extends ProjectMeta {
 
 const PROJECTS_DIR = path.join(process.cwd(), 'src/content/projects');
 
-export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
+const getAllProjectsMetaUncached = async (): Promise<ProjectMeta[]> => {
   const files = await fs.readdir(PROJECTS_DIR);
   const projects: ProjectMeta[] = [];
   for (const file of files) {
@@ -45,9 +47,18 @@ export async function getAllProjectsMeta(): Promise<ProjectMeta[]> {
   // 按日期倒序排列
   projects.sort((a, b) => b.date.localeCompare(a.date));
   return projects;
-}
+};
 
-export async function getProjectBySlug(slug: string): Promise<Project | null> {
+export const getAllProjectsMeta = unstable_cache(
+  getAllProjectsMetaUncached,
+  ['projects-meta'],
+  {
+    revalidate: 3600,
+    tags: ['projects']
+  }
+);
+
+const getProjectBySlugUncached = async (slug: string): Promise<Project | null> => {
   const filePath = path.join(PROJECTS_DIR, `${slug}.mdx`);
   try {
     const source = await fs.readFile(filePath, 'utf-8');
@@ -68,4 +79,15 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
   } catch (e) {
     return null;
   }
-} 
+};
+
+export const getProjectBySlug = cache(
+  unstable_cache(
+    getProjectBySlugUncached,
+    ['project'],
+    {
+      revalidate: 7200,
+      tags: ['projects']
+    }
+  )
+); 
