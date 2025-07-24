@@ -50,9 +50,9 @@ export default async function HomePage() {
     <main className="homepage">
       <section className="homepage-hero">
         <div className="hero-content">
-          <h1 className="hero-title">创意与思考的数字花园</h1>
+          <h1 className="hero-title">Ante lacus, pax mentis.</h1>
           <p className="hero-description">
-            在这里，每一篇文章都是用心雕琢的思考结晶，每一张照片都承载着独特的故事，每一个项目都体现着对技术与美学的追求。
+            做更好的事情，做更美的作品，做更久的坚持。
           </p>
           <div className="hero-highlights">
             <span className="highlight-item">📝 深度思考</span>
