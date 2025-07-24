@@ -42,12 +42,6 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="gallery-detail">
-      <div className="gallery-breadcrumb">
-        <Link href="/gallery" className="breadcrumb-link">视觉</Link>
-        <span className="breadcrumb-separator">›</span>
-        <span className="breadcrumb-current">{photo.title}</span>
-      </div>
-      
       <div className="gallery-header">
         <div className="gallery-meta">
           <h1 className="gallery-title">{photo.title}</h1>

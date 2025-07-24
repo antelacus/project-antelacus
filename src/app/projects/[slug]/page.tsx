@@ -30,11 +30,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   
   return (
     <main className="gallery-detail">
-      <div className="gallery-breadcrumb">
-        <Link href="/projects" className="breadcrumb-link">实验室</Link>
-        <span className="breadcrumb-separator">›</span>
-        <span className="breadcrumb-current">{project.name}</span>
-      </div>
       <article className="card">
         {project.cover && (
           <Image

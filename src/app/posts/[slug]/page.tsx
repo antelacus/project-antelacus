@@ -40,11 +40,6 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   }
   return (
     <main className="gallery-detail">
-      <div className="gallery-breadcrumb">
-        <Link href="/posts" className="breadcrumb-link">专栏</Link>
-        <span className="breadcrumb-separator">›</span>
-        <span className="breadcrumb-current">{post.title}</span>
-      </div>
       <article className="card">
         {post.cover && (
           <Image

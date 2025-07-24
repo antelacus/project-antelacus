@@ -449,7 +449,7 @@ a:focus {
 }
 
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
   background: var(--color-card-hover);
   border-color: var(--color-primary-light);
@@ -1519,38 +1519,7 @@ p {
   max-width: 800px;
 }
 
-/* === 面包屑导航重构 === */
-.gallery-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  padding-top: 0.5rem;
-}
 
-.breadcrumb-link {
-  color: var(--color-primary);
-  text-decoration: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
-}
-
-.breadcrumb-link:hover {
-  background: var(--color-primary-light);
-  color: var(--color-primary-hover);
-}
-
-.breadcrumb-separator {
-  color: var(--color-text-muted);
-  font-weight: 300;
-}
-
-.breadcrumb-current {
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
 
 .gallery-title {
   font-size: 2.5rem;
@@ -1651,9 +1620,7 @@ p {
     margin: 0.75rem auto 0;
   }
   
-  .gallery-breadcrumb {
-    font-size: 0.8rem;
-  }
+
 }
 
 /* === Photo Grid 样式（美化升级） === */
@@ -2093,10 +2060,6 @@ p {
 /* === 精致微交互 === */
 .card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card:hover {
-  transform: translateY(-4px) scale(1.01);
 }
 
 .post-cover-image,
