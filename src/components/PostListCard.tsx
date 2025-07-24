@@ -8,12 +8,13 @@ export default function PostListCard({ post }: { post: PostMeta }) {
     <Link href={`/posts/${post.slug}`} className="card-link" prefetch={true}>
       <article className="card post-list-card masonry-item">
         <div className="post-list-content">
-          <h2 className="post-list-title">
-            {post.title}
-          </h2>
-          <div className="post-list-date">
-            {post.date}
+          <div className="post-list-meta">
+            <div className="post-list-date">{post.date}</div>
           </div>
+          <h2 className="post-list-title">{post.title}</h2>
+          {post.summary && (
+            <p className="post-list-summary">{post.summary}</p>
+          )}
           {post.tags && post.tags.length > 0 && (
             <div className="post-list-tags">
               {post.tags.map(tag => (
@@ -22,9 +23,6 @@ export default function PostListCard({ post }: { post: PostMeta }) {
                 </span>
               ))}
             </div>
-          )}
-          {post.summary && (
-            <p className="post-list-summary">{post.summary}</p>
           )}
         </div>
         {post.cover && (

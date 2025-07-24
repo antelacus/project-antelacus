@@ -11,26 +11,20 @@ export default function AboutPage() {
           <h2 className="section-title">个人简介</h2>
           <div className="section-content">
             <p>
-              你好！我是 <strong>AnteLacus</strong>，一名热爱技术创新的开发者和思考者。
-              我相信技术的力量能够改变世界，同时也珍视生活中的每一个灵感瞬间。
+              你好！我是 <strong>AnteLacus</strong>，一名曾经的审计师，现在迷恋上 AI 和计算机科学。
             </p>
             <p>
-              在这个博客中，我分享我的<strong>专栏文章</strong>、记录<strong>思维闪念</strong>的创意瞬间、
-              展示我眼中的<strong>视觉世界</strong>，以及我正在进行的<strong>实验室项目</strong>。
+              我相信技术的力量能够改变世界，同时也珍视生活中的每一个灵感瞬间。
             </p>
           </div>
         </section>
 
         <section className="about-section">
-          <h2 className="section-title">我的项目</h2>
+          <h2 className="section-title">网站介绍</h2>
           <div className="section-content">
             <p>
-              最近我开发了 <a href="https://goodman.antelacus.com" target="_blank" rel="noopener noreferrer" className="project-link">
-                <strong>Goodman</strong>
-              </a> - 一个AI财务助手，帮助财会人员提高工作效率，实现了从文档处理到财务分析的全流程自动化。
-            </p>
-            <p>
-              这个项目让我深刻体会到了现代AI工具的强大，也让我更加相信技术与专业知识结合的无限可能。
+              在这个网站中，我分享我的<strong>专栏文章</strong>、记录<strong>思维闪念</strong>的创意瞬间、
+              展示我眼中的<strong>视觉世界</strong>，以及我正在进行的<strong>实验室项目</strong>。
             </p>
           </div>
         </section>
@@ -38,11 +32,17 @@ export default function AboutPage() {
         <section className="about-section">
           <h2 className="section-title">联系我</h2>
           <div className="section-content">
-            <p>我很乐意与同样热爱技术和创作的朋友交流，欢迎通过以下方式联系我：</p>
+            <p>
+              我很乐意与同样热爱技术和创作的朋友交流，欢迎通过以下方式联系我：
+            </p>
             
             <div className="contact-grid">
               <a href="mailto:me@antelacus.com" className="contact-item">
-                <div className="contact-icon">✉️</div>
+                <div className="contact-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2 4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4zm2 0v.01L12 13l8-8.99V4H4zm16 2.41l-7.29 7.3a1 1 0 0 1-1.42 0L4 6.41V20h16V6.41z"/>
+                  </svg>
+                </div>
                 <div className="contact-info">
                   <div className="contact-label">邮箱</div>
                   <div className="contact-value">me@antelacus.com</div>
@@ -89,15 +89,14 @@ export default function AboutPage() {
         </section>
 
         <section className="about-section">
-          <h2 className="section-title">关于这个博客</h2>
+          <h2 className="section-title">网站技术栈</h2>
           <div className="section-content">
             <p>
               这个博客使用 <strong>Next.js</strong> 构建，部署在 <strong>Vercel</strong> 上，
-              采用了地中海风情的<strong>西班牙弗拉门戈热情</strong>色彩方案。
+              采用了自己搭配的<strong>马略卡</strong>色彩方案。
             </p>
             <p>
               所有内容都以 <strong>Markdown</strong> 格式编写，确保专注于内容创作本身。
-              如果你对技术实现感兴趣，欢迎查看项目的源代码。
             </p>
           </div>
         </section>
