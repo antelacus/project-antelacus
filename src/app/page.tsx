@@ -52,13 +52,12 @@ export default async function HomePage() {
         <div className="hero-content">
           <h1 className="hero-title">Ante lacus, pax mentis.</h1>
           <p className="hero-description">
-          做更深的思考，做更好的事情，做更美的作品。
+            做更好的作品，精益求精。
           </p>
           <div className="hero-highlights">
-            <span className="highlight-item">📝 深度思考</span>
-            <span className="highlight-item">📸 视觉美学</span>
-            <span className="highlight-item">🔬 技术探索</span>
-            <span className="highlight-item">💡 创意实验</span>
+            <span className="highlight-item">📝 记录想法</span>
+            <span className="highlight-item">💡 实践美学</span>
+            <span className="highlight-item">🔬 探索技术</span>
           </div>
         </div>
       </section>
