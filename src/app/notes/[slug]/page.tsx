@@ -26,7 +26,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
   }
 
   return (
-    <main className="content-container content-container-standard">
+    <div className="content-container content-container-standard">
       <article>
         <header>
           <h1>{note.title}</h1>
@@ -46,6 +46,6 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
         </div>
         
       </article>
-    </main>
+    </div>
   );
 }

@@ -47,7 +47,7 @@ export default async function HomePage() {
   feed.sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <main className="content-container content-container-wide">
+    <div className="content-container content-container-wide">
       <MasonryGrid columns={3} gap={32}>
         {feed.map((item, index) => (
           <div key={`${item.type}-${item.slug}`}>
@@ -55,6 +55,6 @@ export default async function HomePage() {
           </div>
         ))}
       </MasonryGrid>
-    </main>
+    </div>
   );
 }

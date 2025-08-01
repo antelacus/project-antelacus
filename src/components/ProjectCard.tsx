@@ -23,10 +23,15 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link 
       href={`/projects/${project.slug}`} 
-      className="block p-4 rounded-md transition-colors duration-300"
-      style={{ backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'transparent' }}
+      className="block p-4 rounded-md transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]"
+      style={{ 
+        backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'transparent',
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 4px 12px rgba(29, 29, 27, 0.08)' : '0 0 0 rgba(29, 29, 27, 0)',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-label={`查看实验室项目：${project.name}`}
       prefetch={true}
     >
       <article>
@@ -39,6 +44,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               height={225} // 16:9 aspect ratio
               className="w-full h-auto"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAIDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyDjvZiJzhJ8z5S3dNkEGgZi2eI9a1S3jcJnFqNpKJzGOiMU1rCfE5H2T4xLAAHlPw1N8YO2N5jBBj3sBXXm4dO38g/9k="
             />
           </div>
         )}

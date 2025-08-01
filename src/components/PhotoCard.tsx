@@ -14,9 +14,14 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
   return (
     <Link 
       href={`/gallery/${photo.slug}`} 
-      className="block relative overflow-hidden"
+      className="block relative overflow-hidden rounded-md transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]"
+      style={{
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 6px 20px rgba(29, 29, 27, 0.12)' : '0 0 0 rgba(29, 29, 27, 0)',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-label={`查看视觉作品：${photo.title}${photo.location ? `，拍摄于${photo.location}` : ''}`}
       prefetch={true}
     >
       <Image
@@ -27,6 +32,9 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
         className="w-full h-auto transition-transform duration-300"
         style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        loading="lazy"
+        placeholder="blur"
+        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyDjvZiJzhJ8z5S3dNkEGgZi2eI9a1S3jcJnFqNpKJzGOiMU1rCfE5H2T4xLAAHlPw1N8YO2N5jBBj3sBXXm4dO38g/9k="
       />
       <div 
         className="absolute bottom-0 left-0 right-0 p-4 text-[--color-paper] transition-transform duration-300"

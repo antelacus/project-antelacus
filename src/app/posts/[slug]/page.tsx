@@ -42,7 +42,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug:stri
   }
 
   return (
-    <main className="content-container content-container-standard">
+    <div className="content-container content-container-standard">
       <article>
         <header>
           <h1>{post.title}</h1>
@@ -75,6 +75,6 @@ export default async function PostPage({ params }: { params: Promise<{ slug:stri
         </div>
 
       </article>
-    </main>
+    </div>
   );
 }

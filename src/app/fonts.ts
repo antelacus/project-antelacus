@@ -10,7 +10,8 @@ const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-cormorant-garamond',
-  display: 'swap',
+  display: 'swap', // Critical for performance: show fallback immediately
+  preload: true,   // Prioritize loading for better perceived performance
 });
 
 //
@@ -21,7 +22,8 @@ const cormorantGaramond = Cormorant_Garamond({
 const sourceSerif4 = Source_Serif_4({
   subsets: ['latin'],
   variable: '--font-source-serif-4',
-  display: 'swap',
+  display: 'swap', // Show fallback text immediately
+  preload: true,   // Critical font for body text
 });
 
 //

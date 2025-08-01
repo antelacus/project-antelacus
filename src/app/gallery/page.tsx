@@ -11,7 +11,7 @@ export default async function GalleryPage() {
   const photos = await getAllPhotosMeta();
   
   return (
-    <main className="container">
+    <div className="container">
       {photos.length === 0 ? (
         <div className="gallery-empty">
           <p>暂无照片作品。</p>
@@ -21,12 +21,12 @@ export default async function GalleryPage() {
           <MasonryGrid columns={3} gap={20}>
             {photos.map((photo, index) => (
               <div key={photo.slug} style={{ animationDelay: `${index * 0.1}s` }}>
-                <PhotoCard photo={photo} showType={false} />
+                <PhotoCard photo={photo} />
               </div>
             ))}
           </MasonryGrid>
         </div>
       )}
-    </main>
+    </div>
   );
 } 

@@ -39,7 +39,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   };
 
   return (
-    <main className="content-container content-container-standard">
+    <div className="content-container content-container-standard">
       <article>
         <header>
           <h1>{project.name}</h1>
@@ -97,6 +97,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <MDXRemote source={project.content} />
         </div>
       </article>
-    </main>
+    </div>
   );
 }

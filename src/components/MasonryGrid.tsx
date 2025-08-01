@@ -66,9 +66,22 @@ export default function MasonryGrid({
             display: 'flex',
             flexDirection: 'column',
             gap: `${gap}px`,
+            // Staggered animation delay for columns
+            animationDelay: `${columnIndex * 0.1}s`,
           }}
         >
-          {columnChildren}
+          {columnChildren.map((child, childIndex) => (
+            <div
+              key={`${columnIndex}-${childIndex}`}
+              style={{
+                // Staggered animation for individual items
+                animationDelay: `${(columnIndex * columnChildren.length + childIndex) * 0.05}s`,
+                animation: 'quietReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) both',
+              }}
+            >
+              {child}
+            </div>
+          ))}
         </div>
       ))}
     </div>

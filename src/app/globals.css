@@ -72,8 +72,13 @@ body {
   
   line-height: 1.7;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  
+  /* Enhanced font smoothing for cross-browser consistency */
+  -webkit-font-smoothing: antialiased; /* macOS Safari/Chrome - lighter rendering */
+  -moz-osx-font-smoothing: grayscale;  /* macOS Firefox - consistent with WebKit */
+  text-rendering: optimizeLegibility;   /* Enhanced legibility across platforms */
+  font-variant-ligatures: common-ligatures; /* Ensure consistent ligatures */
+  
   margin: 0;
   padding: 0;
 }
@@ -113,18 +118,23 @@ a {
   color: inherit;
   text-decoration: none;
   border-bottom: var(--border-width) solid rgba(29, 29, 27, 0.3); /* Subtle Ink underline */
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  position: relative;
 }
 
+/* Enhanced hover effect with subtle seal color diffusion */
 a:hover {
   color: var(--color-seal);
   border-bottom-color: var(--color-seal);
   text-decoration: none;
 }
 
+/* Improved focus indicator for accessibility */
 a:focus {
-  outline: none;
+  outline: 2px solid var(--color-seal);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /*
@@ -182,6 +192,24 @@ img {
  * Styling for elements rendered from MDX files, ensuring they align
  * with the "Living Manuscript" aesthetic for an immersive reading experience.
  */
+
+/* Quiet Reveal Animation for Content */
+@keyframes quietReveal {
+  from { 
+    opacity: 0; 
+    transform: translateY(12px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Apply gentle entrance animation to main content */
+.content-container article {
+  animation: quietReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .content-container-standard article > * + * {
   margin-top: 1.25em;
   margin-bottom: 1.25em;

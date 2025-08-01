@@ -9,13 +9,13 @@ export const metadata = {
 export default async function NotesPage() {
   const notes = await getAllNotesMeta();
   return (
-    <main className="container">
+    <div className="container">
       {notes.length === 0 && <p>暂无内容。</p>}
       {notes.map((note, index) => (
         <div key={note.slug} style={{ animationDelay: `${index * 0.1}s` }}>
-          <NoteCard note={note} showType={false} />
+          <NoteCard note={note} />
         </div>
       ))}
-    </main>
+    </div>
   );
 } 

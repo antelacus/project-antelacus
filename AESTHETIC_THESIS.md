@@ -1,90 +1,90 @@
-# Aesthetic Thesis: Living Manuscript (活手稿)
+# 美学论文：活手稿
 
-This document codifies the aesthetic philosophy for the antelacus.com digital identity. It serves as the single source of truth for all design and development decisions, ensuring a cohesive, unique, and timeless user experience.
-
----
-
-## 一、Aesthetic Thesis (美学主张)
-
-The core philosophy is the **Living Manuscript (活手稿)**.
-
-This is not about making a website that *looks like* a manuscript. It is about embodying the *spirit* of one. A living manuscript is a space where thought takes form. It is structured, yet alive. It is personal, yet clear. It is the perfect marriage of the project's core dualities: tranquility and dynamism, broad vision and resolute action.
-
-This philosophy is built upon three core principles:
-
-### （一）Principle of the Deliberate Mark (深思熟虑的笔触)
-
-*   **Philosophy:** Every element—every line, every letter, every space—is a deliberate mark. There is no decoration, only essential communication. We question the existence of every line and shadow. We treat whitespace not as emptiness, but as a moment of quiet contemplation.
-*   **In Practice:** Reject pre-packaged components in spirit. Prioritize profound intention over ornamentation. *Slow is steady, and steady is fast.*
-
-### （二）Principle of Cultivated Growth (有机生长的肌理)
-
-*   **Philosophy:** The aesthetic must feel like a living organism, a garden that is cultivated. It should show evidence of life and the passage of time. It embraces the idea of "no best, only better."
-*   **In Practice:** This manifests as subtle textures, organic animations, and layouts that feel composed and human, not mechanically generated. It allows for the controlled imperfections that make a work feel authentic.
-
-### （三）Principle of the Quiet Reveal (静默展开的层次)
-
-*   **Philosophy:** The aesthetic is not about shouting for attention; it is about inviting discovery. It reveals its secrets slowly, rewarding the patient observer.
-*   **In Practice:** This translates to a subtle interactive language. Hovering reveals new layers of information. Transitions feel like turning a page. The user is a reader, a confidant invited to explore.
+本文档为 antelacus.com 数字身份的美学哲学制定规范。它作为所有设计和开发决策的唯一真实来源，确保一致、独特且永恒的用户体验。
 
 ---
 
-## 二、The Sensory Universe (感官宇宙)
+## 一、美学论文 (Aesthetic Thesis)
 
-This is the tangible manifestation of the Living Manuscript philosophy.
+核心理念是**活手稿 (Living Manuscript)**。
 
-### （一）色彩与光影 (Color & Light): The Soul of the Paper
+这不是要制作一个*看起来像*手稿的网站。而是要体现手稿的*精神*。活手稿是思想成形的空间。它是有结构的，但又是鲜活的。它是个人化的，但又是清晰的。它是项目核心二元性的完美结合：宁静与活力，广阔视野与坚定行动。
 
-We create an environment, not a theme.
+这一理念建立在三个核心原则之上：
 
-*   **Core Palette:**
-    *   **纸 (Paper) - The Canvas:** `#F9F8F6` (Warm, sunlit rice paper)
-    *   **墨 (Ink) - The Mark:** `#1E1E1D` (Dried Sumi ink)
-    *   **朱砂 (Seal) - The Signature:** `#B42A1E` (Artist's seal paste). Used with extreme restraint for primary interactive moments.
+### （一）深思熟虑的笔触原则 (Principle of the Deliberate Mark)
 
-*   **Supporting Tones (Washes):**
-    *   **苔 (Moss Wash):** `#EFF1ED` (For content related to growth, ideas)
-    *   **石 (Stone Wash):** `#EAEAEA` (For structure, projects, stability)
+*   **哲学：** 每个元素——每条线、每个字母、每个空间——都是深思熟虑的笔触。没有装饰，只有本质的沟通。我们质疑每条线和每个阴影的存在。我们将空白空间视为安静沉思的时刻，而非空虚。
+*   **实践：** 在精神上拒绝预包装的组件。优先考虑深刻的意图而非装饰。*慢即是稳，稳即是快。*
 
-*   **Light:**
-    *   Soft, diffuse light. No artificial drop-shadows. Depth is created through layering `Wash` tones.
+### （二）有机生长的肌理原则 (Principle of Cultivated Growth)
 
-### （二）字体 (Typography): The Form of Thought
+*   **哲学：** 美学必须感觉像一个活的有机体，一个被培育的花园。它应该展现生命和时间流逝的证据。它拥抱"没有最好，只有更好"的理念。
+*   **实践：** 这表现为微妙的纹理、有机的动画，以及感觉经过精心构思和人性化的布局，而非机械生成的。它允许受控的不完美，使作品感觉真实。
 
-A pairing that feels both classic and alive.
+### （三）静默展开的层次原则 (Principle of the Quiet Reveal)
 
-*   **Latin:**
-    *   **Headings:** **Cormorant Garamond** (Classical, elegant, refined serif with graceful proportions)
-    *   **Body:** **Source Serif 4** (Readable, elegant, warm)
+*   **哲学：** 美学不是为了吸引注意力而大声喧哗；而是邀请发现。它慢慢地揭示其秘密，奖励耐心的观察者。
+*   **实践：** 这转化为微妙的交互语言。悬停揭示信息的新层次。过渡感觉像翻页。用户是读者，是被邀请探索的知己。
 
-*   **Chinese:**
-    *   **Headings & Body:** **Source Han Serif (思源宋体)** (Connects to woodblock printing legacy)
+---
 
-*   **Code:**
-    *   **JetBrains Mono** (Clean, legible)
+## 二、感官宇宙 (The Sensory Universe)
 
-### （三）空间与布局 (Space & Layout): The Rhythm of Contemplation
+这是活手稿理念的有形体现。
 
-Whitespace is our most active tool.
+### （一）色彩与光影 (Color & Light): 纸张的灵魂
 
-*   **Immersive Reading:** A single, elegant column for long-form content. Generous margins to eliminate distraction.
-*   **Organic Grid:** Asymmetric, composed grid for index pages, guided by balance and intuition. Replaces mechanical Masonry.
-*   **Breathing Room:** Dramatically increased `padding` and `margin` throughout.
+我们创造一个环境，而非主题。
 
-### （四）交互与动态 (Interaction & Motion): The Unfurling of Ideas
+*   **核心调色板：**
+    *   **纸 (Paper) - 画布：** `#F9F8F6` (温暖、阳光照射的宣纸)
+    *   **墨 (Ink) - 笔触：** `#1E1E1D` (干涸的墨汁)
+    *   **朱砂 (Seal) - 签名：** `#B42A1E` (艺术家印泥)。极度克制地用于主要交互时刻。
 
-Motion is meaningful and organic.
+*   **辅助色调 (晕染)：**
+    *   **苔 (Moss Wash)：** `#EFF1ED` (用于与成长、想法相关的内容)
+    *   **石 (Stone Wash)：** `#EAEAEA` (用于结构、项目、稳定性)
 
-*   **Page Transitions:** Gentle, swift cross-fade with subtle vertical easing.
-*   **Hover Effects (The Core Interaction):**
-    1.  Slow background transition to a `Wash` color.
-    2.  Simultaneous gentle fade-in of hidden metadata (tags, date).
-    3.  No lifting or shadows. A quiet offering of information.
-*   **Loading Animation:** Staggered fade-in for list items, as if being written in real-time.
+*   **光影：**
+    *   柔和、漫射的光线。没有人工投影。深度通过叠加`晕染`色调创造。
 
-### （五）材质与肌理 (Texture & Material): The Touch of the Hand
+### （二）字体 (Typography): 思想的形式
 
-Subtle introduction of physical material.
+感觉既经典又鲜活的配对。
 
-*   **Paper Texture:** A fine, seamless grain texture applied as a tiled background to the `Paper` color.
-*   **Image Treatment:** A thin, 1px keyline border in `Ink` color around all images, framing them as deliberate artifacts.
+*   **拉丁文：**
+    *   **标题：** **Cormorant Garamond** (古典、优雅、精致的衬线字体，具有优雅的比例)
+    *   **正文：** **Source Serif 4** (易读、优雅、温暖)
+
+*   **中文：**
+    *   **标题与正文：** **Source Han Serif (思源宋体)** (连接木版印刷传统)
+
+*   **代码：**
+    *   **JetBrains Mono** (清晰、易读)
+
+### （三）空间与布局 (Space & Layout): 沉思的节奏
+
+空白空间是我们最活跃的工具。
+
+*   **沉浸式阅读：** 长文本内容的单一优雅列。慷慨的边距消除干扰。
+*   **有机网格：** 索引页面的不对称、精心构思的网格，由平衡和直觉引导。取代机械的瀑布流。
+*   **呼吸空间：** 大幅增加整个网站的`内边距`和`外边距`。
+
+### （四）交互与动态 (Interaction & Motion): 思想的展开
+
+动态是有意义且有机的。
+
+*   **页面过渡：** 温和、迅速的交叉淡入淡出，带有微妙的垂直缓动。
+*   **悬停效果 (核心交互)：**
+    1.  背景缓慢过渡到`晕染`颜色。
+    2.  同时温和淡入隐藏的元数据（标签、日期）。
+    3.  没有提升或阴影。信息的安静呈现。
+*   **加载动画：** 列表项目的交错淡入，仿佛实时书写。
+
+### （五）材质与肌理 (Texture & Material): 手的触感
+
+微妙地引入物理材质。
+
+*   **纸张纹理：** 精细、无缝的颗粒纹理，作为平铺背景应用于`纸`色。
+*   **图像处理：** 所有图像周围有`墨`色的细线边框，将它们框定为深思熟虑的文物。 

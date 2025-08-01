@@ -20,10 +20,15 @@ export default function NoteCard({ note }: NoteCardProps) {
   return (
     <Link 
       href={`/notes/${note.slug}`} 
-      className="block p-4 rounded-md transition-colors duration-300"
-      style={{ backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'transparent' }}
+      className="block p-4 rounded-md transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]"
+      style={{ 
+        backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'transparent',
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 4px 12px rgba(29, 29, 27, 0.08)' : '0 0 0 rgba(29, 29, 27, 0)',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-label={`查看思维闪念：${note.title}`}
       prefetch={true}
     >
       <article>
