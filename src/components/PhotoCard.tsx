@@ -2,72 +2,52 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { PhotoMeta } from '../lib/gallery';
+import { useState } from 'react';
 
 interface PhotoCardProps {
   photo: PhotoMeta;
-  showType?: boolean;   // 是否显示类别标识（首页显示，专门页面不显示）
 }
 
-export default function PhotoCard({ photo, showType = true }: PhotoCardProps) {
-  const showCover = photo.coverImage && photo.coverImage.trim() !== '';
+export default function PhotoCard({ photo }: PhotoCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Link href={`/gallery/${photo.slug}`} className="card-link" prefetch={true}>
-      <article className="card masonry-item photo-card">
-        {showCover && (
-          <div className="card-cover">
-            <Image
-              src={photo.coverImage!}
-              alt={photo.caption || photo.title || ''}
-              className="card-cover-image"
-              width={400}
-              height={300}
-              style={{ objectFit: 'cover' }}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
-            />
-            <div className="photo-overlay">
-              <div className="photo-info">
-                <div className="photo-count">
-                  <span className="photo-count-icon">📷</span>
-                  <span className="photo-count-text">
-                    {photo.photoCount} 张
-                  </span>
-                </div>
-                {photo.caption && (
-                  <p className="photo-caption">{photo.caption}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-        <div className="card-content">
-          <div className="card-meta">
-            {showType && <span className="card-type">视觉</span>}
-            <time className="card-date">
-              {photo.date}
-            </time>
-          </div>
-          <h2 className="card-title">
-            {photo.title}
-          </h2>
+    <Link 
+      href={`/gallery/${photo.slug}`} 
+      className="block relative overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      prefetch={true}
+    >
+      <Image
+        src={photo.coverImage!}
+        alt={photo.caption || photo.title || ''}
+        width={400}
+        height={300}
+        className="w-full h-auto transition-transform duration-300"
+        style={{ transform: isHovered ? 'scale(1.05)' : 'scale(1)' }}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
+      <div 
+        className="absolute bottom-0 left-0 right-0 p-4 text-[--color-paper] transition-transform duration-300"
+        style={{ 
+          backgroundColor: 'rgba(29, 29, 27, 0.8)',
+          transform: isHovered ? 'translateY(0)' : 'translateY(100%)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+        }}
+      >
+        <h2 className="text-lg font-normal">{photo.title}</h2>
+        <div className="text-xs mt-1" style={{ color: 'rgba(255, 255, 255, 0.7)'}}>
+          <span>{photo.date}</span>
           {photo.location && (
-            <div className="photo-location">
-              <span className="location-icon">📍</span>
-              <span className="location-text">{photo.location}</span>
-            </div>
-          )}
-          {photo.tags && photo.tags.length > 0 && (
-            <div className="card-tags">
-              {photo.tags.map((tag) => (
-                <span key={tag} className="tag">
-                  {tag}
-                </span>
-              ))}
-            </div>
+            <>
+              <span className="mx-2">|</span>
+              <span>{photo.location}</span>
+            </>
           )}
         </div>
-      </article>
+      </div>
     </Link>
   );
-} 
+}

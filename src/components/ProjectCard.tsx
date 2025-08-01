@@ -2,98 +2,81 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProjectMeta } from '../lib/projects';
+import { useState } from 'react';
 
 interface ProjectCardProps {
   project: ProjectMeta;
-  showLinks?: boolean;  // 是否显示源码/演示链接（首页不显示，详情页显示）
-  showType?: boolean;   // 是否显示类别标识（首页显示，专门页面不显示）
 }
 
-export default function ProjectCard({ project, showLinks = false, showType = true }: ProjectCardProps) {
-  const showCover = project.cover && project.cover.trim() !== '';
+export default function ProjectCard({ project }: ProjectCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
 
-  const cardContent = (
-    <article className="card masonry-item project-card">
-      {showCover && (
-        <div className="card-cover">
-          <Image
-            src={project.cover!}
-            alt={project.name}
-            className="card-cover-image"
-            width={400}
-            height={160}
-            style={{ objectFit: 'cover' }}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority={false}
-          />
-        </div>
-      )}
-      <div className="card-content">
-        <div className="card-meta">
-          {showType && <span className="card-type">实验室</span>}
-          <time className="card-date">
-            {project.date}
-          </time>
-          {project.status && (
-            <span className={`project-status status-${project.status}`}>
-              {project.status === 'active' ? '活跃' : 
-               project.status === 'beta' ? '测试' : 
-               project.status === 'archived' ? '归档' : project.status}
-            </span>
-          )}
-        </div>
-        <h2 className="card-title">
-          {project.name}
-        </h2>
-        <p className="card-summary">{project.description}</p>
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return '活跃';
+      case 'beta': return '测试';
+      case 'archived': return '归档';
+      default: return status;
+    }
+  };
+
+  return (
+    <Link 
+      href={`/projects/${project.slug}`} 
+      className="block p-4 rounded-md transition-colors duration-300"
+      style={{ backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'transparent' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      prefetch={true}
+    >
+      <article>
+        {project.cover && (
+          <div className="mb-4">
+            <Image
+              src={project.cover}
+              alt={project.name}
+              width={400}
+              height={225} // 16:9 aspect ratio
+              className="w-full h-auto"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        )}
+        <header>
+          <h2 className="text-xl font-normal mb-1">{project.name}</h2>
+          <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
+            <span>{project.date}</span>
+            {project.status && (
+              <>
+                <span className="mx-2">|</span>
+                <span>{getStatusLabel(project.status)}</span>
+              </>
+            )}
+          </div>
+        </header>
+        <p className="mt-2 text-sm" style={{ color: 'rgba(29, 29, 27, 0.8)'}}>{project.description}</p>
         
-        {showLinks && (
-          <div className="project-links">
-            <a 
-              href={project.repo} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="project-link"
-            >
-              <span className="link-icon">📁</span>
-              <span>源码</span>
+        <footer 
+          className="mt-3 transition-opacity duration-300"
+          style={{ opacity: isHovered ? 1 : 0 }}
+        >
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <a href={project.repo} target="_blank" rel="noopener noreferrer" className="hover:text-[--color-seal]">
+              📁 源码
             </a>
             {project.demo && (
-              <a 
-                href={project.demo} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="project-link"
-              >
-                <span className="link-icon">🚀</span>
-                <span>体验网址</span>
+              <a href={project.demo} target="_blank" rel="noopener noreferrer" className="hover:text-[--color-seal]">
+                🚀 演示
               </a>
             )}
           </div>
-        )}
-
-        {project.tags && project.tags.length > 0 && (
-          <div className="card-tags">
-            {project.tags.map((tag) => (
-              <span key={tag} className="tag">
-                {tag}
-              </span>
+          <div className="mt-2">
+            {project.tags?.map(tag => (
+              <span key={tag} className="text-xs mr-2" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>#{tag}</span>
             ))}
           </div>
-        )}
-      </div>
-    </article>
-  );
-
-  // 如果显示链接（在项目页面），则不包裹Link，避免嵌套a标签
-  if (showLinks) {
-    return cardContent;
-  }
-
-  // 如果不显示链接（在首页），则包裹Link使整个卡片可点击
-  return (
-    <Link href={`/projects/${project.slug}`} className="card-link" prefetch={true}>
-      {cardContent}
+        </footer>
+      </article>
     </Link>
   );
-} 
+}

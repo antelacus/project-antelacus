@@ -16,7 +16,7 @@ export default async function HomePage() {
     getAllProjectsMeta(),
   ]);
 
-  // 统一内容流，按时间排序
+  // A unified content stream, sorted by date.
   const feed = [
     ...posts.map(p => ({
       type: 'post' as const,
@@ -47,30 +47,14 @@ export default async function HomePage() {
   feed.sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <main className="homepage">
-      <section className="homepage-hero">
-        <div className="hero-content">
-          <h1 className="hero-title">Ante lacus, pax mentis.</h1>
-          <p className="hero-description">
-            做更好的作品，精益求精。
-          </p>
-          <div className="hero-highlights">
-            <span className="highlight-item">📝 记录想法</span>
-            <span className="highlight-item">💡 实践美学</span>
-            <span className="highlight-item">🔬 探索技术</span>
+    <main className="content-container content-container-wide">
+      <MasonryGrid columns={3} gap={32}>
+        {feed.map((item, index) => (
+          <div key={`${item.type}-${item.slug}`}>
+            {item.component}
           </div>
-        </div>
-      </section>
-      
-      <section className="homepage-feed">
-        <MasonryGrid columns={4} gap={20}>
-          {feed.map((item, index) => (
-            <div key={`${item.type}-${item.slug}`} style={{ animationDelay: `${index * 0.1}s` }}>
-              {item.component}
-            </div>
-          ))}
-        </MasonryGrid>
-      </section>
+        ))}
+      </MasonryGrid>
     </main>
   );
 }

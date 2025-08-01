@@ -26,49 +26,55 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PostPage({ params }: { params: Promise<{ slug:string }> }) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
+
   if (!post) {
+    // Though notFound() is better, we'll keep this custom message for now.
     return (
-      <main style={{ textAlign: 'center', marginTop: '4rem' }}>
-        <h1 style={{ fontSize: '2rem', color: 'var(--color-secondary)' }}>文章未找到</h1>
+      <main className="content-container content-container-standard text-center">
+        <h1>文章未找到</h1>
         <p>你访问的文章不存在或已被删除。</p>
-        <Link href="/posts" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>返回专栏</Link>
+        <Link href="/posts">返回专栏</Link>
       </main>
     );
   }
+
   return (
-    <main className="gallery-detail">
-      <article className="card">
+    <main className="content-container content-container-standard">
+      <article>
+        <header>
+          <h1>{post.title}</h1>
+          <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
+            <span>{post.date}</span>
+            {post.tags && post.tags.length > 0 && (
+              <span className="mx-2">|</span>
+            )}
+            {post.tags?.map(tag => (
+              <span key={tag} className="mr-2">#{tag}</span>
+            ))}
+          </div>
+        </header>
+
         {post.cover && (
-          <Image
-            src={post.cover}
-            alt={post.title}
-            width={800}
-            height={320}
-            style={{
-              width: '100%',
-              height: 'auto',
-              maxHeight: '320px',
-              borderRadius: '6px',
-              marginBottom: '1.2rem',
-              objectFit: 'cover'
-            }}
-            priority={true}
-          />
+          <div className="my-8">
+            <Image
+              src={post.cover}
+              alt={post.title}
+              width={800}
+              height={450}
+              className="w-full h-auto"
+              priority={true}
+            />
+          </div>
         )}
-        <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>{post.title}</h1>
-        <div style={{ color: 'var(--color-secondary)', fontSize: '1em', marginBottom: '0.7em' }}>{post.date}</div>
-        <div style={{ marginBottom: '1.2em' }}>
-          {post.tags && post.tags.map(tag => (
-            <span className="tag" key={tag}>{tag}</span>
-          ))}
-        </div>
-        <div style={{ color: 'var(--color-text)', lineHeight: 1.8 }}>
+
+        <div className="prose">
           <MDXRemote source={post.content} />
         </div>
+
       </article>
     </main>
   );
-} 
+}

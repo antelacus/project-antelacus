@@ -2,11 +2,12 @@ import './globals.css';
 import React from 'react';
 import Nav from '../components/Nav';
 import type { Metadata, Viewport } from 'next';
+import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from './fonts';
 
 export const metadata: Metadata = {
   title: {
     default: 'AnteLacus',
-    template: '%s | AnteLacus'
+    template: '%s | AnteLacus',
   },
   description: 'AnteLacus 个人博客 - 记录思考、分享创意',
   keywords: ['博客', '个人网站', 'AnteLacus'],
@@ -27,7 +28,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
+    <html
+      lang="zh-CN"
+      className={`${cormorantGaramond.variable} ${sourceSerif4.variable} ${jetbrainsMono.variable} ${sourceHanSerif.variable}`}
+    >
       <head>
         <link rel="icon" href="/images/common/logo-icon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/images/common/logo-icon.svg" />

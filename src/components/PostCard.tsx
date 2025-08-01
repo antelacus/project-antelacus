@@ -2,56 +2,55 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { PostMeta } from '../lib/posts';
+import { useState } from 'react';
 
 interface PostCardProps {
   post: PostMeta;
-  showType?: boolean;   // 是否显示类别标识（首页显示，专门页面不显示）
 }
 
-export default function PostCard({ post, showType = true }: PostCardProps) {
-  const showCover = post.cover && post.cover.trim() !== '';
+export default function PostCard({ post }: PostCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Link href={`/posts/${post.slug}`} className="card-link" prefetch={true}>
-      <article className="card masonry-item">
-        {showCover && (
-          <div className="card-cover">
+    <Link 
+      href={`/posts/${post.slug}`} 
+      className="block p-4 rounded-md transition-colors duration-300"
+      style={{ backgroundColor: isHovered ? 'var(--color-wash-moss)' : 'transparent' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      prefetch={true}
+    >
+      <article>
+        {post.cover && (
+          <div className="mb-4">
             <Image
-              src={post.cover!}
+              src={post.cover}
               alt={post.title}
-              className="card-cover-image"
               width={400}
-              height={160}
-              style={{ objectFit: 'cover' }}
+              height={225} // 16:9 aspect ratio
+              className="w-full h-auto"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
             />
           </div>
         )}
-        <div className="card-content">
-          <div className="card-meta">
-            {showType && <span className="card-type">专栏</span>}
-            <time className="card-date">
-              {post.date}
-            </time>
+        <header>
+          <h2 className="text-xl font-normal mb-1">{post.title}</h2>
+          <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
+            {post.date}
           </div>
-          <h2 className="card-title">
-            {post.title}
-          </h2>
-          {post.summary && (
-            <p className="card-summary">{post.summary}</p>
-          )}
-          {post.tags && post.tags.length > 0 && (
-            <div className="card-tags">
-              {post.tags.map((tag) => (
-                <span key={tag} className="tag">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        </header>
+        {post.summary && (
+          <p className="mt-2 text-sm" style={{ color: 'rgba(29, 29, 27, 0.8)'}}>{post.summary}</p>
+        )}
+        <footer 
+          className="mt-3 transition-opacity duration-300"
+          style={{ opacity: isHovered ? 1 : 0 }}
+        >
+          {post.tags?.map(tag => (
+            <span key={tag} className="text-xs mr-2" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>#{tag}</span>
+          ))}
+        </footer>
       </article>
     </Link>
   );
-} 
+}

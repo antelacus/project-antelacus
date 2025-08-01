@@ -14,23 +14,38 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function NotePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const note = await getNoteBySlug(slug);
+
   if (!note) {
     return (
-      <main style={{ textAlign: 'center', marginTop: '4rem' }}>
-        <h1 style={{ fontSize: '2rem', color: 'var(--color-secondary)' }}>笔记未找到</h1>
-        <Link href="/notes" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>返回闪念</Link>
+      <main className="content-container content-container-standard text-center">
+        <h1>笔记未找到</h1>
+        <p>你访问的笔记不存在或已被删除。</p>
+        <Link href="/notes">返回闪念</Link>
       </main>
     );
   }
+
   return (
-    <main className="gallery-detail">
-      <article className="card">
-        <h1 style={{ fontSize: '1.8rem', marginBottom: '0.6rem' }}>{note.title}</h1>
-        <div style={{ color: 'var(--color-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{note.date}</div>
-        <div style={{ color: 'var(--color-text)', lineHeight: 1.7 }}>
+    <main className="content-container content-container-standard">
+      <article>
+        <header>
+          <h1>{note.title}</h1>
+          <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
+            <span>{note.date}</span>
+            {note.tags && note.tags.length > 0 && (
+              <span className="mx-2">|</span>
+            )}
+            {note.tags?.map(tag => (
+              <span key={tag} className="mr-2">#{tag}</span>
+            ))}
+          </div>
+        </header>
+        
+        <div className="prose mt-8">
           <MDXRemote source={note.content} />
         </div>
+        
       </article>
     </main>
   );
-} 
+}
