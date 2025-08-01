@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { PhotoMeta } from '../lib/gallery';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface PhotoCardProps {
   photo: PhotoMeta;
@@ -10,14 +10,26 @@ interface PhotoCardProps {
 
 export default function PhotoCard({ photo }: PhotoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [naturalTilt, setNaturalTilt] = useState('');
+
+  // Qi Enhancement: Natural Spontaneity - generate subtle randomness
+  useEffect(() => {
+    const tiltVariants = ['natural-tilt-1', 'natural-tilt-2', 'natural-tilt-3', 'natural-tilt-4', 'natural-tilt-5'];
+    setNaturalTilt(tiltVariants[Math.floor(Math.random() * tiltVariants.length)]);
+  }, []);
 
   return (
     <Link 
       href={`/gallery/${photo.slug}`} 
-      className="block relative overflow-hidden rounded-md transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]"
+      className={`block relative overflow-hidden rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E] ${naturalTilt}`}
       style={{
-        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: isHovered ? '0 6px 20px rgba(29, 29, 27, 0.12)' : '0 0 0 rgba(29, 29, 27, 0)',
+        transform: isHovered 
+          ? 'translateY(-4px) scale(1.02)' 
+          : 'translateY(0) scale(1)',
+        boxShadow: isHovered 
+          ? '0 12px 35px rgba(29, 29, 27, 0.15), 0 6px 15px rgba(29, 29, 27, 0.08)' 
+          : '0 0 0 rgba(29, 29, 27, 0)',
+        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -45,7 +57,15 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
           WebkitBackdropFilter: 'blur(4px)',
         }}
       >
-        <h2 className="text-lg font-normal">{photo.title}</h2>
+        <h2 
+          className="text-lg font-normal card-title"
+          style={{
+            letterSpacing: isHovered ? '0.02em' : '0',
+            transition: 'letter-spacing 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          }}
+        >
+          {photo.title}
+        </h2>
         <div className="text-xs mt-1" style={{ color: 'rgba(255, 255, 255, 0.7)'}}>
           <span>{photo.date}</span>
           {photo.location && (
