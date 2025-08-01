@@ -60,8 +60,9 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
         <h2 
           className="text-lg font-normal card-title"
           style={{
-            letterSpacing: isHovered ? '0.02em' : '0',
-            transition: 'letter-spacing 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            color: isHovered ? '#FFFFFF' : 'rgba(255, 255, 255, 0.9)',
+            transition: 'color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transitionDelay: isHovered ? '0.1s' : '0s',
           }}
         >
           {photo.title}

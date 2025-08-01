@@ -33,7 +33,7 @@ export default function NoteCard({ note }: NoteCardProps) {
       href={`/notes/${note.slug}`} 
       className={`block p-4 rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E] ${naturalTilt}`}
       style={{ 
-        backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'transparent',
+        backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'var(--color-paper)',
         transform: isHovered 
           ? 'translateY(-3px) scale(1.01)' 
           : 'translateY(0) scale(1)',
@@ -52,8 +52,9 @@ export default function NoteCard({ note }: NoteCardProps) {
           <h2 
             className={`text-xl font-normal mb-1 card-title ${inkVariant}`}
             style={{
-              letterSpacing: isHovered ? '0.02em' : '0',
-              transition: 'letter-spacing 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              color: isHovered ? 'var(--color-ink)' : 'rgba(30, 30, 29, 0.85)',
+              transition: 'color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              transitionDelay: isHovered ? '0.1s' : '0s',
             }}
           >
             {note.title}

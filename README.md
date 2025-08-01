@@ -58,16 +58,17 @@
 
 | 卡片类型 | 首页实现 | 专门页面实现 | 组件文件 | 样式特点 |
 |---------|---------|-------------|----------|----------|
-| **专栏** | `<PostCard>` 组件 | `<PostListCard>` 组件 | `PostCard.tsx` / `PostListCard.tsx` | 首页：竖向卡片；专栏页：横向列表 |
+| **专栏** | `<PostCard layout="vertical">` | `<PostCard layout="horizontal">` | `PostCard.tsx` | 统一组件：支持垂直/水平布局切换 |
 | **闪念** | `<NoteCard>` 组件 | `<NoteCard>` 组件 | `NoteCard.tsx` | 统一的标准卡片布局 |
 | **视觉** | `<PhotoCard>` 组件 | `<PhotoCard>` 组件 | `PhotoCard.tsx` | 统一的视觉卡片布局 |
 | **实验室** | `<ProjectCard>` 组件 | `<ProjectCard>` 组件 | `ProjectCard.tsx` | 统一的标准卡片布局 |
 
 #### 🔧 组件设计原则
 
-**PostCard vs PostListCard**：
-- `PostCard`：用于首页瀑布流，竖向布局，完整信息展示
-- `PostListCard`：用于专栏页面，横向布局，左文右图的列表形式
+**统一的PostCard组件**：
+- `layout="vertical"`：用于首页瀑布流，竖向布局，完整信息展示
+- `layout="horizontal"`：用于专栏页面，横向布局，左文右图的列表形式
+- 单一组件支持两种布局模式，提升维护效率和UI一致性
 
 **NoteCard & PhotoCard & ProjectCard**：
 - 统一使用，在首页和专门页面保持一致的视觉效果

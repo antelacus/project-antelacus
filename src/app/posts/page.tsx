@@ -1,5 +1,5 @@
 import { getAllPostsMeta } from '../../lib/posts';
-import PostListCard from '../../components/PostListCard';
+import PostCard from '../../components/PostCard';
 
 export const metadata = {
   title: '专栏',
@@ -13,7 +13,7 @@ export default async function PostsPage() {
       {posts.length === 0 && <p>暂无内容。</p>}
       {posts.map((post, index) => (
         <div key={post.slug} style={{ animationDelay: `${index * 0.1}s` }}>
-          <PostListCard post={post} />
+          <PostCard post={post} layout="horizontal" />
         </div>
       ))}
     </div>
