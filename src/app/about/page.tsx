@@ -11,10 +11,10 @@ export default function AboutPage() {
           <h2 className="section-title">个人简介</h2>
           <div className="section-content">
             <p>
-              你好！我是 <strong>AnteLacus</strong>，一名曾经的审计师，现在迷恋上 AI 和计算机科学。
+              你好！我是 <strong>AnteLacus</strong>，一名曾经的审计师，现在痴迷于 AI 和计算机科学。
             </p>
             <p>
-              我相信技术的力量能够改变世界，同时也珍视生活中的每一个灵感瞬间。
+              我相信技术的力量正在改变世界，同时也珍视生活中的每一个灵感瞬间。
             </p>
           </div>
         </section>
@@ -23,8 +23,8 @@ export default function AboutPage() {
           <h2 className="section-title">网站介绍</h2>
           <div className="section-content">
             <p>
-              在这个网站中，我分享我的<strong>专栏文章</strong>、记录<strong>思维闪念</strong>的创意瞬间、
-              展示我眼中的<strong>视觉世界</strong>，以及我正在进行的<strong>实验室项目</strong>。
+              在这个网站中，我分享<strong>想法</strong>、记录<strong>灵感</strong>、
+              展示我眼中的<strong>美丽</strong>，以及我正在进行的<strong>项目</strong>。
             </p>
           </div>
         </section>
@@ -33,7 +33,7 @@ export default function AboutPage() {
           <h2 className="section-title">联系我</h2>
           <div className="section-content">
             <p>
-              我很乐意与同样热爱技术和创作的朋友交流，欢迎通过以下方式联系我：
+              欢迎通过以下方式联系我：
             </p>
             
             <div className="contact-grid">
@@ -92,8 +92,8 @@ export default function AboutPage() {
           <h2 className="section-title">网站技术栈</h2>
           <div className="section-content">
             <p>
-              这个博客使用 <strong>Next.js</strong> 构建，部署在 <strong>Vercel</strong> 上，
-              采用了自己搭配的<strong>马略卡</strong>色彩方案。
+              这个网站使用 <strong>Next.js</strong> 构建，部署在 <strong>Vercel</strong> 上，
+              采用了自己搭配的 <strong>AnteLacus</strong> 美学方案。
             </p>
             <p>
               所有内容都以 <strong>Markdown</strong> 格式编写，确保专注于内容创作本身。
