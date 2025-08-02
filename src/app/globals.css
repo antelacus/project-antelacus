@@ -557,7 +557,7 @@ img {
   
   .post-list-cover {
     width: 100%;
-    height: 200px; /* Maintain good aspect ratio on mobile */
+    height: 150px; /* Maintain good aspect ratio on mobile */
     order: -1; /* Ensure image appears above content */
   }
   

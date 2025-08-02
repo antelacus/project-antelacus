@@ -104,13 +104,29 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           }}
         >
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-            <a href={project.repo} target="_blank" rel="noopener noreferrer" className="hover:text-[--color-seal]">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(project.repo, '_blank', 'noopener,noreferrer');
+              }}
+              className="hover:text-[--color-seal] bg-transparent border-none p-0 cursor-pointer text-sm"
+              style={{ color: 'inherit' }}
+            >
               📁 源码
-            </a>
+            </button>
             {project.demo && (
-              <a href={project.demo} target="_blank" rel="noopener noreferrer" className="hover:text-[--color-seal]">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.open(project.demo, '_blank', 'noopener,noreferrer');
+                }}
+                className="hover:text-[--color-seal] bg-transparent border-none p-0 cursor-pointer text-sm"
+                style={{ color: 'inherit' }}
+              >
                 🚀 演示
-              </a>
+              </button>
             )}
           </div>
           <div className="mt-2">
