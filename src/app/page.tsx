@@ -1,12 +1,12 @@
-import Link from 'next/link';
 import { getAllPostsMeta } from '../lib/posts';
 import { getAllNotesMeta } from '../lib/notes';
 import { getAllPhotosMeta } from '../lib/gallery';
 import { getAllProjectsMeta } from '../lib/projects';
-import PostCard from '../components/PostCard';
-import NoteCard from '../components/NoteCard';
-import PhotoCard from '../components/PhotoCard';
-import ProjectCard from '../components/ProjectCard';
+import ClientPostCard from '../components/ClientPostCard';
+import ClientNoteCard from '../components/ClientNoteCard';
+import ClientPhotoCard from '../components/ClientPhotoCard';
+import ClientProjectCard from '../components/ClientProjectCard';
+
 
 export default async function HomePage() {
   const [posts, notes, photos, projects] = await Promise.all([
@@ -26,7 +26,17 @@ export default async function HomePage() {
     <div className="garden-entrance">
       {/* 园名匾额 (The Name Plaque) */}
       <header className="garden-plaque">
-        <h1 className="garden-name">antelacus.com</h1>
+        <h1 className="garden-name">
+          {"AnteLacus".split('').map((letter, index) => (
+            <span 
+              key={index} 
+              className="garden-name-letter"
+              style={{ '--letter-index': index } as React.CSSProperties}
+            >
+              {letter}
+            </span>
+          ))}
+        </h1>
         <div className="garden-seal">■</div>
         <p className="garden-motto">Ante Lacus, Pax Mentis</p>
       </header>
@@ -41,7 +51,7 @@ export default async function HomePage() {
               className="mountain-peak"
               style={{ '--peak-index': index } as React.CSSProperties}
             >
-              <PostCard post={post} />
+              <ClientPostCard post={post} />
             </div>
           ))}
         </section>
@@ -50,7 +60,7 @@ export default async function HomePage() {
         <section className="scholars-rocks">
           {featuredNotes.map((note) => (
             <div key={note.slug} className="scholar-rock">
-              <NoteCard note={note} />
+              <ClientNoteCard note={note} />
             </div>
           ))}
         </section>
@@ -59,25 +69,19 @@ export default async function HomePage() {
         <section className="secondary-features">
           {featuredPhoto && (
             <div className="koi-pond">
-              <PhotoCard photo={featuredPhoto} />
+              <ClientPhotoCard photo={featuredPhoto} />
             </div>
           )}
 
           {featuredProject && (
             <div className="pavilion">
-              <ProjectCard project={featuredProject} />
+              <ClientProjectCard project={featuredProject} />
             </div>
           )}
         </section>
       </main>
 
-      {/* 游廊引路 (Pathway Invitations) */}
-      <nav className="garden-pathways">
-        <Link href="/posts" className="pathway-link">观所有文章 →</Link>
-        <Link href="/notes" className="pathway-link">览全部闪念 →</Link>
-        <Link href="/gallery" className="pathway-link">赏所有视觉 →</Link>
-        <Link href="/projects" className="pathway-link">探所有实验 →</Link>
-      </nav>
+
     </div>
   );
 }

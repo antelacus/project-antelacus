@@ -175,7 +175,7 @@ img {
 
 /* For standard pages, providing a comfortable reading width */
 .content-container-standard {
-  max-width: 70ch; /* Optimal for reading */
+  max-width: 90ch; /* Enhanced reading width */
 }
 
 /* For wider layouts like the homepage or gallery index */
@@ -187,6 +187,147 @@ img {
   .content-container {
     padding: var(--space-xl) var(--space-lg);
   }
+}
+
+/* === Content List Layout: The Breathing Space === */
+/*
+ * Provides proper spacing between content cards on list pages,
+ * embodying the "呼吸空间" (breathing space) principle of our aesthetic.
+ */
+.content-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  animation: quietReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-item {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: quietReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Enhanced spacing for different content types */
+.content-list .content-item:not(:last-child) {
+  margin-bottom: var(--space-md);
+}
+
+/* Special spacing for post cards in horizontal layout */
+.content-list .content-item:has(.post-list-card) {
+  margin-bottom: var(--space-lg);
+}
+
+/* Ensure proper separation and breathing room */
+.content-item + .content-item {
+  border-top: 1px solid rgba(30, 30, 29, 0.05);
+  padding-top: var(--space-lg);
+}
+
+/* === About Page Styling: The Personal Manuscript === */
+/*
+ * About page represents a personal testament, styled with the dignity
+ * befitting the "Living Manuscript" aesthetic philosophy
+ */
+.about-content {
+  animation: quietReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.about-section {
+  margin-bottom: var(--space-xxl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid rgba(30, 30, 29, 0.08);
+}
+
+.about-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--color-ink);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--color-seal);
+  display: inline-block;
+}
+
+.section-content {
+  color: var(--color-ink);
+  line-height: 1.7;
+}
+
+.section-content p {
+  margin-bottom: var(--space-md);
+}
+
+.section-content strong {
+  color: var(--color-seal);
+  font-weight: 500;
+}
+
+/* Contact Grid: Elegant Social Connect */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-md);
+  background-color: var(--color-paper);
+  border: 1px solid rgba(30, 30, 29, 0.1);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contact-item:hover {
+  background-color: var(--color-wash-moss);
+  border-color: var(--color-seal);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 30, 29, 0.1);
+}
+
+.contact-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-wash-stone);
+  border-radius: var(--radius-md);
+  margin-right: var(--space-md);
+  color: var(--color-ink);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.contact-item:hover .contact-icon {
+  background-color: var(--color-seal);
+  color: var(--color-paper);
+}
+
+.contact-info {
+  flex: 1;
+}
+
+.contact-label {
+  font-size: 0.85rem;
+  color: rgba(30, 30, 29, 0.6);
+  margin-bottom: var(--space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.contact-value {
+  font-weight: 500;
+  color: var(--color-ink);
 }
 
 /* === MDX Content Styling: The Reading Experience === */
@@ -315,7 +456,7 @@ img {
 }
 
 .card-organic:hover {
-  animation: organicBreathe 2s ease-in-out infinite;
+  animation: organicBreathe 3s ease-in-out infinite;
 }
 
 /*
@@ -367,6 +508,7 @@ img {
 
 /*
  * Post List Card - Horizontal layout for posts page
+ * Updated to use unified card aesthetics with other components
  */
 .post-list-card {
   display: flex;
@@ -383,65 +525,11 @@ img {
   min-width: 0; /* Allow text truncation */
 }
 
-.post-list-meta {
-  margin-bottom: var(--space-xs);
-}
-
-.post-list-date {
-  font-size: 0.875rem;
-  color: rgba(30, 30, 29, 0.6);
-  font-family: var(--font-body);
-}
-
-.post-list-title {
-  font-size: 1.25rem;
-  font-weight: 500;
-  font-family: var(--font-heading);
-  color: rgba(30, 30, 29, 0.85);
-  margin-bottom: var(--space-xs);
-  line-height: 1.3;
-  transition: color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transition-delay: 0s;
-}
-
-.card-link:hover .post-list-title {
-  color: var(--color-ink);
-  transition-delay: 0.1s;
-}
-
-.post-list-summary {
-  font-size: 0.875rem;
-  color: rgba(30, 30, 29, 0.8);
-  line-height: 1.5;
-  margin-bottom: var(--space-sm);
-}
-
-.post-list-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  opacity: 0;
-  transform: translateY(4px);
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.card-link:hover .post-list-tags {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.post-list-tag {
-  font-size: 0.75rem;
-  color: rgba(30, 30, 29, 0.6);
-  padding: 2px 6px;
-  background-color: var(--color-wash-stone);
-  border-radius: var(--radius-sm);
-}
-
+/* Simplified cover styling - unified with other cards */
 .post-list-cover {
   flex-shrink: 0;
-  width: 120px;
-  height: 90px;
+  width: 180px;
+  height: 135px;
   overflow: hidden;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-ink);
@@ -501,11 +589,28 @@ img {
   text-shadow: 
     1px 1px 0 rgba(30, 30, 29, 0.1),
     2px 2px 0 rgba(30, 30, 29, 0.05);
-  transition: letter-spacing 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
 }
 
-.garden-name:hover {
-  letter-spacing: 0.01em;
+/* Water Ripple Effect - The Essence of Qi */
+@keyframes waterRipple {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-2px) scaleY(1.02);
+  }
+}
+
+.garden-name-letter {
+  display: inline-block;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center bottom;
+}
+
+.garden-name:hover .garden-name-letter {
+  animation: waterRipple 1.2s ease-in-out;
+  animation-delay: calc(var(--letter-index) * 0.08s);
 }
 
 .garden-seal {
@@ -621,6 +726,144 @@ img {
   outline-offset: 2px;
 }
 
+/* === Photo Gallery Grid: The Harmonious Arrangement === */
+
+/*
+ * Main photo grid container
+ * Embodies the principle of spatial breathing and visual balance
+ */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+  padding: var(--space-lg) 0;
+  width: 100%;
+  max-width: 100%;
+  /* Center the grid within its container */
+  margin: 0 auto;
+  /* Ensure proper alignment */
+  justify-content: center;
+  align-content: start;
+  /* Allow items to have different heights naturally */
+  grid-auto-rows: auto;
+  align-items: start;
+}
+
+/*
+ * Individual photo grid items
+ * Each photo becomes a framed window into a moment
+ */
+.photo-grid-item {
+  position: relative;
+  display: block;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--color-paper);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Subtle shadow for depth */
+  box-shadow: 0 2px 12px rgba(29, 29, 27, 0.08);
+  /* Prevent awkward spacing */
+  line-height: 0;
+  /* Container adapts to image dimensions */
+  height: fit-content;
+  width: 100%;
+}
+
+.photo-grid-item:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(29, 29, 27, 0.15);
+}
+
+.photo-grid-item:focus {
+  outline: 2px solid var(--color-seal);
+  outline-offset: 2px;
+}
+
+/*
+ * Photo images within the grid
+ * Ensuring natural aspect ratios while maintaining visual harmony
+ */
+.photo-grid-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s ease;
+  /* Maintain image quality */
+  image-rendering: high-quality;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.photo-grid-item:hover .photo-grid-image {
+  transform: scale(1.05);
+}
+
+/*
+ * Overlay for photo information
+ * The quiet reveal of details
+ */
+.photo-grid-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    to top,
+    rgba(29, 29, 27, 0.8) 0%,
+    rgba(29, 29, 27, 0.4) 60%,
+    transparent 100%
+  );
+  color: var(--color-paper);
+  padding: var(--space-md);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.photo-grid-item:hover .photo-grid-overlay {
+  transform: translateY(0);
+}
+
+.photo-grid-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.photo-number {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 1024px) {
+  .photo-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .photo-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+}
+
 /* === Responsive Garden Design === */
 
 @media (max-width: 768px) {
@@ -673,4 +916,5 @@ img {
     gap: var(--space-sm);
   }
 }
+
 

@@ -11,7 +11,7 @@ export default async function GalleryPage() {
   const photos = await getAllPhotosMeta();
   
   return (
-    <div className="container">
+    <div className="content-container content-container-wide">
       {photos.length === 0 ? (
         <div className="gallery-empty">
           <p>暂无照片作品。</p>

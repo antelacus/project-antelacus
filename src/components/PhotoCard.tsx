@@ -22,6 +22,12 @@ export default function PhotoCard({ photo }: PhotoCardProps) {
     <Link 
       href={`/gallery/${photo.slug}`} 
       className={`block relative overflow-hidden rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E] ${naturalTilt}`}
+      onClick={() => {
+        // Only set navigatedFromHome flag when clicking from homepage
+        if (window.location.pathname === '/') {
+          sessionStorage.setItem('navigatedFromHome', 'true');
+        }
+      }}
       style={{
         transform: isHovered 
           ? 'translateY(-4px) scale(1.02)' 

@@ -1,9 +1,11 @@
 /**
- * Skip Link Component for Enhanced Accessibility
+ * Skip Link Component - "Living Manuscript" Aesthetic
  * 
- * Provides keyboard users a way to skip navigation and jump directly to main content.
- * Hidden by default, appears when focused with Tab key.
- * Styled to match the "Living Manuscript" aesthetic.
+ * Embodies the principle of "The Quiet Reveal" (静默展开的层次原则):
+ * - Completely hidden by default, respecting the manuscript's visual purity
+ * - Gracefully reveals when focused, like ink flowing onto paper
+ * - Uses the sacred seal color (朱砂) to mark this important interaction
+ * - Provides seamless accessibility without compromising aesthetic integrity
  */
 
 "use client";
@@ -24,24 +26,51 @@ export default function SkipLink() {
       className="skip-link"
       style={{
         position: 'absolute',
-        top: '-40px',
-        left: '6px',
+        top: '16px',
+        left: '16px',
         background: 'var(--color-seal)',
         color: 'var(--color-paper)',
-        padding: '8px 16px',
-        borderRadius: '4px',
+        padding: '12px 20px',
+        borderRadius: '6px',
         textDecoration: 'none',
         fontWeight: '500',
-        fontSize: '14px',
+        fontSize: '15px',
+        lineHeight: '1.4',
         zIndex: 1000,
-        transition: 'top 0.3s ease',
-        border: '2px solid var(--color-seal)',
+        
+        /* The Quiet Reveal: Hidden until focused */
+        transform: 'translateY(-120%)',
+        opacity: '0',
+        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        
+        /* Ink Texture: Subtle shadow like seal paste on paper */
+        boxShadow: '0 4px 12px rgba(180, 42, 30, 0.15), 0 2px 4px rgba(180, 42, 30, 0.1)',
+        
+        /* Typography: Body font for clarity */
+        fontFamily: 'var(--font-body), var(--font-body-cn), serif',
+        
+        /* Accessibility: Ensure sufficient contrast */
+        border: '2px solid transparent',
       }}
       onFocus={(e) => {
-        e.currentTarget.style.top = '6px';
+        // Graceful Emergence: Like ink flowing onto paper
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.opacity = '1';
+        e.currentTarget.style.borderColor = 'var(--color-paper)';
       }}
       onBlur={(e) => {
-        e.currentTarget.style.top = '-40px';
+        // Quiet Retreat: Returning to the void
+        e.currentTarget.style.transform = 'translateY(-120%)';
+        e.currentTarget.style.opacity = '0';
+        e.currentTarget.style.borderColor = 'transparent';
+      }}
+      onMouseEnter={(e) => {
+        // Subtle highlight for accidental mouse encounters
+        e.currentTarget.style.boxShadow = '0 6px 16px rgba(180, 42, 30, 0.2), 0 3px 6px rgba(180, 42, 30, 0.15)';
+      }}
+      onMouseLeave={(e) => {
+        // Return to natural state
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(180, 42, 30, 0.15), 0 2px 4px rgba(180, 42, 30, 0.1)';
       }}
     >
       跳转到主要内容

@@ -22,43 +22,9 @@ const nextConfig: NextConfig = {
   // Compress pages and static files
   compress: true,
   
-  // Custom webpack configuration for performance
-  webpack: (config, { dev, isServer }) => {
-    // Production optimizations
-    if (!dev && !isServer) {
-      // Enable tree shaking
-      config.optimization = {
-        ...config.optimization,
-        usedExports: true,
-        sideEffects: false,
-      };
-
-      // Optimize bundle splitting
-      config.optimization.splitChunks = {
-        ...config.optimization.splitChunks,
-        cacheGroups: {
-          default: false,
-          vendors: false,
-          // Chunk for shared components
-          components: {
-            name: 'components',
-            chunks: 'all',
-            test: /[\\/]src[\\/]components[\\/]/,
-            priority: 20,
-          },
-          // Chunk for vendor libraries
-          vendor: {
-            name: 'vendor',
-            chunks: 'all',
-            test: /[\\/]node_modules[\\/]/,
-            priority: 10,
-          },
-        },
-      };
-    }
-
-    return config;
-  },
+  // Turbopack optimizations (replacing webpack configuration)
+  // Note: Turbopack handles most optimizations automatically
+  // Custom optimizations can be added via experimental features
 
   // Headers for caching and security
   async headers() {

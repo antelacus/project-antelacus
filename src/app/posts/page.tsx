@@ -9,13 +9,15 @@ export const metadata = {
 export default async function PostsPage() {
   const posts = await getAllPostsMeta();
   return (
-    <div className="container">
+    <div className="content-container content-container-standard">
       {posts.length === 0 && <p>暂无内容。</p>}
-      {posts.map((post, index) => (
-        <div key={post.slug} style={{ animationDelay: `${index * 0.1}s` }}>
-          <PostCard post={post} layout="horizontal" />
-        </div>
-      ))}
+      <div className="content-list">
+        {posts.map((post, index) => (
+          <div key={post.slug} className="content-item" style={{ animationDelay: `${index * 0.1}s` }}>
+            <PostCard post={post} layout="horizontal" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 } 

@@ -25,14 +25,26 @@ export default function PostCard({ post, layout = 'vertical' }: PostCardProps) {
 
   // Determine layout classes based on layout prop
   const isHorizontal = layout === 'horizontal';
-  const cardClass = isHorizontal ? 'card-link' : 'block p-4 rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]';
+  const cardClass = isHorizontal ? 'card-link card-organic' : 'block p-4 rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]';
   const articleClass = isHorizontal ? 'card post-list-card masonry-item' : '';
+  
+  // Unified hover styles for horizontal layout
+  const horizontalHoverStyle = isHorizontal ? {
+    backgroundColor: isHovered ? 'var(--color-wash-moss)' : 'var(--color-paper)',
+    transform: isHovered 
+      ? 'translateY(-3px) scale(1.01)' 
+      : 'translateY(0) scale(1)',
+    boxShadow: isHovered 
+      ? '0 8px 25px rgba(29, 29, 27, 0.12), 0 4px 10px rgba(29, 29, 27, 0.06)' 
+      : '0 0 0 rgba(29, 29, 27, 0)',
+    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+  } : undefined;
 
   return (
     <Link 
       href={`/posts/${post.slug}`} 
       className={`${cardClass} ${naturalTilt}`}
-      style={!isHorizontal ? { 
+      style={isHorizontal ? horizontalHoverStyle : { 
         backgroundColor: isHovered ? 'var(--color-wash-moss)' : 'var(--color-paper)',
         transform: isHovered 
           ? 'translateY(-3px) scale(1.01)' 
@@ -41,33 +53,53 @@ export default function PostCard({ post, layout = 'vertical' }: PostCardProps) {
           ? '0 8px 25px rgba(29, 29, 27, 0.12), 0 4px 10px rgba(29, 29, 27, 0.06)' 
           : '0 0 0 rgba(29, 29, 27, 0)',
         transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-      } : undefined}
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => {
+        // Only set navigatedFromHome flag when clicking from homepage
+        if (window.location.pathname === '/') {
+          sessionStorage.setItem('navigatedFromHome', 'true');
+        }
+      }}
       aria-label={`阅读专栏文章：${post.title}`}
       prefetch={true}
     >
       <article className={articleClass}>
         {isHorizontal ? (
-          // Horizontal layout (for posts list page)
+          // Horizontal layout (for posts list page) - unified with other card styles
           <>
             <div className="post-list-content">
-              <div className="post-list-meta">
-                <div className="post-list-date">{post.date}</div>
-              </div>
-              <h2 className={`post-list-title ${inkVariant}`}>{post.title}</h2>
-              {post.summary && (
-                <p className="post-list-summary">{post.summary}</p>
-              )}
-              {post.tags && post.tags.length > 0 && (
-                <div className="post-list-tags">
-                  {post.tags.map(tag => (
-                    <span key={tag} className="post-list-tag">
-                      {tag}
-                    </span>
-                  ))}
+              <header>
+                <h2 
+                  className={`text-xl font-normal mb-1 card-title ${inkVariant}`}
+                  style={{
+                    color: isHovered ? 'var(--color-ink)' : 'rgba(30, 30, 29, 0.85)',
+                    transition: 'color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    transitionDelay: isHovered ? '0.1s' : '0s',
+                  }}
+                >
+                  {post.title}
+                </h2>
+                <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
+                  {post.date}
                 </div>
+              </header>
+              {post.summary && (
+                <p className="mt-2 text-sm" style={{ color: 'rgba(29, 29, 27, 0.8)'}}>{post.summary}</p>
               )}
+              <footer 
+                className="mt-3"
+                style={{ 
+                  opacity: isHovered ? 1 : 0,
+                  transform: isHovered ? 'translateY(0)' : 'translateY(4px)',
+                  transition: 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                }}
+              >
+                {post.tags?.map(tag => (
+                  <span key={tag} className="text-xs mr-2" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>#{tag}</span>
+                ))}
+              </footer>
             </div>
             {post.cover && (
               <div className="post-list-cover">

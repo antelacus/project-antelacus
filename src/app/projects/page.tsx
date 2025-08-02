@@ -9,13 +9,15 @@ export const metadata = {
 export default async function ProjectsPage() {
   const projects = await getAllProjectsMeta();
   return (
-    <div className="container">
+    <div className="content-container content-container-standard">
       {projects.length === 0 && <p>暂无项目。</p>}
-      {projects.map((project, index) => (
-        <div key={project.slug} style={{ animationDelay: `${index * 0.1}s` }}>
-          <ProjectCard project={project} />
-        </div>
-      ))}
+      <div className="content-list">
+        {projects.map((project, index) => (
+          <div key={project.slug} className="content-item" style={{ animationDelay: `${index * 0.1}s` }}>
+            <ProjectCard project={project} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 } 

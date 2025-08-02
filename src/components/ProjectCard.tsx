@@ -35,6 +35,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     <Link 
       href={`/projects/${project.slug}`} 
       className={`block p-4 rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E] ${naturalTilt}`}
+      onClick={() => {
+        // Only set navigatedFromHome flag when clicking from homepage
+        if (window.location.pathname === '/') {
+          sessionStorage.setItem('navigatedFromHome', 'true');
+        }
+      }}
       style={{ 
         backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'var(--color-paper)',
         transform: isHovered 
