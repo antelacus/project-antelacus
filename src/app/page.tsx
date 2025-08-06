@@ -6,6 +6,68 @@ import ClientPostCard from '../components/ClientPostCard';
 import ClientNoteCard from '../components/ClientNoteCard';
 import ClientPhotoCard from '../components/ClientPhotoCard';
 import ClientProjectCard from '../components/ClientProjectCard';
+import type { Metadata } from 'next';
+
+// 主页metadata配置
+export const metadata: Metadata = {
+  title: 'AnteLacus - 个人博客与创意空间',
+  description: '欢迎来到AnteLacus，一个融合思考、创意与技术的个人空间。这里记录我的学习笔记、项目经验和生活感悟，分享技术见解与设计思考。',
+  keywords: [
+    'AnteLacus',
+    '个人博客',
+    '技术博客',
+    '学习笔记',
+    '项目展示',
+    '创意空间',
+    '设计思考',
+    '技术分享'
+  ],
+  authors: [{ name: 'AnteLacus' }],
+  creator: 'AnteLacus',
+  publisher: 'AnteLacus',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://antelacus.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'AnteLacus - 个人博客与创意空间',
+    description: '欢迎来到AnteLacus，一个融合思考、创意与技术的个人空间。这里记录我的学习笔记、项目经验和生活感悟，分享技术见解与设计思考。',
+    url: 'https://antelacus.com',
+    siteName: 'AnteLacus',
+    locale: 'zh_CN',
+    type: 'website',
+    images: [
+      {
+        url: '/images/og-image.svg',
+        width: 1200,
+        height: 630,
+        alt: 'AnteLacus - 个人博客与创意空间',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AnteLacus - 个人博客与创意空间',
+    description: '欢迎来到AnteLacus，一个融合思考、创意与技术的个人空间。',
+    images: ['/images/og-image.svg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+};
 
 
 export default async function HomePage() {

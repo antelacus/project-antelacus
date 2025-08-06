@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&amp;display=swap');
+      .background { fill: #F9F8F6; }
+      .text { font-family: 'Cormorant Garamond', serif; fill: #1E1E1D; }
+      .title { font-size: 72px; font-weight: 600; }
+      .subtitle { font-size: 32px; font-weight: 400; opacity: 0.8; }
+      .seal { fill: #B42A1E; font-size: 24px; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="background" width="1200" height="630"/>
+  
+  <!-- Decorative elements -->
+  <rect x="50" y="50" width="1100" height="530" fill="none" stroke="#1E1E1D" stroke-width="2" opacity="0.1"/>
+  
+  <!-- Main title -->
+  <text x="600" y="250" class="text title" text-anchor="middle">AnteLacus</text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="320" class="text subtitle" text-anchor="middle">个人博客与创意空间</text>
+  
+  <!-- Motto -->
+  <text x="600" y="380" class="text subtitle" text-anchor="middle" opacity="0.6">Ante Lacus, Pax Mentis</text>
+  
+  <!-- Seal -->
+  <text x="600" y="450" class="text seal" text-anchor="middle">■</text>
+  
+  <!-- Bottom line -->
+  <line x1="200" y1="500" x2="1000" y2="500" stroke="#1E1E1D" stroke-width="1" opacity="0.3"/>
+  
+  <!-- URL -->
+  <text x="600" y="550" class="text subtitle" text-anchor="middle" opacity="0.5" font-size="24px">antelacus.com</text>
+</svg>
