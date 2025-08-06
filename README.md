@@ -1,5 +1,7 @@
 # antelacus.com 博客项目
 
+> 📚 **[项目文档中心](docs/README.md)** - 完整的美学设计、运营策略、内容管理和SEO优化文档
+
 ## 一、项目简介
 
 本项目为 antelacus.com 个人博客网站，旨在打造一个支持 Markdown 写作、图片发布、社交媒体内容同步的高可定制化博客平台。网站将部署在 Vercel，使用 Next.js 框架，绑定自有域名 www.antelacus.com。
