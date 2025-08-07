@@ -14,17 +14,7 @@ export default function AboutPage() {
               你好！我是 <strong>AnteLacus</strong>，一名曾经的审计师，现在痴迷于 AI 和计算机科学。
             </p>
             <p>
-              我相信技术的力量正在改变世界，同时也珍视生活中的每一个灵感瞬间。
-            </p>
-          </div>
-        </section>
-
-        <section className="about-section">
-          <h2 className="section-title">网站介绍</h2>
-          <div className="section-content">
-            <p>
-              在这个网站中，我分享<strong>想法</strong>、记录<strong>灵感</strong>、
-              展示我眼中的<strong>美丽</strong>，以及我正在进行的<strong>项目</strong>。
+              “我到底是谁？”是我现在最关注的问题。
             </p>
           </div>
         </section>
@@ -69,7 +59,7 @@ export default function AboutPage() {
                 </div>
                 <div className="contact-info">
                   <div className="contact-label">X (Twitter)</div>
-                  <div className="contact-value">@antelacus110787</div>
+                  <div className="contact-value">@ante_lacus</div>
                 </div>
               </a>
 
@@ -89,14 +79,37 @@ export default function AboutPage() {
         </section>
 
         <section className="about-section">
-          <h2 className="section-title">网站技术栈</h2>
+          <h2 className="section-title">网站介绍</h2>
           <div className="section-content">
+            <h3>写作理念</h3>
             <p>
-              这个网站使用 <strong>Next.js</strong> 构建，部署在 <strong>Vercel</strong> 上，
-              采用了自己搭配的 <strong>AnteLacus</strong> 美学方案。
+              我写作的唯一目的是<strong>我想写</strong>。
             </p>
+            
+            <h3>设计理念</h3>
             <p>
-              所有内容都以 <strong>Markdown</strong> 格式编写，确保专注于内容创作本身。
+              这个网站的设计理念是<strong>有生命的手稿 (Living Manuscript)</strong>。
+              这不是要制作一个看起来像手稿的网站，而是要体现手稿的精神——思想成形的空间，有结构但鲜活，个人化但清晰。
+            </p>
+            
+            <p>
+              这一理念建立在三个核心原则之上：
+            </p>
+            
+            <ul>
+              <li><strong>深思熟虑的笔触：</strong>每个元素都是深思熟虑的笔触，没有装饰，只有本质的沟通。空白空间被视为安静沉思的时刻，而非空虚。</li>
+              <li><strong>有机生长的肌理：</strong>美学必须感觉像一个活的有机体，展现生命和时间流逝的证据，拥抱"没有最好，只有更好"的理念。</li>
+              <li><strong>静默展开的层次：</strong>美学不是为了吸引注意力而大声喧哗，而是邀请发现，慢慢地揭示其秘密，奖励耐心的观察者。</li>
+            </ul>
+            
+            <h3>感官体验</h3>
+            <p>
+              网站的色彩体系以<strong>纸张的灵魂</strong>为核心：温暖的宣纸色作为画布，干涸的墨汁作为笔触，朱砂色作为艺术家的签名。字体选择连接传统与现代，空间布局创造沉思的节奏，交互设计体现思想的有机展开。
+            </p>
+            
+            <h3>技术实现</h3>
+            <p>
+              网站使用 <strong>Next.js</strong> 构建，部署在 <strong>Vercel</strong> 上，所有内容都以 <strong>Markdown</strong> 格式编写。
             </p>
           </div>
         </section>
