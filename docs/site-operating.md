@@ -1,400 +1,4 @@
-## 一、备查信息
-
-### （二）Markdown层级与中文写作规范
-
-#### 📚 Markdown标题层级支持
-
-**技术层面：**
-```markdown
-# 一级标题 (H1)
-## 二级标题 (H2)  
-### 三级标题 (H3)
-#### 四级标题 (H4)
-##### 五级标题 (H5)
-###### 六级标题 (H6)
-```
-
-Markdown标准支持1-6级标题，对应HTML的`<h1>`到`<h6>`标签。
-notion仅支持1-3级标题，建议仅使用1-3级标题写作。
-
-#### 🎯 一级标题（#）的使用场景
-
-**✅ 适合使用一级标题的场景：**
-
-**1. 独立文档/长篇内容**
-```markdown
-# 深度学习完整教程        ← 整个教程的总标题
-## 第一章：基础概念        ← 章节
-### 一、神经网络原理       ← 节
-#### （一）感知机模型     ← 小节
-```
-
-**2. 技术文档/API文档**
-```markdown
-# React Hook 使用指南     ← 文档主标题
-## useState Hook         ← 主要功能
-### 基本用法             ← 具体说明
-#### 示例代码           ← 细节
-```
-
-**3. 项目README文件**
-```markdown
-# project-antelacus     ← 项目名称
-## 项目简介             ← 主要章节
-### 技术选型            ← 子章节
-```
-
-**❌ 不适合使用一级标题的场景：**
-
-**1. 博客文章**
-```markdown
-❌ 错误用法：
-# LLM学习笔记           ← 这会比文章标题还大
-## 核心概念            
-
-✅ 正确用法：
----
-title: "LLM学习笔记"    ← front-matter作为文章标题
----
-## 一、核心概念         ← 从二级开始
-### （一）基本原理      
-```
-
-**2. 短篇笔记**
-```markdown
-❌ 避免：
-# 今日思考            ← 过于突出
-
-✅ 推荐：
----
-title: "今日思考"      ← front-matter
----
-## 主要观点           ← 从二级开始
-```
-
-#### 📖 中文写作层级对应关系
-
-**传统文书层级：**
-```
-中文传统                    →    Markdown建议
-──────────────────────────────────────────
-篇/卷                      →    # (仅限长篇文档)
-章                         →    ## 
-节                         →    ###
-条/款                      →    ####
-项                         →    #####
-目                         →    ######
-```
-
-**现代写作实践：**
-```
-应用场景                    →    起始层级
-──────────────────────────────────────────
-书籍/长篇教程               →    # 开始
-博客文章                   →    ## 开始  
-学习笔记                   →    ## 开始
-技术文档                   →    # 或 ## 开始
-项目README                 →    # 开始
-```
-
-#### 🎨 层级使用最佳实践
-
-**根据内容长度选择：**
-
-**短篇内容（< 5000字）：**
-```markdown
----
-title: "文章标题"
----
-## 一、主要内容          ← 从二级开始
-### （一）具体论述
-#### 1. 详细要点
-##### （1）细节说明
-```
-
-**中篇内容（5000-15000字）：**
-```markdown
----
-title: "深度指南"
----
-# 完整指南标题           ← 可以使用一级
-## 第一部分：基础
-### 一、核心概念
-#### （一）基本原理
-```
-
-**长篇内容（>15000字）：**
-```markdown
-# 完整教程系列           ← 系列标题
-## 第一册：入门篇        ← 册/卷
-### 第一章：基础概念      ← 章
-#### 一、核心原理        ← 节
-##### （一）基本概念     ← 条/款
-```
-
-#### 💡 核心原则总结
-
-**标题层级选择：**
-1. **短篇内容**：front-matter + 从`##`开始
-2. **长篇内容**：可以使用`#`作为总标题
-3. **保持层级逻辑**：不跳级，循序渐进
-4. **符合中文习惯**：使用传统编号系统
-
-**中文编号体系：**
-```
-## 一、二、三...（主要章节）
-### （一）、（二）、（三）...（分章节）
-#### 1、2、3...（要点）
-##### （1）、（2）、（3）...（细节）
-###### a、b、c...（补充说明，少用）
-```
-
-**Notion迁移建议：**
-- **Notion写作**：保持三级以内，用粗体、引用标记层级
-- **MDX迁移**：使用查找替换批量转换格式
-- **层级验证**：确保编号逻辑递进，无跳级
-
-#### 🌍 英语写作Markdown层级指引
-
-**英语vs中文写作差异：**
-
-| 方面 | 中文写作 | 英语写作 |
-|------|----------|----------|
-| **编号习惯** | 一、二、三... / （一）、（二）、（三）... | 1. 2. 3. / Part I, II, III / Chapter 1, 2, 3 |
-| **层级深度** | 偏好深层级（4-6级常见） | 偏好浅层级（2-4级为主） |
-| **标题风格** | 简洁直接，常用名词短语 | 动作导向，常用动词或疑问句 |
-| **结构逻辑** | 严格等级制，重视序号 | 内容导向，重视意义 |
-
-#### 📝 英语技术文档标准结构
-
-**API文档/技术指南：**
-```markdown
-# Getting Started with React Hooks    ← 文档总标题
-## Quick Start                        ← 快速开始
-### Installation                      ← 安装
-### Basic Example                     ← 基础示例
-## Core Concepts                      ← 核心概念
-### useState Hook                     ← 具体Hook
-#### Declaring State Variables        ← 使用方法
-#### Reading State                    ← 读取状态
-#### Updating State                   ← 更新状态
-### useEffect Hook                    ← 另一个Hook
-## Advanced Guide                     ← 高级指南
-### Performance Optimization          ← 性能优化
-### Custom Hooks                      ← 自定义Hooks
-```
-
-**学术/教程风格：**
-```markdown
-# Introduction to Machine Learning    ← 总标题
-## Part I: Foundations               ← 部分标题
-### Chapter 1: Basic Concepts        ← 章节
-#### 1.1 What is Machine Learning?   ← 小节编号
-#### 1.2 Types of Learning           ← 小节编号
-### Chapter 2: Algorithms            ← 章节
-#### 2.1 Supervised Learning         ← 小节编号
-#### 2.2 Unsupervised Learning       ← 小节编号
-## Part II: Applications             ← 部分标题
-### Chapter 3: Real-world Examples   ← 章节
-```
-
-#### 📖 英语博客文章层级模式
-
-**问题解决型文章：**
-```markdown
----
-title: "How to Build a React Component Library"
----
-## Why Build Your Own Component Library?    ← 为什么（问题背景）
-## Getting Started                          ← 开始行动
-### Setting Up the Project                  ← 项目设置
-### Choosing the Right Tools                ← 工具选择
-## Building Core Components                 ← 核心构建
-### Button Component                        ← 具体组件
-#### Design Requirements                    ← 设计要求
-#### Implementation                         ← 实现
-### Form Components                         ← 具体组件
-## Testing and Documentation                ← 测试文档
-## Publishing and Distribution              ← 发布分发
-## Conclusion                               ← 结论
-```
-
-**深度分析型文章：**
-```markdown
----
-title: "Understanding React's Reconciliation Algorithm"
----
-## Overview                                 ← 概述
-## The Problem React Solves                ← 问题陈述
-## How Reconciliation Works                 ← 工作原理
-### Virtual DOM Comparison                  ← 虚拟DOM比较
-### Diffing Algorithm                       ← 差异算法
-### Commit Phase                           ← 提交阶段
-## Performance Implications                 ← 性能影响
-### Keys and Performance                    ← Keys与性能
-### Common Pitfalls                        ← 常见陷阱
-## Best Practices                          ← 最佳实践
-## Further Reading                         ← 延伸阅读
-```
-
-#### 🎯 英语标题写作最佳实践
-
-**动作导向的标题：**
-```markdown
-✅ 推荐：
-## Getting Started with Next.js
-## Building Your First Component  
-## Deploying to Production
-## Troubleshooting Common Issues
-
-❌ 避免：
-## Next.js Introduction
-## Component Construction
-## Production Deployment
-## Issue Solutions
-```
-
-**疑问句引导：**
-```markdown
-✅ 适合教学文章：
-## What is React?
-## Why Choose TypeScript?
-## How Does SSR Work?
-## When to Use useEffect?
-
-✅ 适合问题解决：
-## Having Trouble with Installation?
-## Need to Optimize Performance?
-## Want to Add Authentication?
-```
-
-**编号系统选择：**
-```markdown
-📚 学术/教程风格：
-## Part I: Fundamentals
-### Chapter 1: Introduction
-#### 1.1 Background
-#### 1.2 Objectives
-
-🔧 实用指南风格：
-## Step 1: Setup
-## Step 2: Configuration  
-## Step 3: Implementation
-
-💡 概念解释风格：
-## Core Concepts
-### Component Lifecycle
-### State Management
-### Event Handling
-```
-
-#### 📱 英语移动端优化考虑
-
-**简化标题层级：**
-```markdown
-移动端友好写法：
-## Quick Setup          ← 简短直接
-### Install             ← 动词开头  
-### Configure           ← 动词开头
-### Deploy              ← 动词开头
-
-避免冗长标题：
-❌ ## Comprehensive Step-by-Step Installation and Configuration Guide
-✅ ## Installation Guide
-```
-
-#### 🔄 中英文混合文档建议
-
-**双语博客项目：**
-```markdown
-# Project Documentation              ← 项目名可保持英文
-## 一、项目简介 (Project Overview)    ← 重要章节双语
-### （一）目标与需求 (Goals & Requirements)
-### （二）技术选型 (Tech Stack)
-## 二、开发指南 (Development Guide)
-### （一）环境搭建 (Environment Setup)
-#### Installation Steps             ← 技术细节可纯英文
-#### Configuration                  ← 技术细节可纯英文
-```
-
-**技术文档国际化：**
-```markdown
-## API Reference                    ← 技术术语保持英文
-### Authentication                  ← 专业术语英文
-#### 认证流程说明 (Auth Flow)       ← 解释性内容中文
-### Data Models                     ← 专业术语英文  
-#### 数据结构定义 (Data Structures) ← 解释性内容中文
-```
-
-#### 💡 英语写作核心原则
-
-**层级设计原则：**
-1. **读者导向**：标题应该回答读者的问题
-2. **行动导向**：多用动词，指导具体行动
-3. **层级扁平**：避免过深嵌套，保持2-4级
-4. **逻辑清晰**：按时间顺序、重要性或复杂度组织
-
-**标题命名规范：**
-- **二级标题**：主要功能或概念（Getting Started, Core Concepts）
-- **三级标题**：具体步骤或组件（Installation, Button Component）
-- **四级标题**：详细说明或属性（Configuration Options, Props API）
-
-**国际化考虑：**
-- **技术术语**：保持英文原版（API, Component, Hook）
-- **解释说明**：可用中文辅助解释
-- **标题结构**：遵循目标语言的阅读习惯
-
-### （三）博客开发方式对比与选型说明
-
-#### 主要方式对比
-
-| 方式                   | 易编辑 | 可定制 | 免费 | 移动端 | 社交同步 | Notion同步 |
-|------------------------|--------|--------|------|--------|----------|------------|
-| 静态博客+托管          | ★★★    | ★★★    | ★★★  | ★★     | ★★       | ★（需配置） |
-| 现成博客平台           | ★★★    | ★      | ★★   | ★★★    | ★★       | ☆          |
-| Notion+第三方生成器    | ★★★    | ★★     | ★★   | ★★★    | ★        | ★★★        |
-| 低代码/无代码平台      | ★★★    | ★      | ★     | ★★★    | ★★       | ★★         |
-| 纯手写/自研            | ★      | ★★★    | ★★★  | ★      | ★★★      | ★          |
-
-#### Next.js 与主流静态博客生成器对比
-
-| 生成器   | 语言/生态 | 上手难度 | 主题/插件 | 可定制性 | 适合场景         | 备注           |
-|----------|-----------|----------|-----------|----------|------------------|----------------|
-| Next.js  | React/JS  | ★★★★     | ★★        | ★★★★     | 博客+复杂网站    | 全能，需JS基础  |
-| Hexo     | Node.js   | ★★       | ★★★★      | ★★       | 纯博客           | 中文生态好      |
-| Hugo     | Go        | ★★★      | ★★★★      | ★★★      | 博客/文档/大站点 | 生成极快        |
-| Jekyll   | Ruby      | ★★★      | ★★★       | ★★       | 博客             | GitHub Pages原生|
-| Astro    | 多框架    | ★★★      | ★★★       | ★★★★     | 博客/文档/官网   | 新一代，极快    |
-
-**最终选型说明**：尽管 Next.js 上手有一定门槛，但其极高的可定制性和强大的生态（React/MDX）非常适合个人博客的长期发展和功能扩展。结合 Vercel 的无缝部署体验，是本项目在综合考量下的最佳选择。
-
----
-
-## 二、文档维护说明
-
-### （一）README更新原则
-- **实时性**：记录项目开发的每一步进展
-- **完整性**：包含遇到的问题与解决方案
-- **规范性**：遵循本文档制定的Markdown层级规范
-- **实用性**：为后续开发和内容创作提供准确指导
-
-### （二）层级规范遵循
-本README严格按照"### （二）Markdown层级与中文写作规范"中制定的标准执行：
-- **项目主标题**：使用一级标题（#）
-- **主要章节**：使用二级标题配中文数字（## 一、二、三...）
-- **子章节**：使用三级标题配括号中文数字（### （一）、（二）、（三）...）
-- **具体内容**：使用四级标题，可配emoji或数字（#### 🎯 标题）
-
-### （三）双语写作指引应用
-项目现在提供完整的中英文写作规范：
-- **中文内容**：遵循传统文书层级，使用中文数字编号系统
-- **英文内容**：采用动作导向标题，保持层级扁平化
-- **混合文档**：技术术语保持英文，解释性内容可用中文
-- **移动端优化**：两种语言都考虑简化标题，提升阅读体验
-
----
-
-## 三、网站创收与广告投放策略
+## 一、网站创收与广告投放策略
 
 ### （一）评估投放广告的时机
 
@@ -473,7 +77,9 @@ title: "Understanding React's Reconciliation Algorithm"
 - **系统化广告优化** + 其他创收渠道并行
 - **建立完整变现体系**，实现可持续收入增长
 
-## 四、SEO与品牌运营策略
+---
+
+## 二、品牌运营策略
 
 ### （一）品牌定位与目标
 
@@ -491,64 +97,6 @@ title: "Understanding React's Reconciliation Algorithm"
   - English: Where Code Meets Capital: Navigating Value in the Age of AI
 - **目标受众画像**：技术学习者、金融从业者、跨界思考者及关注个人成长的泛大众
 - **USP**：融合金融、AI 与人文思考的一站式个人知识平台
-
-### （二）全站 SEO 策略
-
-#### 1. 技术 SEO 基线
-- **Core Web Vitals**：LCP < 2.5 s，CLS < 0.1，FID < 100 ms
-- **站点结构**：robots.txt 与 sitemap.xml 已配置；保持语义化 URL
-- **Schema.org**：文章 `Article`、图片 `ImageObject`、项目 `CreativeWork`
-- **脚本优化**：使用 `next/script` 延迟加载第三方脚本
-
-#### 2. 内容 SEO
-- 长尾关键词调研（Ahrefs / Keyword Planner）
-- 优化 `<title>` 与 `<meta description>`，控制在 80–150 字
-- 构建标签 / 聚合页，形成内容集群
-- Evergreen 更新：每次更新推送 sitemap 并标注“最后更新”
-
-#### 3. 外链与品牌信任
-- 在 V2EX、掘金、Medium 投稿回链
-- Guest-post / 访谈互链
-- 在 Unsplash / Pexels 上传摄影，简介挂站点链接
-
-#### 4. 技术 SEO 实现细节
-
-##### （一）Sitemap 自动化管理
-- **自动生成**：使用 `next-sitemap` 包自动生成和更新 sitemap.xml
-- **内容监控**：实时监控新增页面，自动添加到 sitemap
-- **提交策略**：
-  - 新内容发布后立即提交到 Google Search Console
-  - 定期检查 sitemap 状态和索引情况
-  - 使用 URL Inspection 工具请求重要页面索引
-
-##### （二）Metadata 优化体系
-- **页面级配置**：每个页面都有完整的 metadata 配置
-- **Open Graph 优化**：
-  - 自定义 1200x630 像素分享图片
-  - 针对不同平台优化标题和描述
-  - 支持多语言内容
-- **Twitter Cards**：配置 summary_large_image 格式
-- **结构化数据**：添加 JSON-LD 格式的 Schema.org 标记
-
-##### （三）SEO 工具与监控
-- **自动化检查**：开发 SEO 检查脚本，定期验证配置完整性
-- **性能监控**：集成 Core Web Vitals 监控
-- **索引状态**：定期检查 Google 索引状态和覆盖率
-- **关键词追踪**：监控目标关键词排名变化
-
-##### （四）Google 收录优化策略
-- **提交时机**：
-  - 新页面发布后 24 小时内提交
-  - 重要内容更新后重新提交
-  - 定期批量提交 sitemap
-- **收录加速**：
-  - 社交媒体分享新内容
-  - 在相关网站获得反向链接
-  - 保持内容更新频率
-- **预期时间线**：
-  - Sitemap 处理：1-2 天
-  - 初始索引：1-4 周
-  - 完整索引：2-8 周
 
 ### （三）内容矩阵与发布节奏
 
@@ -754,3 +302,154 @@ title: "Understanding React's Reconciliation Algorithm"
   - 分析竞争对手
   - 优化关键词策略
   - 提升内容相关性 
+
+---
+
+## 三、全站 SEO 策略
+
+本章节整合了项目所有的 SEO 优化策略、工具和最佳实践，作为执行 SEO 任务的统一指南。
+
+### （一）技术 SEO 基线与监控指标
+
+#### 1. Core Web Vitals 目标
+- **LCP (最大内容绘制)**: < 2.0s
+- **CLS (累积布局偏移)**: < 0.08
+- **FID (首次输入延迟)**: < 80ms
+
+#### 2. 核心技术指标
+- **站点结构**：正确配置 `robots.txt` 与 `sitemap.xml`，并保持 URL 结构语义化。
+- **页面加载速度**: 目标 < 1.5s。
+- **移动端友好性**: 100% 通过 Google Mobile-Friendly Test。
+- **无障碍访问**: 遵循 WCAG 2.1 AA 标准。
+- **Schema.org**：为文章 (`Article`)、图片 (`ImageObject`)、项目 (`CreativeWork`) 等添加结构化数据。
+- **脚本优化**：使用 `next/script` 延迟加载第三方脚本，优化加载性能。
+
+### （二）内容 SEO 策略与指标
+
+- **关键词策略**：通过 Ahrefs / Keyword Planner 等工具进行长尾关键词调研。
+- **元数据优化**：
+    - **Title 长度**: 控制在 50-60 字符。
+    - **Meta Description 长度**: 控制在 80-150 字符。
+- **内容集群**：构建标签页（`/tags/`）和聚合页，形成围绕核心主题的内容集群（Topic Cluster）。
+- **内部链接**: 在文章之间建立合理的内部链接网络，提升页面权重和用户停留时间。
+- **内容更新**：对于常青内容（Evergreen Content），定期更新，并在更新后重新提交 Sitemap，标注“最后更新日期”。
+
+### （三）外链建设与品牌信任
+
+- **内容分发**：在 V2EX、掘金、Medium 等技术社区投稿，并附上原文链接。
+- **合作互链**：通过 Guest-post 或行业访谈获取高质量外链。
+- **创意引流**：在 Unsplash / Pexels 等摄影网站上传作品，并在个人简介中链接到主站。
+
+### （四）Google 收录优化
+
+#### 1. 提交策略
+- **及时提交**：新内容发布后 24 小时内，通过 Google Search Console 的 URL Inspection 工具请求索引。
+- **更新再提交**：重要页面（如核心文章、项目页面）内容更新后，重新请求索引。
+- **定期批量提交**：定期通过 `sitemap.xml` 文件批量提交 URL。
+
+#### 2. 预期时间线
+- **Sitemap 处理**: 1-2 天
+- **初始索引**: 1-4 周
+- **完整索引**: 2-8 周
+
+#### 3. 监控要点
+- **定期检查**: 每周检查 Search Console 报告，关注索引覆盖率和潜在错误。
+- **性能分析**: 分析搜索词表现、点击率 (CTR) 和平均排名。
+- **关键词追踪**: 监控核心关键词的排名变化，并据此调整内容策略。
+
+### （五）SEO 工具脚本
+
+项目内置了一系列自动化脚本来辅助 SEO 检查与维护。
+
+#### 1. SEO 配置检查 (`scripts/seo-check.js`)
+- **用途**: 验证网站的基本 SEO 配置是否完整。
+- **运行**: `npm run seo:check`
+- **检查项**:
+  - Sitemap 文件 (`sitemap.xml`) 是否存在及其包含的 URL 数量。
+  - `Robots.txt` 配置是否正确，以及是否引用了 Sitemap。
+  - 关键页面的 Metadata 配置完整性。
+
+#### 2. Metadata 验证 (`scripts/validate-metadata.js`)
+- **用途**: 深度验证每个页面的元数据配置。
+- **运行**: `npm run seo:validate`
+- **验证项**:
+  - Title 和 Description 是否按要求配置。
+  - Open Graph 和 Twitter Cards 标记是否齐全。
+  - 结构化数据 (JSON-LD) 是否正确实现。
+
+#### 3. Open Graph 图片生成 (`scripts/generate-og-image.js`)
+- **用途**: 自动为网站生成统一风格的社交媒体分享图。
+- **运行**: `npm run seo:og-image`
+- **功能**:
+  - 生成 1200x630 像素的 SVG 格式 OG 图片。
+  - 图片包含网站名称、Slogan 和品牌元素。
+  - 自动保存到 `public/images/og-image.svg`。
+
+#### 4. Sitemap 提交指南 (`scripts/submit-sitemap.js`)
+- **用途**: 提供在 Google Search Console 手动提交 Sitemap 的操作指引。
+- **运行**: `npm run seo:submit`
+- **内容**:
+  - 详细的 Search Console 操作步骤。
+  - 当前 `sitemap.xml` 包含的所有 URL 列表。
+
+#### 5. 帖子内容完整性验证 (`scripts/validate-content.ts`)
+- **运行**: `npm run validate:content`
+
+### （六）SEO 最佳实践
+
+#### 1. 页面优化
+- 每个页面都应有唯一的 `title` 和 `description`。
+- 使用语义化的 HTML 结构（如 `<main>`, `<article>`, `<nav>`）。
+- 优化图片的 `alt` 文本和文件名，使其具有描述性。
+
+#### 2. 内容优化
+- 持续创作高质量、对用户有价值的原创内容。
+- 在内容中自然地分布关键词，避免堆砌。
+- 定期更新和扩展现有内容，保持其时效性。
+
+#### 3. 技术优化
+- 保持快速的页面加载速度。
+- 实现响应式设计，确保在所有设备上都有良好的浏览体验。
+- 优化 URL 结构，使其简洁且具有描述性。
+- 正确配置结构化数据，帮助搜索引擎理解页面内容。
+
+### （七）相关资源
+
+#### 1. 外部工具
+- [Google Search Console](https://search.google.com/search-console)
+- [Google Analytics](https://analytics.google.com/)
+- [Vercel Analytics](https://vercel.com/analytics)
+- [PageSpeed Insights](https://pagespeed.web.dev/)
+- [Mobile-Friendly Test](https://search.google.com/test/mobile-friendly)
+
+#### 2. 项目内部文档
+- [内容发布规范](./content-publishing.md) - 内容创作与优化指南。
+- [品牌美学设计](./aesthetic-thesis.md) - 用户体验与视觉优化。
+
+---
+
+## 四、博客开发方式对比与选型说明
+
+### （一）主要方式对比
+
+| 方式                   | 易编辑 | 可定制 | 免费 | 移动端 | 社交同步 | Notion同步 |
+|------------------------|--------|--------|------|--------|----------|------------|
+| 静态博客+托管          | ★★★    | ★★★    | ★★★  | ★★     | ★★       | ★（需配置） |
+| 现成博客平台           | ★★★    | ★      | ★★   | ★★★    | ★★       | ☆          |
+| Notion+第三方生成器    | ★★★    | ★★     | ★★   | ★★★    | ★        | ★★★        |
+| 低代码/无代码平台      | ★★★    | ★      | ★     | ★★★    | ★★       | ★★         |
+| 纯手写/自研            | ★      | ★★★    | ★★★  | ★      | ★★★      | ★          |
+
+### （二）Next.js 与主流静态博客生成器对比
+
+| 生成器   | 语言/生态 | 上手难度 | 主题/插件 | 可定制性 | 适合场景         | 备注           |
+|----------|-----------|----------|-----------|----------|------------------|----------------|
+| Next.js  | React/JS  | ★★★★     | ★★        | ★★★★     | 博客+复杂网站    | 全能，需JS基础  |
+| Hexo     | Node.js   | ★★       | ★★★★      | ★★       | 纯博客           | 中文生态好      |
+| Hugo     | Go        | ★★★      | ★★★★      | ★★★      | 博客/文档/大站点 | 生成极快        |
+| Jekyll   | Ruby      | ★★★      | ★★★       | ★★       | 博客             | GitHub Pages原生|
+| Astro    | 多框架    | ★★★      | ★★★       | ★★★★     | 博客/文档/官网   | 新一代，极快    |
+
+**最终选型说明**：尽管 Next.js 上手有一定门槛，但其极高的可定制性和强大的生态（React/MDX）非常适合个人博客的长期发展和功能扩展。结合 Vercel 的无缝部署体验，是本项目在综合考量下的最佳选择。
+
+---

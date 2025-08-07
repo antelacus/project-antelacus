@@ -8,13 +8,13 @@ export default function AboutPage() {
     <div className="content-container content-container-standard">
       <div className="about-content">
         <section className="about-section">
-          <h2 className="section-title">个人简介</h2>
+          <h2 className="section-title">网站介绍</h2>
           <div className="section-content">
             <p>
-              你好！我是 <strong>AnteLacus</strong>，一名曾经的审计师，现在痴迷于 AI 和计算机科学。
+              你好！我是 <strong>AnteLacus</strong>，一名曾经的审计师，现在喜欢上了 AI 和计算机科学。
             </p>
             <p>
-              &ldquo;我到底是谁？&rdquo;是我现在最关注的问题。
+              我写作的唯一原因是<strong>我想写</strong>。
             </p>
           </div>
         </section>
@@ -79,12 +79,8 @@ export default function AboutPage() {
         </section>
 
         <section className="about-section">
-          <h2 className="section-title">网站介绍</h2>
+          <h2 className="section-title">设计美学</h2>
           <div className="section-content">
-            <h3>写作理念</h3>
-            <p>
-              我写作的唯一目的是<strong>我想写</strong>。
-            </p>
             
             <h3>设计理念</h3>
             <p>
