@@ -14,7 +14,7 @@ export default function AboutPage() {
               你好！我是 <strong>AnteLacus</strong>，一名曾经的审计师，现在痴迷于 AI 和计算机科学。
             </p>
             <p>
-              “我到底是谁？”是我现在最关注的问题。
+              &ldquo;我到底是谁？&rdquo;是我现在最关注的问题。
             </p>
           </div>
         </section>
@@ -98,7 +98,7 @@ export default function AboutPage() {
             
             <ul>
               <li><strong>深思熟虑的笔触：</strong>每个元素都是深思熟虑的笔触，没有装饰，只有本质的沟通。空白空间被视为安静沉思的时刻，而非空虚。</li>
-              <li><strong>有机生长的肌理：</strong>美学必须感觉像一个活的有机体，展现生命和时间流逝的证据，拥抱"没有最好，只有更好"的理念。</li>
+              <li><strong>有机生长的肌理：</strong>美学必须感觉像一个活的有机体，展现生命和时间流逝的证据，拥抱&ldquo;没有最好，只有更好&rdquo;的理念。</li>
               <li><strong>静默展开的层次：</strong>美学不是为了吸引注意力而大声喧哗，而是邀请发现，慢慢地揭示其秘密，奖励耐心的观察者。</li>
             </ul>
             
