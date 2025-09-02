@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 
 export default function Nav() {
   const pathname = usePathname();
-  const [animationState, setAnimationState] = useState<'idle' | 'nav-moving' | 'logo-appearing' | 'complete'>('idle');
+  const [animationState, setAnimationState] = useState<'idle' | 'nav-prep' | 'nav-moving' | 'logo-appearing' | 'complete'>('idle');
   const [isFromHomepage, setIsFromHomepage] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const navLinks = [
     { href: "/posts", label: "专栏" },
@@ -27,19 +28,25 @@ export default function Nav() {
     const fromHome = sessionStorage.getItem('navigatedFromHome');
     if (fromHome === 'true' && !isHomePage) {
       setIsFromHomepage(true);
-      setAnimationState('nav-moving');
+      // Prep phase: render at translateY(0) without transition so we can animate to 20px next tick
+      setAnimationState('nav-prep');
       sessionStorage.removeItem('navigatedFromHome');
       
       // Animation sequence orchestration
+      const startMove = setTimeout(() => {
+        setAnimationState('nav-moving');
+      }, 16); // next frame
+
       const timer1 = setTimeout(() => {
         setAnimationState('logo-appearing');
-      }, 500);
+      }, 16 + 500);
       
       const timer2 = setTimeout(() => {
         setAnimationState('complete');
-      }, 1000);
+      }, 16 + 1000);
       
       return () => {
+        clearTimeout(startMove);
         clearTimeout(timer1);
         clearTimeout(timer2);
       };
@@ -58,27 +65,29 @@ export default function Nav() {
     };
   }, [isHomePage]);
 
+  // Ensure content does not animate on non-home pages
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (!isHomePage) {
+      document.body.classList.add('suppress-content-entrance');
+    } else {
+      document.body.classList.remove('suppress-content-entrance');
+    }
+    return () => {
+      // Clean up when unmounting or route changes back
+      document.body.classList.remove('suppress-content-entrance');
+    };
+  }, [isHomePage]);
+
+  // Hydration safety: defer certain client-only conditionals until after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Calculate dynamic styles based on animation state
   const getHeaderStyles = () => {
-    if (!isFromHomepage) return { paddingTop: '2rem', paddingBottom: '2rem' };
-    
-    switch (animationState) {
-      case 'nav-moving':
-        return {
-          paddingTop: '1rem',
-          paddingBottom: '1rem',
-          transition: 'padding 500ms cubic-bezier(0.4, 0, 0.2, 1)',
-        };
-      case 'logo-appearing':
-      case 'complete':
-        return {
-          paddingTop: '2rem',
-          paddingBottom: '2rem',
-          transition: 'padding 500ms cubic-bezier(0.4, 0, 0.2, 1)',
-        };
-      default:
-        return { paddingTop: '1rem', paddingBottom: '1rem' };
-    }
+    // Keep header size constant so page content does not shift
+    return { paddingTop: '2rem', paddingBottom: '2rem' };
   };
 
   const getLogoStyles = () => {
@@ -94,7 +103,7 @@ export default function Nav() {
       case 'nav-moving':
         return {
           opacity: 0,
-          transform: 'translateY(-8px)',
+          transform: 'translateY(0)',
           transition: 'none',
         };
       case 'logo-appearing':
@@ -106,15 +115,45 @@ export default function Nav() {
       default:
         return {
           opacity: 0,
-          transform: 'translateY(-8px)',
+          transform: 'translateY(0)',
         };
+    }
+  };
+
+  // Only move the nav links container; keep header height constant
+  const getNavContainerStyles = () => {
+    if (!isFromHomepage) {
+      // Homepage: no offset; Non-home direct load: resting offset
+      return { transform: isHomePage ? 'translateY(0)' : 'translateY(20px)' };
+    }
+
+    switch (animationState) {
+      case 'nav-prep':
+        // Start at 0 without transition, so next state to 20px will animate
+        return {
+          transform: 'translateY(0)',
+          transition: 'none',
+        };
+      case 'nav-moving':
+        return {
+          transform: 'translateY(20px)',
+          transition: 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+        };
+      case 'logo-appearing':
+      case 'complete':
+        return {
+          transform: 'translateY(20px)',
+          transition: 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+        };
+      default:
+        return { transform: 'translateY(0)' };
     }
   };
 
   return (
     <header className="text-center" style={getHeaderStyles()}>
-      {/* Logo/Site Identity - only visible on non-home pages */}
-      {!isHomePage && (
+      {/* Logo/Site Identity - only visible on non-home pages (deferred until mounted to avoid hydration mismatch) */}
+      {mounted && !isHomePage && (
         <div className="mb-6" style={getLogoStyles()}>
           <Link 
             href="/" 
@@ -146,6 +185,7 @@ export default function Nav() {
       )}
 
       <nav role="navigation" aria-label="主导航">
+        <div style={getNavContainerStyles()}>
         <ul className="flex justify-center flex-wrap gap-x-6 gap-y-2">
           {navLinks.map((link) => (
             <li key={link.href}>
@@ -182,6 +222,7 @@ export default function Nav() {
             </li>
           ))}
         </ul>
+        </div>
       </nav>
     </header>
   );

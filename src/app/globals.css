@@ -574,6 +574,22 @@ img {
   animation-delay: calc(var(--item-index, 0) * 0.05s);
 }
 
+/* Suppress content entrance animations on non-home pages when navigating from home */
+body.suppress-content-entrance .content-container,
+body.suppress-content-entrance .content-container article,
+body.suppress-content-entrance .content-list,
+body.suppress-content-entrance .content-item,
+body.suppress-content-entrance .masonry-item,
+body.suppress-content-entrance .mountain-range,
+body.suppress-content-entrance .scholars-rocks,
+body.suppress-content-entrance .secondary-features,
+body.suppress-content-entrance .framed-views,
+body.suppress-content-entrance .about-content {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 /* === Garden Entrance Design: 入园哲学 === */
 
 /*
