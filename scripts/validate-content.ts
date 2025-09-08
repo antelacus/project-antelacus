@@ -3,25 +3,45 @@ import { getAllPostsMeta } from '../src/lib/posts';
 import { getAllNotesMeta } from '../src/lib/notes';
 import { getAllPhotosMeta } from '../src/lib/gallery';
 import { getAllProjectsMeta } from '../src/lib/projects';
+import fs from 'fs/promises';
+import path from 'path';
 
 async function run() {
+  // Load tag registry if available
+  let tagIds: Set<string> | null = null;
+  try {
+    const registryPath = path.join(process.cwd(), 'src/content/tag-registry.json');
+    const raw = await fs.readFile(registryPath, 'utf-8');
+    const data = JSON.parse(raw) as { tags: { id: string }[] };
+    tagIds = new Set(data.tags.map(t => t.id));
+  } catch (e) {
+    // No registry yet: skip strict tag membership validation
+    console.warn('Tag registry not found, skipping tag membership validation');
+  }
+
+  const tagArray = z.array(z.string()).optional().refine(arr => {
+    if (!arr || !tagIds) return true;
+    // Ensure all tags exist in registry and are normalized
+    return arr.every(t => tagIds!.has(t.trim().toLowerCase()));
+  }, { message: 'Tag not found in registry or not normalized (lowercase, hyphenated)' });
+
   const postSchema = z.object({ 
     title: z.string(), 
     date: z.string(),
-    tags: z.array(z.string()).optional(),
+    tags: tagArray,
   });
   
   const noteSchema = z.object({ 
     title: z.string(), 
     date: z.string(),
-    tags: z.array(z.string()).optional(),
+    tags: tagArray,
   });
   
   const photoSchema = z.object({ 
     title: z.string(),
     date: z.string(),
     imageFolder: z.string(),
-    tags: z.array(z.string()).optional(),
+    tags: tagArray,
   });
   
   const projectSchema = z.object({ 
@@ -29,7 +49,7 @@ async function run() {
     description: z.string(), 
     repo: z.string(),
     date: z.string(),
-    tags: z.array(z.string()).optional(),
+    tags: tagArray,
   });
 
   let errorCount = 0;

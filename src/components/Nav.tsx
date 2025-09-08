@@ -1,6 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import SearchModal from './SearchModal';
 import { useEffect, useState } from 'react';
 
 export default function Nav() {
@@ -16,6 +17,7 @@ export default function Nav() {
     { href: "/projects", label: "实验室" },
     { href: "/about", label: "关于" },
   ];
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const isActive = (href: string) => {
     return pathname.startsWith(href);
@@ -221,9 +223,33 @@ export default function Nav() {
               </Link>
             </li>
           ))}
+          <li>
+            <button
+              aria-label="搜索"
+              className="text-sm transition-all duration-300 ease-out"
+              style={{
+                borderBottom: '1px solid',
+                borderColor: 'transparent',
+                paddingBottom: '2px',
+                transform: 'translateY(0)'
+              }}
+              onClick={() => setSearchOpen(true)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.borderColor = 'rgba(180, 42, 30, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = 'transparent';
+              }}
+            >
+              搜索
+            </button>
+          </li>
         </ul>
         </div>
       </nav>
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }
