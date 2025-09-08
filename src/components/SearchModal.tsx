@@ -145,7 +145,8 @@ export default function SearchModal({ open, onClose }: Props) {
           borderRadius: '12px',
           boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
           overflow: 'hidden',
-          border: '1px solid var(--color-wash-stone, #EAEAEA)'
+          border: '1px solid var(--color-wash-stone, #EAEAEA)',
+          textAlign: 'left'
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -201,7 +202,7 @@ export default function SearchModal({ open, onClose }: Props) {
                     <li key={it.id}>
                       <a className="card-link" href={`/${it.type === 'post' ? 'posts' : it.type === 'note' ? 'notes' : it.type === 'photo' ? 'gallery' : 'projects'}/${it.slug}`}>
                         <div className="card p-3" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                             <div className="text-sm opacity-70">{it.type} · {new Date(it.date).toLocaleDateString()}</div>
                             <div className="font-medium">{it.title}</div>
                             {it.summary && <div className="opacity-80 text-sm line-clamp-2">{it.summary}</div>}
