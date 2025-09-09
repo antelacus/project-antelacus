@@ -1,10 +1,7 @@
 import { z } from 'zod';
-import { getAllPostsMeta } from '../src/lib/posts';
-import { getAllNotesMeta } from '../src/lib/notes';
-import { getAllPhotosMeta } from '../src/lib/gallery';
-import { getAllProjectsMeta } from '../src/lib/projects';
 import fs from 'fs/promises';
 import path from 'path';
+import matter from 'gray-matter';
 
 async function run() {
   // Load tag registry if available
@@ -52,8 +49,19 @@ async function run() {
     tags: tagArray,
   });
 
+  // Read MDX frontmatters directly to avoid importing Next runtime code in Node
+  const readDir = async (dir: string) => (await fs.readdir(dir)).filter(f => f.endsWith('.mdx'));
+  const base = path.join(process.cwd(), 'src/content');
+
+  const postFiles = await readDir(path.join(base, 'posts'));
+  const posts = await Promise.all(postFiles.map(async (file) => {
+    const slug = file.replace(/\.mdx$/, '');
+    const raw = await fs.readFile(path.join(base, 'posts', file), 'utf-8');
+    const { data } = matter(raw);
+    return { slug, title: (data as any).title, date: (data as any).date, tags: (data as any).tags || [] } as { slug: string; title: string; date: string; tags?: string[] };
+  }));
+
   let errorCount = 0;
-  const posts = await getAllPostsMeta();
   posts.forEach(p => {
     const res = postSchema.safeParse(p);
     if (!res.success) {
@@ -62,7 +70,13 @@ async function run() {
     }
   });
 
-  const notes = await getAllNotesMeta();
+  const noteFiles = await readDir(path.join(base, 'notes'));
+  const notes = await Promise.all(noteFiles.map(async (file) => {
+    const slug = file.replace(/\.mdx$/, '');
+    const raw = await fs.readFile(path.join(base, 'notes', file), 'utf-8');
+    const { data } = matter(raw);
+    return { slug, title: (data as any).title, date: (data as any).date, tags: (data as any).tags || [] } as { slug: string; title: string; date: string; tags?: string[] };
+  }));
   notes.forEach(n => {
     const res = noteSchema.safeParse(n);
     if (!res.success) {
@@ -71,7 +85,13 @@ async function run() {
     }
   });
 
-  const photos = await getAllPhotosMeta();
+  const photoFiles = await readDir(path.join(base, 'gallery'));
+  const photos = await Promise.all(photoFiles.map(async (file) => {
+    const slug = file.replace(/\.mdx$/, '');
+    const raw = await fs.readFile(path.join(base, 'gallery', file), 'utf-8');
+    const { data } = matter(raw);
+    return { slug, title: (data as any).title, date: (data as any).date, imageFolder: (data as any).imageFolder || slug, tags: (data as any).tags || [] } as { slug: string; title: string; date: string; imageFolder: string; tags?: string[] };
+  }));
   photos.forEach(ph => {
     const res = photoSchema.safeParse(ph);
     if (!res.success) {
@@ -80,7 +100,20 @@ async function run() {
     }
   });
 
-  const projects = await getAllProjectsMeta();
+  const projectFiles = await readDir(path.join(base, 'projects'));
+  const projects = await Promise.all(projectFiles.map(async (file) => {
+    const slug = file.replace(/\.mdx$/, '');
+    const raw = await fs.readFile(path.join(base, 'projects', file), 'utf-8');
+    const { data } = matter(raw);
+    return {
+      slug,
+      name: (data as any).name,
+      description: (data as any).description,
+      repo: (data as any).repo,
+      date: (data as any).date,
+      tags: (data as any).tags || []
+    } as { slug: string; name: string; description: string; repo: string; date: string; tags?: string[] };
+  }));
   projects.forEach(pr => {
     const res = projectSchema.safeParse(pr);
     if (!res.success) {
