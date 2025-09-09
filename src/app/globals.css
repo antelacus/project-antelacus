@@ -943,6 +943,32 @@ body.suppress-content-entrance .about-content {
   }
 }
 
+/* === Search Modal Responsive Layout === */
+@media (max-width: 768px) {
+  .search-modal-content {
+    flex-direction: column;
+  }
+  /* Ensure results area can scroll even when list is initially long/empty */
+  .search-modal-results {
+    min-height: 0;
+  }
+}
+
+/* Subtle button style to match Living Manuscript aesthetics */
+.search-modal-filter-toggle {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  border: 1px solid rgba(30, 30, 29, 0.35);
+  border-radius: var(--radius-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-modal-filter-toggle:hover {
+  background-color: var(--color-wash-moss);
+  border-color: var(--color-seal);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 480px) {
   .scholars-rocks, .secondary-features {
     flex-direction: column;

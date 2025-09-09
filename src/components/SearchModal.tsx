@@ -45,6 +45,9 @@ export default function SearchModal({ open, onClose }: Props) {
   const [items, setItems] = useState<SearchIndexItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Mobile-aware UI state
+  const [isMobile, setIsMobile] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -77,6 +80,19 @@ export default function SearchModal({ open, onClose }: Props) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [open, onClose]);
+
+  // Track viewport to switch layout and default filter visibility
+  useEffect(() => {
+    const handle = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // Desktop: always show filters; Mobile: default隐藏
+      setShowFilters(prev => (mobile ? prev : true));
+    };
+    handle();
+    window.addEventListener('resize', handle);
+    return () => window.removeEventListener('resize', handle);
+  }, []);
 
   const allTags = useMemo(() => {
     const s = new Set<string>();
@@ -151,11 +167,21 @@ export default function SearchModal({ open, onClose }: Props) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex h-full">
+        <div className="flex h-full search-modal-content">
           {/* Left: search + results */}
-          <div className="flex-1 border-r" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
+          <div
+            className="flex-1 search-modal-results"
+            style={{
+              borderRight: isMobile ? 'none' : '1px solid rgba(0,0,0,0.08)',
+              borderBottom: isMobile ? '1px solid rgba(0,0,0,0.08)' : 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              minHeight: 0
+            }}
+          >
             <div className="p-4 border-b" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 search-modal-toolbar">
                 <div style={{ position: 'relative', flex: 1 }}>
                   <input
                     value={q}
@@ -190,9 +216,28 @@ export default function SearchModal({ open, onClose }: Props) {
                     >清空</button>
                   )}
                 </div>
+                {/* Mobile-only filter toggle */}
+                {isMobile && (
+                  <button
+                    type="button"
+                    className="search-modal-filter-toggle"
+                    aria-expanded={showFilters}
+                    onClick={() => setShowFilters(v => !v)}
+                    style={{
+                      padding: '8px 12px',
+                      border: '1px solid var(--color-ink)',
+                      borderRadius: '8px',
+                      background: 'var(--color-paper)',
+                      color: 'var(--color-ink)'
+                    }}
+                  >筛选</button>
+                )}
               </div>
             </div>
-            <div className="p-4 overflow-auto" style={{ height: 'calc(100% - 64px)' }}>
+            <div
+              className="p-4 overflow-auto"
+              style={{ height: 'calc(100% - 64px)', minHeight: 0 }}
+            >
               {loading ? (
                 <p>索引加载中...</p>
               ) : error ? (
@@ -224,7 +269,15 @@ export default function SearchModal({ open, onClose }: Props) {
           </div>
 
           {/* Right: filters */}
-          <div style={{ width: '320px' }} className="p-4">
+          <div
+            className="p-4 search-modal-filters"
+            style={{
+              width: isMobile ? '100%' : '320px',
+              display: !isMobile || showFilters ? 'block' : 'none',
+              height: isMobile ? 'auto' : '100%',
+              overflowY: 'auto'
+            }}
+          >
             <div className="mb-4">
               <div className="mb-2 font-medium">排序</div>
               <select
