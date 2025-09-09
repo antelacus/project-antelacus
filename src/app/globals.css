@@ -547,6 +547,125 @@ img {
   transform: scale(1.05);
 }
 
+/* Post Search Card - Compact layout for search results */
+.post-search-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: calc(var(--space-sm) * 0.5) var(--space-sm);
+  background: transparent;
+  border-radius: var(--radius-md);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.post-search-content {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+/* Compact cover styling for search */
+.post-search-cover {
+  flex-shrink: 0;
+  width: 120px;
+  height: 90px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-ink);
+}
+
+.post-search-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card-link:hover .post-search-image {
+  transform: scale(1.03);
+}
+
+/* Note Search Card - Compact layout for search results */
+.note-search-card {
+  padding: calc(var(--space-sm) * 0.5) var(--space-sm);
+  background: transparent;
+  border-radius: var(--radius-md);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Photo Search Card - Compact layout for search results */
+.photo-search-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: calc(var(--space-sm) * 0.5) var(--space-sm);
+  background: transparent;
+  border-radius: var(--radius-md);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.photo-search-content {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+/* Compact cover styling for photo search */
+.photo-search-cover {
+  flex-shrink: 0;
+  width: 120px;
+  height: 90px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-ink);
+}
+
+.photo-search-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card-link:hover .photo-search-image {
+  transform: scale(1.03);
+}
+
+/* Project Search Card - Compact layout for search results */
+.project-search-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: calc(var(--space-sm) * 0.5) var(--space-sm);
+  background: transparent;
+  border-radius: var(--radius-md);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.project-search-content {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+/* Compact cover styling for project search */
+.project-search-cover {
+  flex-shrink: 0;
+  width: 120px;
+  height: 90px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-ink);
+}
+
+.project-search-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card-link:hover .project-search-image {
+  transform: scale(1.03);
+}
+
 /* Mobile responsive layout */
 @media (max-width: 768px) {
   .post-list-card {

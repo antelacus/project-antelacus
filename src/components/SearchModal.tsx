@@ -1,5 +1,13 @@
 "use client";
 import { useEffect, useMemo, useState } from 'react';
+import PostCard from './PostCard';
+import NoteCard from './NoteCard';
+import PhotoCard from './PhotoCard';
+import ProjectCard from './ProjectCard';
+import { PostMeta } from '../lib/posts';
+import { NoteMeta } from '../lib/notes';
+import { PhotoMeta } from '../lib/gallery';
+import { ProjectMeta } from '../lib/projects';
 
 type ContentType = 'post' | 'note' | 'photo' | 'project';
 
@@ -190,11 +198,34 @@ export default function SearchModal({ open, onClose }: Props) {
                     aria-label="搜索"
                     style={{
                       width: '100%',
-                      border: '1px solid var(--color-ink, #1E1E1D)',
-                      padding: '8px 56px 8px 12px',
-                      borderRadius: '8px',
-                      background: 'var(--color-paper, #F9F8F6)',
-                      color: 'var(--color-ink, #1E1E1D)'
+                      border: '1px solid rgba(30, 30, 29, 0.1)',
+                      padding: '12px 56px 12px 16px',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'transparent',
+                      color: 'var(--color-ink, #1E1E1D)',
+                      fontSize: '16px',
+                      outline: 'none',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
+                    onFocus={(e) => {
+                      (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                      (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                    }}
+                    onBlur={(e) => {
+                      (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                      (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                    }}
+                    onMouseEnter={(e) => {
+                      if (e.target !== document.activeElement) {
+                        (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                        (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (e.target !== document.activeElement) {
+                        (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                        (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                      }
                     }}
                   />
                   {q && (
@@ -203,15 +234,23 @@ export default function SearchModal({ open, onClose }: Props) {
                       aria-label="清空"
                       style={{
                         position: 'absolute',
-                        right: '8px',
+                        right: '12px',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        padding: '4px 8px',
-                        border: '1px solid var(--color-seal, #B42A1E)',
-                        borderRadius: '6px',
-                        background: 'transparent',
-                        color: 'var(--color-seal, #B42A1E)',
-                        cursor: 'pointer'
+                        padding: '6px 10px',
+                        border: 'none',
+                        borderRadius: '0',
+                        background: 'var(--color-seal, #B42A1E)',
+                        color: 'var(--color-paper, #F9F8F6)',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.target as HTMLElement).style.opacity = '0.8';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.target as HTMLElement).style.opacity = '1';
                       }}
                     >清空</button>
                   )}
@@ -224,11 +263,26 @@ export default function SearchModal({ open, onClose }: Props) {
                     aria-expanded={showFilters}
                     onClick={() => setShowFilters(v => !v)}
                     style={{
-                      padding: '8px 12px',
-                      border: '1px solid var(--color-ink)',
-                      borderRadius: '8px',
-                      background: 'var(--color-paper)',
-                      color: 'var(--color-ink)'
+                      padding: '12px 16px',
+                      border: showFilters ? 'none' : '1px solid rgba(30, 30, 29, 0.1)',
+                      borderRadius: 'var(--radius-md)',
+                      background: showFilters ? 'var(--color-seal, #B42A1E)' : 'transparent',
+                      color: showFilters ? 'var(--color-paper, #F9F8F6)' : 'var(--color-ink, #1E1E1D)',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!showFilters) {
+                        (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                        (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!showFilters) {
+                        (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                        (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                      }
                     }}
                   >筛选</button>
                 )}
@@ -243,27 +297,85 @@ export default function SearchModal({ open, onClose }: Props) {
               ) : error ? (
                 <p>加载失败：{error}</p>
               ) : (
-                <ul className="space-y-3">
-                  {results.map(it => (
-                    <li key={it.id}>
-                      <a className="card-link" href={`/${it.type === 'post' ? 'posts' : it.type === 'note' ? 'notes' : it.type === 'photo' ? 'gallery' : 'projects'}/${it.slug}`}>
-                        <div className="card p-3" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                            <div className="text-sm opacity-70">{it.type} · {new Date(it.date).toLocaleDateString()}</div>
-                            <div className="font-medium">{it.title}</div>
-                            {it.summary && <div className="opacity-80 text-sm line-clamp-2">{it.summary}</div>}
-                          </div>
-                          {it.cover && (
-                            <div style={{ width: '130px', height: '90px', flexShrink: 0, overflow: 'hidden', border: '1px solid var(--color-ink)', borderRadius: '6px' }}>
-                              <img src={it.cover} alt="cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            </div>
-                          )}
-                        </div>
-                      </a>
-                    </li>
-                  ))}
-                  {results.length === 0 && <li className="opacity-70">未找到匹配结果。</li>}
-                </ul>
+                <div className="space-y-3">
+                  {results.map(it => {
+                    // Convert SearchIndexItem to the appropriate meta type and render the corresponding card
+                    const baseData = {
+                      slug: it.slug,
+                      title: it.title,
+                      date: it.date,
+                      tags: it.tags || [],
+                      ...(it.summary && { summary: it.summary }),
+                      ...(it.cover && { cover: it.cover })
+                    };
+
+                    // Intelligent animation suppression: disable for large result sets
+                    const suppressAnimations = results.length > 8;
+                    const compact = results.length > 12;
+
+                    switch (it.type) {
+                      case 'post':
+                        return (
+                          <PostCard
+                            key={it.id}
+                            post={baseData as PostMeta}
+                            layout="search"
+                            compact={compact}
+                            suppressAnimations={suppressAnimations}
+                          />
+                        );
+                      case 'note':
+                        return (
+                          <NoteCard
+                            key={it.id}
+                            note={baseData as NoteMeta}
+                            layout="search"
+                            compact={compact}
+                            suppressAnimations={suppressAnimations}
+                          />
+                        );
+                      case 'photo':
+                        return (
+                          <PhotoCard
+                            key={it.id}
+                            photo={{
+                              ...baseData,
+                              coverImage: it.cover,
+                              caption: it.summary, // Use summary as caption for search
+                              location: undefined // We don't have location in search index
+                            } as PhotoMeta}
+                            layout="search"
+                            compact={compact}
+                            suppressAnimations={suppressAnimations}
+                          />
+                        );
+                      case 'project':
+                        return (
+                          <ProjectCard
+                            key={it.id}
+                            project={{
+                              ...baseData,
+                              name: it.title,
+                              description: it.summary || '',
+                              repo: '#', // We don't have repo URL in search index
+                              status: undefined // We don't have status in search index
+                            } as ProjectMeta}
+                            layout="search"
+                            compact={compact}
+                            suppressAnimations={suppressAnimations}
+                          />
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
+                  {results.length === 0 && (
+                    <div className="text-center py-8 opacity-70">
+                      <p>未找到匹配结果。</p>
+                      <p className="text-sm mt-2">尝试调整搜索关键词或筛选条件</p>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -283,7 +395,38 @@ export default function SearchModal({ open, onClose }: Props) {
               <select
                 value={sort}
                 onChange={e => setSort(e.target.value as 'relevance' | 'newest' | 'oldest')}
-                style={{ width: '100%', border: '1px solid var(--color-ink, #1E1E1D)', padding: '8px', borderRadius: '8px', background: 'var(--color-paper, #F9F8F6)' }}
+                style={{ 
+                  width: '100%', 
+                  border: '1px solid rgba(30, 30, 29, 0.1)', 
+                  padding: '12px 16px', 
+                  borderRadius: 'var(--radius-md)', 
+                  background: 'transparent',
+                  color: 'var(--color-ink, #1E1E1D)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+                onFocus={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                }}
+                onBlur={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                }}
+                onMouseEnter={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 <option value="relevance">最相关</option>
                 <option value="newest">最新</option>
@@ -296,7 +439,38 @@ export default function SearchModal({ open, onClose }: Props) {
               <select
                 value={selectedType}
                 onChange={e => setSelectedType(e.target.value as 'all' | ContentType)}
-                style={{ width: '100%', border: '1px solid var(--color-ink, #1E1E1D)', padding: '8px', borderRadius: '8px', background: 'var(--color-paper, #F9F8F6)' }}
+                style={{ 
+                  width: '100%', 
+                  border: '1px solid rgba(30, 30, 29, 0.1)', 
+                  padding: '12px 16px', 
+                  borderRadius: 'var(--radius-md)', 
+                  background: 'transparent',
+                  color: 'var(--color-ink, #1E1E1D)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+                onFocus={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                }}
+                onBlur={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                }}
+                onMouseEnter={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 <option value="all">全部</option>
                 <option value="post">专栏</option>
@@ -315,10 +489,32 @@ export default function SearchModal({ open, onClose }: Props) {
                     <button
                       key={t}
                       onClick={() => setSelectedTags(prev => active ? prev.filter(x => x !== t) : [...prev, t])}
-                      className="text-xs px-2 py-1 border rounded"
                       style={{
-                        background: active ? 'var(--color-seal)' : 'transparent',
-                        color: active ? 'white' : 'inherit'
+                        fontSize: '12px',
+                        padding: '6px 10px',
+                        border: active ? 'none' : '1px solid rgba(30, 30, 29, 0.1)',
+                        borderRadius: 'var(--radius-md)',
+                        background: active ? 'var(--color-seal, #B42A1E)' : 'transparent',
+                        color: active ? 'var(--color-paper, #F9F8F6)' : 'rgba(29, 29, 27, 0.7)',
+                        cursor: 'pointer',
+                        marginRight: '6px',
+                        marginBottom: '6px',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        outline: 'none'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!active) {
+                          (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                          (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                          (e.target as HTMLElement).style.color = 'var(--color-ink, #1E1E1D)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!active) {
+                          (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                          (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                          (e.target as HTMLElement).style.color = 'rgba(29, 29, 27, 0.7)';
+                        }
                       }}
                     >
                       #{t}
@@ -334,7 +530,38 @@ export default function SearchModal({ open, onClose }: Props) {
               <select
                 value={selectedYear}
                 onChange={e => setSelectedYear(e.target.value)}
-                style={{ width: '100%', border: '1px solid var(--color-ink, #1E1E1D)', padding: '8px', borderRadius: '8px', background: 'var(--color-paper, #F9F8F6)' }}
+                style={{ 
+                  width: '100%', 
+                  border: '1px solid rgba(30, 30, 29, 0.1)', 
+                  padding: '12px 16px', 
+                  borderRadius: 'var(--radius-md)', 
+                  background: 'transparent',
+                  color: 'var(--color-ink, #1E1E1D)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+                onFocus={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                }}
+                onBlur={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                }}
+                onMouseEnter={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 <option value="all">全部年份</option>
                 {allYears.map(y => (
