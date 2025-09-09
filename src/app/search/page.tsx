@@ -40,8 +40,9 @@ export default function SearchPage() {
         const filename = manifest.files['zh'];
         const data = await fetchIndex(filename);
         setItems(data);
-      } catch (e: any) {
-        setError(e.message || 'Failed to load index');
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Failed to load index';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -69,7 +70,7 @@ export default function SearchPage() {
           placeholder="搜索标题与摘要..."
           className="border px-3 py-2 rounded min-w-[260px]"
         />
-        <select value={type} onChange={e => setType(e.target.value as any)} className="border px-2 py-2 rounded">
+        <select value={type} onChange={e => setType(e.target.value as 'all' | 'post' | 'note' | 'photo' | 'project')} className="border px-2 py-2 rounded">
           <option value="all">全部类型</option>
           <option value="post">专栏</option>
           <option value="note">闪念</option>

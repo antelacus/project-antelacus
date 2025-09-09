@@ -61,8 +61,9 @@ export default function SearchModal({ open, onClose }: Props) {
           setItems(data);
         }
         setError(null);
-      } catch (e: any) {
-        setError(e.message || '索引加载失败');
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : '索引加载失败';
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -94,7 +95,7 @@ export default function SearchModal({ open, onClose }: Props) {
 
   const results = useMemo(() => {
     const query = q.trim().toLowerCase();
-    let filtered = items.filter(it => {
+    const filtered = items.filter(it => {
       if (selectedType !== 'all' && it.type !== selectedType) return false;
       if (selectedTags.length && !selectedTags.every(t => it.tags.includes(t))) return false;
       if (selectedYear !== 'all' && !(it.date || '').startsWith(selectedYear)) return false;
@@ -228,7 +229,7 @@ export default function SearchModal({ open, onClose }: Props) {
               <div className="mb-2 font-medium">排序</div>
               <select
                 value={sort}
-                onChange={e => setSort(e.target.value as any)}
+                onChange={e => setSort(e.target.value as 'relevance' | 'newest' | 'oldest')}
                 style={{ width: '100%', border: '1px solid var(--color-ink, #1E1E1D)', padding: '8px', borderRadius: '8px', background: 'var(--color-paper, #F9F8F6)' }}
               >
                 <option value="relevance">最相关</option>
@@ -241,7 +242,7 @@ export default function SearchModal({ open, onClose }: Props) {
               <div className="mb-2 font-medium">类型</div>
               <select
                 value={selectedType}
-                onChange={e => setSelectedType(e.target.value as any)}
+                onChange={e => setSelectedType(e.target.value as 'all' | ContentType)}
                 style={{ width: '100%', border: '1px solid var(--color-ink, #1E1E1D)', padding: '8px', borderRadius: '8px', background: 'var(--color-paper, #F9F8F6)' }}
               >
                 <option value="all">全部</option>

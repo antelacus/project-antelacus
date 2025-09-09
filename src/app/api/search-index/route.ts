@@ -32,42 +32,59 @@ export async function GET() {
     const locale = 'zh';
     const items: SearchIndexItem[] = [];
 
+    type Frontmatter = {
+      title?: string;
+      summary?: string;
+      tags?: string[];
+      date?: string;
+      cover?: string;
+      caption?: string;
+      imageFolder?: string;
+      name?: string;
+      description?: string;
+    };
+
     for (const file of postFiles) {
       const slug = file.replace(/\.mdx$/, '');
       const raw = await fs.readFile(path.join(postsDir, file), 'utf-8');
       const { data } = matter(raw);
-      items.push({ id: `post:${slug}`, type: 'post', slug, title: (data as any).title, summary: (data as any).summary, tags: (data as any).tags || [], date: (data as any).date, locale, cover: (data as any).cover });
+      const fm = data as Frontmatter;
+      items.push({ id: `post:${slug}`, type: 'post', slug, title: fm.title || '', summary: fm.summary, tags: fm.tags || [], date: fm.date || '', locale, cover: fm.cover });
     }
     for (const file of noteFiles) {
       const slug = file.replace(/\.mdx$/, '');
       const raw = await fs.readFile(path.join(notesDir, file), 'utf-8');
       const { data } = matter(raw);
-      items.push({ id: `note:${slug}`, type: 'note', slug, title: (data as any).title, summary: (data as any).summary, tags: (data as any).tags || [], date: (data as any).date, locale });
+      const fm = data as Frontmatter;
+      items.push({ id: `note:${slug}`, type: 'note', slug, title: fm.title || '', summary: fm.summary, tags: fm.tags || [], date: fm.date || '', locale });
     }
     for (const file of galleryFiles) {
       const slug = file.replace(/\.mdx$/, '');
       const raw = await fs.readFile(path.join(galleryDir, file), 'utf-8');
       const { data } = matter(raw);
-      const imageFolder = (data as any).imageFolder || slug;
+      const fm = data as Frontmatter;
+      const imageFolder = fm.imageFolder || slug;
       let cover: string | undefined = undefined;
       try {
         const dirPath = path.join(process.cwd(), 'public/images/gallery', imageFolder);
         const files = (await fs.readdir(dirPath)).filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f)).sort();
         if (files.length > 0) cover = `/images/gallery/${imageFolder}/${files[0]}`;
       } catch {}
-      items.push({ id: `photo:${slug}`, type: 'photo', slug, title: (data as any).title, summary: (data as any).caption, tags: (data as any).tags || [], date: (data as any).date, locale, cover });
+      items.push({ id: `photo:${slug}`, type: 'photo', slug, title: fm.title || '', summary: fm.caption, tags: fm.tags || [], date: fm.date || '', locale, cover });
     }
     for (const file of projectFiles) {
       const slug = file.replace(/\.mdx$/, '');
       const raw = await fs.readFile(path.join(projectsDir, file), 'utf-8');
       const { data } = matter(raw);
-      items.push({ id: `project:${slug}`, type: 'project', slug, title: (data as any).name, summary: (data as any).description, tags: (data as any).tags || [], date: (data as any).date, locale, cover: (data as any).cover });
+      const fm = data as Frontmatter;
+      items.push({ id: `project:${slug}`, type: 'project', slug, title: fm.name || '', summary: fm.description, tags: fm.tags || [], date: fm.date || '', locale, cover: fm.cover });
     }
 
     items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     return NextResponse.json(items, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
