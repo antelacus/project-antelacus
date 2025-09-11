@@ -26,6 +26,12 @@ interface SearchIndexItem {
 interface Props {
   open: boolean;
   onClose: () => void;
+  preset?: {
+    tags?: string[];
+    type?: 'post' | 'note' | 'photo' | 'project' | 'all';
+    q?: string;
+    year?: string;
+  };
 }
 
 async function tryLoadStaticIndex(): Promise<SearchIndexItem[] | null> {
@@ -43,7 +49,7 @@ async function tryLoadStaticIndex(): Promise<SearchIndexItem[] | null> {
   }
 }
 
-export default function SearchModal({ open, onClose }: Props) {
+export default function SearchModal({ open, onClose, preset }: Props) {
   const [q, setQ] = useState('');
   const [selectedType, setSelectedType] = useState<'all' | ContentType>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -59,6 +65,11 @@ export default function SearchModal({ open, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    // Apply preset filters when opening
+    if (preset?.tags) setSelectedTags(preset.tags);
+    if (preset?.type) setSelectedType(preset.type);
+    if (preset?.q !== undefined) setQ(preset.q);
+    if (preset?.year) setSelectedYear(preset.year);
     setLoading(true);
     (async () => {
       try {

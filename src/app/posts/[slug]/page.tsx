@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
 import Image from 'next/image';
+import TagList from '../../../components/TagList';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -51,9 +52,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug:stri
             {post.tags && post.tags.length > 0 && (
               <span className="mx-2">|</span>
             )}
-            {post.tags?.map(tag => (
-              <span key={tag} className="mr-2">#{tag}</span>
-            ))}
+            {post.tags && post.tags.length > 0 && (
+              <TagList tags={post.tags} />
+            )}
           </div>
         </header>
 

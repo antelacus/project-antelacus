@@ -1,6 +1,7 @@
 import { getNoteBySlug } from '../../../lib/notes';
 import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import TagList from '../../../components/TagList';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -33,11 +34,11 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
           <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
             <span>{note.date}</span>
             {note.tags && note.tags.length > 0 && (
-              <span className="mx-2">|</span>
+              <>
+                <span className="mx-2">|</span>
+                <TagList tags={note.tags} />
+              </>
             )}
-            {note.tags?.map(tag => (
-              <span key={tag} className="mr-2">#{tag}</span>
-            ))}
           </div>
         </header>
         

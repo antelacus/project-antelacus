@@ -2,6 +2,7 @@ import { getProjectBySlug } from '../../../lib/projects';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import TagList from '../../../components/TagList';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -60,9 +61,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           </div>
           {project.tags && project.tags.length > 0 && (
             <div className="mt-2">
-              {project.tags.map(tag => (
-                <span key={tag} className="text-sm mr-2" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>#{tag}</span>
-              ))}
+              <TagList tags={project.tags} />
             </div>
           )}
         </header>

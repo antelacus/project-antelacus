@@ -19,6 +19,12 @@ export default function Nav() {
     { href: "/about", label: "关于" },
   ];
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchPreset, setSearchPreset] = useState<{
+    tags?: string[];
+    type?: 'post' | 'note' | 'photo' | 'project' | 'all';
+    q?: string;
+    year?: string;
+  } | undefined>(undefined);
   const [utilityOpen, setUtilityOpen] = useState(false);
   const [hideOnScroll, setHideOnScroll] = useState(false);
 
@@ -64,6 +70,17 @@ export default function Nav() {
   useEffect(() => {
     setUtilityOpen(false);
   }, [pathname]);
+
+  // Global event to open search with preset filters
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      setSearchPreset(detail);
+      setSearchOpen(true);
+    };
+    window.addEventListener('open-search' as any, handler as any);
+    return () => window.removeEventListener('open-search' as any, handler as any);
+  }, []);
 
   // Auto-hide header on scroll down, show on scroll up (with small threshold)
   useEffect(() => {
@@ -350,7 +367,7 @@ export default function Nav() {
               </div>
             </div>
           ) : (
-            <ul className="flex justify-center flex-wrap gap-x-6 gap-y-2">
+            <ul className="flex justify-center flex-wrap gap-x-6 gap-y-2" style={{ alignItems: 'center' }}>
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link 
@@ -431,7 +448,7 @@ export default function Nav() {
       {breadcrumbJsonLd && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       )}
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SearchModal open={searchOpen} onClose={() => { setSearchOpen(false); setSearchPreset(undefined); }} preset={searchPreset} />
     </header>
   );
 }
