@@ -14,7 +14,7 @@ const pageContent = fs.readFileSync(pagePath, 'utf8');
 const checks = [
   {
     name: 'Title',
-    pattern: /title:\s*['"`]AnteLacus - 个人博客与创意空间['"`]/,
+    pattern: /title:\s*['"`]Ante Lacus, Pax Mentis['"`]/,
     required: true
   },
   {
@@ -29,7 +29,7 @@ const checks = [
   },
   {
     name: 'OpenGraph Title',
-    pattern: /openGraph:\s*{[^}]*title:\s*['"`]AnteLacus - 个人博客与创意空间['"`]/,
+    pattern: /openGraph:\s*{[^}]*title:\s*['"`]Ante Lacus, Pax Mentis['"`]/,
     required: true
   },
   {

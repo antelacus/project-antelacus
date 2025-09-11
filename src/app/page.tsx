@@ -10,8 +10,8 @@ import type { Metadata } from 'next';
 
 // 主页metadata配置
 export const metadata: Metadata = {
-  title: 'AnteLacus - 个人博客与创意空间',
-  description: '欢迎来到AnteLacus，一个融合思考、创意与技术的个人空间。这里记录我的学习笔记、项目经验和生活感悟，分享技术见解与设计思考。',
+  title: 'Ante Lacus, Pax Mentis',
+  description: 'Ante Lacus, Pax Mentis',
   keywords: [
     'AnteLacus',
     '个人博客',
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'AnteLacus - 个人博客与创意空间',
-    description: '欢迎来到AnteLacus，一个融合思考、创意与技术的个人空间。这里记录我的学习笔记、项目经验和生活感悟，分享技术见解与设计思考。',
+    title: 'Ante Lacus, Pax Mentis',
+    description: 'Ante Lacus, Pax Mentis',
     url: 'https://antelacus.com',
     siteName: 'AnteLacus',
     locale: 'zh_CN',
@@ -46,14 +46,14 @@ export const metadata: Metadata = {
         url: '/images/og-image.svg',
         width: 1200,
         height: 630,
-        alt: 'AnteLacus - 个人博客与创意空间',
+        alt: 'Ante Lacus, Pax Mentis',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AnteLacus - 个人博客与创意空间',
-    description: '欢迎来到AnteLacus，一个融合思考、创意与技术的个人空间。',
+    title: 'Ante Lacus, Pax Mentis',
+    description: 'Ante Lacus, Pax Mentis',
     images: ['/images/og-image.svg'],
   },
   robots: {

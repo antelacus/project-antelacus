@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     default: 'AnteLacus',
     template: '%s | AnteLacus',
   },
-  description: 'AnteLacus 个人博客 - 记录思考、分享创意',
+  description: 'Ante Lacus, Pax Mentis',
   keywords: ['博客', '个人网站', 'AnteLacus'],
   icons: {
     icon: '/images/common/logo-icon.svg',

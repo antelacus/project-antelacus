@@ -30,10 +30,9 @@ const ogImageSVG = `<?xml version="1.0" encoding="UTF-8"?>
   <text x="600" y="250" class="text title" text-anchor="middle">AnteLacus</text>
   
   <!-- Subtitle -->
-  <text x="600" y="320" class="text subtitle" text-anchor="middle">个人博客与创意空间</text>
+  <text x="600" y="320" class="text subtitle" text-anchor="middle">Ante Lacus, Pax Mentis</text>
   
-  <!-- Motto -->
-  <text x="600" y="380" class="text subtitle" text-anchor="middle" opacity="0.6">Ante Lacus, Pax Mentis</text>
+  <!-- Motto (removed duplicate to keep single subtitle) -->
   
   <!-- Seal -->
   <text x="600" y="450" class="text seal" text-anchor="middle">■</text>
@@ -70,6 +69,6 @@ console.log('  images: [{');
 console.log('    url: "/images/og-image.svg",');
 console.log('    width: 1200,');
 console.log('    height: 630,');
-console.log('    alt: "AnteLacus - 个人博客与创意空间",');
+console.log('    alt: "Ante Lacus, Pax Mentis",');
 console.log('  }],');
 console.log('},'); 

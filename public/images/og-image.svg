@@ -21,10 +21,7 @@
   <text x="600" y="250" class="text title" text-anchor="middle">AnteLacus</text>
   
   <!-- Subtitle -->
-  <text x="600" y="320" class="text subtitle" text-anchor="middle">个人博客与创意空间</text>
-  
-  <!-- Motto -->
-  <text x="600" y="380" class="text subtitle" text-anchor="middle" opacity="0.6">Ante Lacus, Pax Mentis</text>
+  <text x="600" y="320" class="text subtitle" text-anchor="middle">Ante Lacus, Pax Mentis</text>
   
   <!-- Seal -->
   <text x="600" y="450" class="text seal" text-anchor="middle">■</text>

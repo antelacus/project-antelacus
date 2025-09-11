@@ -40,7 +40,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="content-container content-container-standard">
-      <article>
+      <article data-title={project.name}>
         <header>
           <h1>{project.name}</h1>
           <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>

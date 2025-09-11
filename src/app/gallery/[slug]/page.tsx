@@ -66,7 +66,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
 
       {photo.content && (
         <div className="content-container content-container-standard">
-          <article className="prose">
+          <article className="prose" data-title={photo.title}>
             <MDXRemote source={photo.content} />
           </article>
         </div>

@@ -83,6 +83,17 @@ body {
   padding: 0;
 }
 
+/* === Breadcrumb minimal styles === */
+.breadcrumb-bar { margin-top: var(--space-sm); margin-bottom: var(--space-sm); }
+.breadcrumb-inner { font-size: 0.9rem; color: rgba(30,30,29,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.breadcrumb-item a { border-bottom-color: transparent; }
+.breadcrumb-item a:hover { color: var(--color-seal); border-bottom-color: var(--color-seal); }
+.breadcrumb-sep { margin: 0 8px; opacity: 0.6; }
+.breadcrumb-current { color: rgba(30,30,29,0.9); }
+
+/* Smooth scroll for in-page anchors (ToC) */
+html { scroll-behavior: smooth; }
+
 /*
  * Typographic Hierarchy - The Deliberate Mark
  * Enhanced with Qi: Breathing Typography

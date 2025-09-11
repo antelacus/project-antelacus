@@ -259,8 +259,6 @@ const inkVariants = ['ink-variant-1', 'ink-variant-2', 'ink-variant-3', 'ink-var
 
 ### （三）游廊引路 (Pathway Invitations): 雅致的深入邀请
 
-该部分未实际实现，原因是当前方案不够优雅。
-
 **哲学：** 首页的作用是创造渴望而非满足，是提出问题而非给出答案。访客应被温和地引导到更深层的探索。
 
 **实践体现：**

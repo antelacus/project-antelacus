@@ -27,7 +27,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="content-container content-container-standard">
-      <article>
+      <article data-title={note.title}>
         <header>
           <h1>{note.title}</h1>
           <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
