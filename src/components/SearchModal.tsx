@@ -90,7 +90,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
         setLoading(false);
       }
     })();
-  }, [open]);
+  }, [open, preset?.tags, preset?.type, preset?.q, preset?.year]);
 
   // Allow ESC to close
   useEffect(() => {

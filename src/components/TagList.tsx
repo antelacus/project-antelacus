@@ -13,7 +13,7 @@ export default function TagList({ tags }: { tags: string[] }) {
 
   return (
     <span>
-      {tags.map((tag, idx) => (
+      {tags.map((tag) => (
         <button
           key={tag}
           onClick={() => openSearchWithTag(tag)}

@@ -73,13 +73,20 @@ export default function Nav() {
 
   // Global event to open search with preset filters
   useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail || {};
+    type OpenSearchDetail = {
+      tags?: string[];
+      type?: 'post' | 'note' | 'photo' | 'project' | 'all';
+      q?: string;
+      year?: string;
+    };
+    const handler = (e: CustomEvent<OpenSearchDetail>) => {
+      const detail = e.detail || {};
       setSearchPreset(detail);
       setSearchOpen(true);
     };
-    window.addEventListener('open-search' as any, handler as any);
-    return () => window.removeEventListener('open-search' as any, handler as any);
+    // Narrow the listener type without using any
+    window.addEventListener('open-search', handler as EventListener);
+    return () => window.removeEventListener('open-search', handler as EventListener);
   }, []);
 
   // Auto-hide header on scroll down, show on scroll up (with small threshold)
