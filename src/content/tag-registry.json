@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-09-11T10:59:06.821Z",
+  "updatedAt": "2025-09-12T04:41:18.902Z",
   "tags": [
     {
       "id": "accounting",
@@ -29,6 +29,13 @@
       "count": 1,
       "types": [
         "project"
+      ]
+    },
+    {
+      "id": "latex",
+      "count": 1,
+      "types": [
+        "post"
       ]
     },
     {
@@ -116,10 +123,24 @@
       ]
     },
     {
+      "id": "实验",
+      "count": 1,
+      "types": [
+        "post"
+      ]
+    },
+    {
       "id": "感想",
       "count": 1,
       "types": [
         "note"
+      ]
+    },
+    {
+      "id": "数学",
+      "count": 1,
+      "types": [
+        "post"
       ]
     },
     {

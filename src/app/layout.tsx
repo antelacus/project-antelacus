@@ -1,4 +1,5 @@
 import './globals.css';
+import 'katex/dist/katex.min.css';
 import React from 'react';
 import Nav from '../components/Nav';
 import PerformanceMonitor from '../components/PerformanceMonitor';

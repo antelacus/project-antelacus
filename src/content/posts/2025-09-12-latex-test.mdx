@@ -1,0 +1,134 @@
+---
+title: "LaTeX 渲染测试文档"
+date: "2025-09-12"
+tags: ["LaTeX", "数学", "实验"]
+summary: "用于验证站点对常见 LaTeX 语法的渲染效果（内联、块级、对齐、分段、矩阵、求和与积分等）。"
+---
+
+> 说明：本页收录了常见的 LaTeX 书写样例，便于后续验证渲染效果。内容涵盖内联数学、块级公式、对齐环境、分段函数、矩阵、分数与根式、求和与积分、极限与导数等常用场景。
+
+## 一、内联与块级数学
+
+### （一）内联数学（Inline Math）
+在正文中插入公式，如 $E=mc^2$、$a^2+b^2=c^2$、$\alpha,\beta,\gamma$、$\mathbb{R}^n$、$\forall x\in\mathbb{R}$、$\exists\,\epsilon>0$。
+
+### （二）块级数学（Display Math）
+常见示例：
+
+$$
+\int_a^b f(x)\,dx = F(b) - F(a)
+$$
+
+$$
+\sqrt{a^2+b^2} = c
+$$
+
+## 二、对齐与分段
+
+### （一）对齐环境（aligned）
+多行等式按等号对齐：
+
+$$
+\begin{aligned}
+  a + b &= c \\
+  x + y &= z \\
+  u + v &= w
+\end{aligned}
+$$
+
+### （二）分段函数（cases）
+按条件定义函数：
+
+$$
+f(x)=\begin{cases}
+  x^2, & x\ge 0, \\
+  -x,  & x < 0.
+\end{cases}
+$$
+
+## 三、矩阵与向量
+
+### （一）矩阵（bmatrix/pmatrix）
+
+$$
+A = \begin{bmatrix}
+  1 & 2 \\
+  3 & 4
+\end{bmatrix},\quad
+\mathbf{v} = \begin{pmatrix}
+  v_1 \\
+  v_2 \\
+  v_3
+\end{pmatrix}
+$$
+
+### （二）单位矩阵与零矩阵
+$$
+I_n = \begin{bmatrix}
+  1 &     &        \\
+    & \ddots &     \\
+    &     & 1
+\end{bmatrix},\quad
+\mathbf{0}_{m\times n}
+$$
+
+## 四、分数、根式与常用符号
+
+### （一）分数与根式
+$$
+\frac{a+b}{c+d},\quad
+\dfrac{\sqrt{1+x^2}}{1-x},\quad
+\sqrt[n]{1+x}
+$$
+
+### （二）常用集合与运算
+$$
+\mathbb{N},\ \mathbb{Z},\ \mathbb{Q},\ \mathbb{R},\ \mathbb{C},\quad
+\cup,\ \cap,\ \subseteq,\ \supseteq,\ \in,\ \notin
+$$
+
+## 五、求和、连乘与积分
+
+### （一）求和与连乘
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2},\quad
+\prod_{k=1}^{n} (1+x_k)
+$$
+
+### （二）常见积分
+$$
+\int_0^1 x^p\,dx = \frac{1}{p+1}\quad (p>-1),\qquad
+\iint_{\Omega} f(x,y)\,dx\,dy
+$$
+
+## 六、极限、导数与微分方程
+
+### （一）极限与导数
+$$
+\lim_{x\to 0} \frac{\sin x}{x} = 1,\qquad
+\frac{d}{dx}\bigl(x^n\bigr) = n x^{n-1}
+$$
+
+### （二）常微分方程示例
+$$
+\frac{dy}{dx} + P(x)y = Q(x)
+$$
+
+## 七、几何与概率符号
+
+### （一）角度与三角函数
+$$
+\angle ABC,\ \triangle ABC,\quad
+\sin\theta,\ \cos\theta,\ \tan\theta
+$$
+
+### （二）概率与统计
+$$
+\mathbb{P}(A),\ \mathbb{E}[X],\ \mathrm{Var}(X),\ \mathcal{N}(\mu,\sigma^2)
+$$
+
+---
+
+若当前页面尚未正确渲染为数学公式，上述内容将以原始文本显示。后续计划将集成 remark-math 与 rehype-katex，并按本站美学体系定制 KaTeX 样式，以获得高质量的数学排版效果。
+
+
