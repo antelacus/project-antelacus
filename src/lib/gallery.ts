@@ -119,7 +119,7 @@ const getPhotoBySlugUncached = async (slug: string): Promise<Photo | null> => {
       tags: data.tags || [],
       content,
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 };

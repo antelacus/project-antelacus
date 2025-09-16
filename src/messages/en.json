@@ -1,0 +1,58 @@
+{
+  "site": {
+    "title": "AnteLacus",
+    "motto": "Ante Lacus, Pax Mentis"
+  },
+  "nav": {
+    "home": "Home",
+    "main": "Main navigation",
+    "posts": "Posts",
+    "notes": "Notes",
+    "gallery": "Gallery",
+    "projects": "Lab",
+    "about": "About",
+    "utility": "Utility",
+    "backHome": "Back to Home",
+    "toc": "ToC"
+  },
+  "utility": {
+    "menu": "Utilities & ToC",
+    "search": "Search",
+    "language": "Language",
+    "langSoon": "Language switch (coming soon)",
+    "toc": "Table of Contents"
+  },
+  "locale": {
+    "zh-CN": "简体",
+    "zh-HK": "繁體",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "search": {
+    "search": "Search",
+    "placeholder": "Search title and summary...",
+    "clear": "Clear",
+    "filters": "Filters",
+    "loading": "Loading index...",
+    "error": "Load failed: {message}",
+    "noResults": "No matching results.",
+    "tryAdjust": "Try adjusting keywords or filters",
+    "sort": "Sort",
+    "sortRelevance": "Most relevant",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "type": "Type",
+    "all": "All",
+    "tags": "Tags",
+    "noTags": "No tags",
+    "year": "Year",
+    "allYears": "All years"
+  },
+  "home": {},
+  "about": {},
+  "posts": {},
+  "notes": {},
+  "projects": {}
+}
+

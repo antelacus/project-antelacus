@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import PostCard from './PostCard';
 import NoteCard from './NoteCard';
 import PhotoCard from './PhotoCard';
@@ -50,6 +51,7 @@ async function tryLoadStaticIndex(): Promise<SearchIndexItem[] | null> {
 }
 
 export default function SearchModal({ open, onClose, preset }: Props) {
+  const t = useTranslations();
   const [q, setQ] = useState('');
   const [selectedType, setSelectedType] = useState<'all' | ContentType>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -205,8 +207,8 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                   <input
                     value={q}
                     onChange={e => setQ(e.target.value)}
-                    placeholder="搜索标题与摘要..."
-                    aria-label="搜索"
+                    placeholder={t('search.placeholder')}
+                    aria-label={t('search.search')}
                     style={{
                       width: '100%',
                       border: '1px solid rgba(30, 30, 29, 0.1)',
@@ -242,7 +244,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                   {q && (
                     <button
                       onClick={clearAll}
-                      aria-label="清空"
+                      aria-label={t('search.clear')}
                       style={{
                         position: 'absolute',
                         right: '12px',
@@ -263,7 +265,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                       onMouseLeave={(e) => {
                         (e.target as HTMLElement).style.opacity = '1';
                       }}
-                    >清空</button>
+                    >{t('search.clear')}</button>
                   )}
                 </div>
                 {/* Mobile-only filter toggle */}
@@ -295,7 +297,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                         (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
                       }
                     }}
-                  >筛选</button>
+                  >{t('search.filters')}</button>
                 )}
               </div>
             </div>
@@ -304,9 +306,9 @@ export default function SearchModal({ open, onClose, preset }: Props) {
               style={{ height: 'calc(100% - 64px)', minHeight: 0 }}
             >
               {loading ? (
-                <p>索引加载中...</p>
+                <p>{t('search.loading')}</p>
               ) : error ? (
-                <p>加载失败：{error}</p>
+                <p>{t('search.error', {message: error})}</p>
               ) : (
                 <div className="space-y-3">
                   {results.map(it => {
@@ -382,8 +384,8 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                   })}
                   {results.length === 0 && (
                     <div className="text-center py-8 opacity-70">
-                      <p>未找到匹配结果。</p>
-                      <p className="text-sm mt-2">尝试调整搜索关键词或筛选条件</p>
+                      <p>{t('search.noResults')}</p>
+                      <p className="text-sm mt-2">{t('search.tryAdjust')}</p>
                     </div>
                   )}
                 </div>
@@ -402,7 +404,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
             }}
           >
             <div className="mb-4">
-              <div className="mb-2 font-medium">排序</div>
+              <div className="mb-2 font-medium">{t('search.sort')}</div>
               <select
                 value={sort}
                 onChange={e => setSort(e.target.value as 'relevance' | 'newest' | 'oldest')}
@@ -439,14 +441,14 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                   }
                 }}
               >
-                <option value="relevance">最相关</option>
-                <option value="newest">最新</option>
-                <option value="oldest">最早</option>
+                <option value="relevance">{t('search.sortRelevance')}</option>
+                <option value="newest">{t('search.sortNewest')}</option>
+                <option value="oldest">{t('search.sortOldest')}</option>
               </select>
             </div>
 
             <div className="mb-4">
-              <div className="mb-2 font-medium">类型</div>
+              <div className="mb-2 font-medium">{t('search.type')}</div>
               <select
                 value={selectedType}
                 onChange={e => setSelectedType(e.target.value as 'all' | ContentType)}
@@ -483,17 +485,17 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                   }
                 }}
               >
-                <option value="all">全部</option>
-                <option value="post">专栏</option>
-                <option value="note">闪念</option>
-                <option value="photo">视觉</option>
-                <option value="project">实验室</option>
+                <option value="all">{t('search.all')}</option>
+                <option value="post">{t('nav.posts')}</option>
+                <option value="note">{t('nav.notes')}</option>
+                <option value="photo">{t('nav.gallery')}</option>
+                <option value="project">{t('nav.projects')}</option>
               </select>
             </div>
 
             <div className="mb-4">
-              <div className="mb-2 font-medium">标签</div>
-              <div className="flex flex-wrap gap-2" style={{ maxHeight: '180px', overflow: 'auto' }}>
+              <div className="mb-2 font-medium">{t('search.tags')}</div>
+              <div className="flex flex-wrap gap-1" style={{ maxHeight: '180px', overflow: 'auto' }}>
                 {allTags.map(t => {
                   const active = selectedTags.includes(t);
                   return (
@@ -503,41 +505,33 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                       style={{
                         fontSize: '12px',
                         padding: '6px 10px',
-                        border: active ? 'none' : '1px solid rgba(30, 30, 29, 0.1)',
+                        border: 'none',
                         borderRadius: 'var(--radius-md)',
-                        background: active ? 'var(--color-seal, #B42A1E)' : 'transparent',
-                        color: active ? 'var(--color-paper, #F9F8F6)' : 'rgba(29, 29, 27, 0.7)',
+                        background: 'transparent',
+                        color: active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)',
                         cursor: 'pointer',
-                        marginRight: '6px',
-                        marginBottom: '6px',
+                        marginRight: '3px',
+                        marginBottom: '3px',
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         outline: 'none'
                       }}
                       onMouseEnter={(e) => {
-                        if (!active) {
-                          (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                          (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                          (e.target as HTMLElement).style.color = 'var(--color-ink, #1E1E1D)';
-                        }
+                        (e.target as HTMLElement).style.color = 'var(--color-seal, #B42A1E)';
                       }}
                       onMouseLeave={(e) => {
-                        if (!active) {
-                          (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                          (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                          (e.target as HTMLElement).style.color = 'rgba(29, 29, 27, 0.7)';
-                        }
+                        (e.target as HTMLElement).style.color = active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)';
                       }}
                     >
                       #{t}
                     </button>
                   );
                 })}
-                {allTags.length === 0 && <span className="text-sm opacity-70">暂无标签</span>}
+                {allTags.length === 0 && <span className="text-sm opacity-70">{t('search.noTags')}</span>}
               </div>
             </div>
 
             <div className="mb-4">
-              <div className="mb-2 font-medium">年份</div>
+              <div className="mb-2 font-medium">{t('search.year')}</div>
               <select
                 value={selectedYear}
                 onChange={e => setSelectedYear(e.target.value)}
@@ -574,7 +568,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                   }
                 }}
               >
-                <option value="all">全部年份</option>
+                <option value="all">{t('search.allYears')}</option>
                 {allYears.map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}

@@ -63,7 +63,7 @@ const getNoteBySlugUncached = async (slug: string): Promise<Note | null> => {
       tags: data.tags || [],
       content,
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 };

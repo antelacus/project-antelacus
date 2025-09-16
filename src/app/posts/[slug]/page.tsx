@@ -1,5 +1,5 @@
 import { getPostBySlug } from '../../../lib/posts';
-import { notFound } from 'next/navigation';
+// import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 // Enable LaTeX: remark-math parses $...$ and $$...$$; rehype-katex renders to HTML
 import remarkMath from 'remark-math';
@@ -7,10 +7,11 @@ import rehypeKatex from 'rehype-katex';
 import Link from 'next/link';
 import Image from 'next/image';
 import TagList from '../../../components/TagList';
+import { languageAlternates, canonicalFor } from '../../../lib/seo';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale?: string }> }) {
+  const { slug, locale = 'en' } = await params;
+  const post = await getPostBySlug(slug, locale);
   if (!post) {
     return {
       title: '文章未找到',
@@ -20,6 +21,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: post.title,
     description: post.summary || '',
+    alternates: {
+      canonical: canonicalFor(locale, `/posts/${post.slug}`),
+      languages: languageAlternates(`/posts/${post.slug}`),
+    },
     openGraph: {
       title: post.title,
       description: post.summary || '',
@@ -30,9 +35,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function PostPage({ params }: { params: Promise<{ slug:string }> }) {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+export default async function PostPage({ params }: { params: Promise<{ slug:string; locale?: string }> }) {
+  const { slug, locale } = await params;
+  const post = await getPostBySlug(slug, locale);
 
   if (!post) {
     // Though notFound() is better, we'll keep this custom message for now.
@@ -40,7 +45,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug:stri
       <main className="content-container content-container-standard text-center">
         <h1>文章未找到</h1>
         <p>你访问的文章不存在或已被删除。</p>
-        <Link href="/posts">返回专栏</Link>
+        <Link href="../">返回专栏</Link>
       </main>
     );
   }

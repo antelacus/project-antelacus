@@ -453,3 +453,57 @@
 **最终选型说明**：尽管 Next.js 上手有一定门槛，但其极高的可定制性和强大的生态（React/MDX）非常适合个人博客的长期发展和功能扩展。结合 Vercel 的无缝部署体验，是本项目在综合考量下的最佳选择。
 
 ---
+
+### （十六）i18n 手工验证清单（QA）
+- 首访 `/`：按浏览器 Accept-Language 重定向到 `/zh-CN|zh-HK|en|fr|es`；不支持语言回退 `/en`。
+- 语言切换：在任意路径使用右上角语言切换，保持原路径与查询，仅变更语言前缀。
+- UI 文案：导航、搜索模态、工具面板文案随语言变化；标签名保持英文不变。
+- 关于页：`/about` 加载 `about.{locale}.mdx`；缺失时回退 `zh-CN` 内容。
+- 文章：存在 `{slug}.{locale}.mdx` 时优先显示；缺失时回退默认 `{slug}.mdx`。卡片标题/摘要一致。
+- hreflang/canonical：主页、列表页、文章详情与关于页均输出对应 `alternates.languages` 与 `canonical`。
+- API/静态资源：`/api/**` 与 `/images/**` 不受中间件重定向影响可直接访问。
+
+### （十七）多语言站点地图（Sitemap）扩展计划
+为降低当前迭代风险，先完成 i18n 页面与 SEO 标记，sitemap 多语言扩展作为下一里程碑实施。
+
+建议采用 next-sitemap 统一生成：
+
+1) 安装与基础配置（计划）
+- 开发依赖：`npm i -D next-sitemap`
+- 新增配置文件 `next-sitemap.config.js`（示例结构）：
+```js
+/** @type {import('next-sitemap').IConfig} */
+module.exports = {
+  siteUrl: 'https://antelacus.com',
+  generateRobotsTxt: true,
+  exclude: ['/api/*'],
+  transform: async (config, path) => {
+    // 生成默认条目（包含优先级、变更频率等）
+    return {
+      loc: path,
+      changefreq: 'weekly',
+      priority: 0.7,
+      lastmod: new Date().toISOString(),
+    };
+  },
+  alternateRefs: [
+    { href: 'https://antelacus.com/zh-CN', hreflang: 'zh-CN' },
+    { href: 'https://antelacus.com/zh-HK', hreflang: 'zh-HK' },
+    { href: 'https://antelacus.com/en', hreflang: 'en' },
+    { href: 'https://antelacus.com/fr', hreflang: 'fr' },
+    { href: 'https://antelacus.com/es', hreflang: 'es' },
+  ],
+};
+```
+
+2) 路由本地化路径生成（计划）
+- 若采用手动 routes 映射：在生成阶段读取内容目录，拼装 `/[locale]/posts/[slug]` 等所有路径。
+- 若采用 `sourceDir` 自动扫描：结合 `transform` 钩子，对每个 `/{locale}/...` 发射对应 `alternateRefs`。
+
+3) 脚本与流水线（计划）
+- 新增 npm 脚本：`"sitemap:gen": "next-sitemap"`
+- 在 `postbuild` 之后单独执行或替换现有 `public/sitemap.xml`，并更新 `robots.txt` 的引用。
+
+4) 验证（计划）
+- 本地查看 `sitemap.xml` 是否包含多语言 URL 与 `<xhtml:link rel="alternate" hreflang="...">`。
+- 使用 Search Console 的“站点地图”重新提交并观察收录差异。

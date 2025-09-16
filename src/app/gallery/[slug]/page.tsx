@@ -1,5 +1,5 @@
 import { getPhotoBySlug } from '../../../lib/gallery';
-import { notFound } from 'next/navigation';
+// import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
 import PhotoViewer from '../../../components/PhotoViewer';
@@ -36,7 +36,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
       <main className="content-container content-container-standard text-center">
         <h1>照片集未找到</h1>
         <p>你访问的照片集不存在或已被删除。</p>
-        <Link href="/gallery">返回视觉</Link>
+        <Link href="../">返回视觉</Link>
       </main>
     );
   }

@@ -1,11 +1,12 @@
 import './globals.css';
 import 'katex/dist/katex.min.css';
 import React from 'react';
-import Nav from '../components/Nav';
+import { cookies } from 'next/headers';
 import PerformanceMonitor from '../components/PerformanceMonitor';
 import SkipLink from '../components/SkipLink';
 import type { Metadata, Viewport } from 'next';
 import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from './fonts';
+import { isSupportedLocale, defaultLocale } from '@/i18n/routing';
 
 export const metadata: Metadata = {
   title: {
@@ -29,10 +30,13 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
+  const lang = isSupportedLocale(cookieLocale) ? cookieLocale : defaultLocale;
   return (
     <html
-      lang="zh-CN"
+      lang={lang}
       className={`${cormorantGaramond.variable} ${sourceSerif4.variable} ${jetbrainsMono.variable} ${sourceHanSerif.variable}`}
     >
       <head>
@@ -92,7 +96,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <PerformanceMonitor enableDevLogs={process.env.NODE_ENV === 'development'} />
         <SkipLink />
-        <Nav />
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>

@@ -25,7 +25,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <main className="content-container content-container-standard text-center">
         <h1>项目未找到</h1>
         <p>你访问的项目不存在或已被删除。</p>
-        <Link href="/projects">返回实验室</Link>
+        <Link href="../">返回实验室</Link>
       </main>
     );
   }
@@ -81,13 +81,23 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
         <p className="text-lg" style={{ color: 'rgba(29, 29, 27, 0.8)'}}>{project.description}</p>
         
-        <div className="flex flex-wrap gap-4 my-6">
-          <a href={project.repo} target="_blank" rel="noopener noreferrer">
-            📁 源码
+        <div className="flex flex-wrap gap-3 my-6">
+          <a href={project.repo} target="_blank" rel="noopener noreferrer" className="action-button" aria-label="查看源码">
+            <span className="icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5l-3 3-3-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2v10h6.586L12 17.414 13.414 16H20V6H4z"/>
+              </svg>
+            </span>
+            源码
           </a>
           {project.demo && (
-            <a href={project.demo} target="_blank" rel="noopener noreferrer">
-              🚀 演示
+            <a href={project.demo} target="_blank" rel="noopener noreferrer" className="action-button" aria-label="查看演示">
+              <span className="icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 3h18v2H3V3zm0 14h6v4H3v-4zm12 0h6v4h-6v-4zM3 7h18v8H3V7zm8 2v4l4-2-4-2z"/>
+                </svg>
+              </span>
+              演示
             </a>
           )}
         </div>

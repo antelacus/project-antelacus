@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { ProjectMeta } from '../lib/projects';
 import { useState, useEffect } from 'react';
@@ -12,6 +13,10 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, layout = 'vertical', compact = false, suppressAnimations = false }: ProjectCardProps) {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentPath = usePathname?.() || pathname || '/';
+  const currentLocale = (currentPath.split('/')[1] || '');
+  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');
@@ -38,8 +43,8 @@ export default function ProjectCard({ project, layout = 'vertical', compact = fa
 
   return (
     <Link 
-      href={`/projects/${project.slug}`} 
-      className={`${isSearch ? 'card-link card-organic' : 'block p-4 rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]'} ${naturalTilt}`}
+      href={`${prefix}/projects/${project.slug}`} 
+      className={`${isSearch ? 'card-link card-organic' : 'block p-4 rounded-md card-organic focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B42A1E]'} ${naturalTilt}`}
       onClick={() => {
         // Only set navigatedFromHome flag when clicking from homepage
         if (window.location.pathname === '/') {
@@ -159,32 +164,6 @@ export default function ProjectCard({ project, layout = 'vertical', compact = fa
               transition: suppressAnimations ? 'none' : 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             }}
           >
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  window.open(project.repo, '_blank', 'noopener,noreferrer');
-                }}
-                className="hover:text-[--color-seal] bg-transparent border-none p-0 cursor-pointer text-sm"
-                style={{ color: 'inherit' }}
-              >
-                📁 源码
-              </button>
-              {project.demo && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    window.open(project.demo, '_blank', 'noopener,noreferrer');
-                  }}
-                  className="hover:text-[--color-seal] bg-transparent border-none p-0 cursor-pointer text-sm"
-                  style={{ color: 'inherit' }}
-                >
-                  🚀 演示
-                </button>
-              )}
-            </div>
             <div className="mt-2">
               {project.tags?.map(tag => (
                 <span key={tag} className="text-xs mr-2" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>#{tag}</span>

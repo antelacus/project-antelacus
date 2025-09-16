@@ -1,13 +1,27 @@
 import { getAllPostsMeta } from '../../lib/posts';
 import PostCard from '../../components/PostCard';
 
-export const metadata = {
-  title: '专栏',
-  description: '深度文章与专题分析合集。',
-};
+export async function generateMetadata({ params }: { params?: Promise<{ locale?: string }> }) {
+  const locale = params ? (await params).locale || 'en' : 'en';
+  return {
+    title: '专栏',
+    description: '深度文章与专题分析合集。',
+    alternates: {
+      canonical: `/${locale}/posts`,
+      languages: {
+        'zh-CN': '/zh-CN/posts',
+        'zh-HK': '/zh-HK/posts',
+        'en': '/en/posts',
+        'fr': '/fr/posts',
+        'es': '/es/posts'
+      }
+    }
+  };
+}
 
-export default async function PostsPage() {
-  const posts = await getAllPostsMeta();
+export default async function PostsPage({ params }: { params?: Promise<{ locale?: string }> }) {
+  const locale = params ? (await params).locale : undefined;
+  const posts = await getAllPostsMeta(locale);
   return (
     <div className="content-container content-container-standard">
       {posts.length === 0 && <p>暂无内容。</p>}

@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { PhotoMeta } from '../lib/gallery';
 import { useState, useEffect } from 'react';
@@ -12,6 +13,10 @@ interface PhotoCardProps {
 }
 
 export default function PhotoCard({ photo, layout = 'vertical', compact = false, suppressAnimations = false }: PhotoCardProps) {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentPath = usePathname?.() || pathname || '/';
+  const currentLocale = (currentPath.split('/')[1] || '');
+  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
 
@@ -25,8 +30,8 @@ export default function PhotoCard({ photo, layout = 'vertical', compact = false,
 
   return (
     <Link 
-      href={`/gallery/${photo.slug}`} 
-      className={`${isSearch ? 'card-link card-organic' : 'block relative overflow-hidden rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]'} ${naturalTilt}`}
+      href={`${prefix}/gallery/${photo.slug}`} 
+      className={`${isSearch ? 'card-link card-organic' : 'block relative overflow-hidden rounded-md card-organic focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B42A1E]'} ${naturalTilt}`}
       onClick={() => {
         // Only set navigatedFromHome flag when clicking from homepage
         if (window.location.pathname === '/') {

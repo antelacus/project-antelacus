@@ -76,7 +76,7 @@ const getProjectBySlugUncached = async (slug: string): Promise<Project | null> =
       cover: data.cover,
       content,
     };
-  } catch (e) {
+  } catch {
     return null;
   }
 };

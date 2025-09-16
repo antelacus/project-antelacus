@@ -7,6 +7,7 @@ import ClientNoteCard from '../components/ClientNoteCard';
 import ClientPhotoCard from '../components/ClientPhotoCard';
 import ClientProjectCard from '../components/ClientProjectCard';
 import type { Metadata } from 'next';
+import { languageAlternates } from '../lib/seo';
 
 // 主页metadata配置
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://antelacus.com'),
   alternates: {
     canonical: '/',
+    languages: languageAlternates('/'),
   },
   openGraph: {
     title: 'Ante Lacus, Pax Mentis',

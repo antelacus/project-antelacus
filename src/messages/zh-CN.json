@@ -1,0 +1,58 @@
+{
+  "site": {
+    "title": "AnteLacus",
+    "motto": "临湖之前，心境平和"
+  },
+  "nav": {
+    "home": "首页",
+    "main": "主导航",
+    "posts": "专栏",
+    "notes": "闪念",
+    "gallery": "视觉",
+    "projects": "实验室",
+    "about": "关于",
+    "utility": "功能",
+    "backHome": "返回首页",
+    "toc": "目录"
+  },
+  "utility": {
+    "menu": "功能与目录",
+    "search": "搜索",
+    "language": "语言切换",
+    "langSoon": "语言切换（即将推出）",
+    "toc": "文章目录"
+  },
+  "locale": {
+    "zh-CN": "简体",
+    "zh-HK": "繁體",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "search": {
+    "search": "搜索",
+    "placeholder": "搜索标题与摘要...",
+    "clear": "清空",
+    "filters": "筛选",
+    "loading": "索引加载中...",
+    "error": "加载失败：{message}",
+    "noResults": "未找到匹配结果。",
+    "tryAdjust": "尝试调整搜索关键词或筛选条件",
+    "sort": "排序",
+    "sortRelevance": "最相关",
+    "sortNewest": "最新",
+    "sortOldest": "最早",
+    "type": "类型",
+    "all": "全部",
+    "tags": "标签",
+    "noTags": "暂无标签",
+    "year": "年份",
+    "allYears": "全部年份"
+  },
+  "home": {},
+  "about": {},
+  "posts": {},
+  "notes": {},
+  "projects": {}
+}
+

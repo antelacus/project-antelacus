@@ -1,0 +1,58 @@
+{
+  "site": {
+    "title": "AnteLacus",
+    "motto": "臨湖之前，心境平和"
+  },
+  "nav": {
+    "home": "首頁",
+    "main": "主導航",
+    "posts": "專欄",
+    "notes": "閃念",
+    "gallery": "視覺",
+    "projects": "實驗室",
+    "about": "關於",
+    "utility": "功能",
+    "backHome": "返回首頁",
+    "toc": "目錄"
+  },
+  "utility": {
+    "menu": "功能與目錄",
+    "search": "搜尋",
+    "language": "語言切換",
+    "langSoon": "語言切換（即將推出）",
+    "toc": "文章目錄"
+  },
+  "locale": {
+    "zh-CN": "简体",
+    "zh-HK": "繁體",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "search": {
+    "search": "搜尋",
+    "placeholder": "搜尋標題與摘要...",
+    "clear": "清除",
+    "filters": "篩選",
+    "loading": "索引載入中...",
+    "error": "載入失敗：{message}",
+    "noResults": "未找到匹配結果。",
+    "tryAdjust": "嘗試調整關鍵詞或篩選條件",
+    "sort": "排序",
+    "sortRelevance": "最相關",
+    "sortNewest": "最新",
+    "sortOldest": "最早",
+    "type": "類型",
+    "all": "全部",
+    "tags": "標籤",
+    "noTags": "暫無標籤",
+    "year": "年份",
+    "allYears": "全部年份"
+  },
+  "home": {},
+  "about": {},
+  "posts": {},
+  "notes": {},
+  "projects": {}
+}
+

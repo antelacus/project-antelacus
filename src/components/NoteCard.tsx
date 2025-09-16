@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { NoteMeta } from '../lib/notes';
 import { useState, useEffect } from 'react';
 
@@ -11,6 +12,10 @@ interface NoteCardProps {
 }
 
 export default function NoteCard({ note, layout = 'vertical', compact = false, suppressAnimations = false }: NoteCardProps) {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentPath = usePathname?.() || pathname || '/';
+  const currentLocale = (currentPath.split('/')[1] || '');
+  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');
@@ -37,8 +42,8 @@ export default function NoteCard({ note, layout = 'vertical', compact = false, s
 
   return (
     <Link 
-      href={`/notes/${note.slug}`} 
-      className={`${isSearch ? 'card-link card-organic' : 'block p-4 rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]'} ${naturalTilt}`}
+      href={`${prefix}/notes/${note.slug}`} 
+      className={`${isSearch ? 'card-link card-organic' : 'block p-4 rounded-md card-organic focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B42A1E]'} ${naturalTilt}`}
       onClick={() => {
         // Only set navigatedFromHome flag when clicking from homepage
         if (window.location.pathname === '/') {

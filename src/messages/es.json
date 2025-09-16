@@ -1,0 +1,58 @@
+{
+  "site": {
+    "title": "AnteLacus",
+    "motto": "Antes del lago, paz mental"
+  },
+  "nav": {
+    "home": "Inicio",
+    "main": "Navegación principal",
+    "posts": "Artículos",
+    "notes": "Notas",
+    "gallery": "Galería",
+    "projects": "Laboratorio",
+    "about": "Acerca de",
+    "utility": "Funciones",
+    "backHome": "Volver al inicio",
+    "toc": "Índice"
+  },
+  "utility": {
+    "menu": "Funciones y índice",
+    "search": "Buscar",
+    "language": "Idioma",
+    "langSoon": "Cambio de idioma (próximamente)",
+    "toc": "Tabla de contenidos"
+  },
+  "locale": {
+    "zh-CN": "简体",
+    "zh-HK": "繁體",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "search": {
+    "search": "Buscar",
+    "placeholder": "Buscar en título y resumen...",
+    "clear": "Limpiar",
+    "filters": "Filtros",
+    "loading": "Cargando índice...",
+    "error": "Error al cargar: {message}",
+    "noResults": "No se encontraron resultados.",
+    "tryAdjust": "Intenta ajustar palabras clave o filtros",
+    "sort": "Ordenar",
+    "sortRelevance": "Más relevante",
+    "sortNewest": "Más reciente",
+    "sortOldest": "Más antiguo",
+    "type": "Tipo",
+    "all": "Todos",
+    "tags": "Etiquetas",
+    "noTags": "Sin etiquetas",
+    "year": "Año",
+    "allYears": "Todos los años"
+  },
+  "home": {},
+  "about": {},
+  "posts": {},
+  "notes": {},
+  "projects": {}
+}
+

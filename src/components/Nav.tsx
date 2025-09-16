@@ -4,19 +4,33 @@ import { usePathname } from 'next/navigation';
 import SearchModal from './SearchModal';
 import UtilityDropdown from './UtilityDropdown';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { locales } from '@/i18n/routing';
 
 export default function Nav() {
+  const t = useTranslations();
   const pathname = usePathname();
   const [animationState, setAnimationState] = useState<'idle' | 'nav-prep' | 'nav-moving' | 'logo-appearing' | 'complete'>('idle');
   const [isFromHomepage, setIsFromHomepage] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const currentLocale = (pathname.split('/')[1] || '');
+  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
+  const stripLocale = (path: string) => {
+    const seg = (path || '/').split('/')[1] || '';
+    if ((locales as readonly string[]).includes(seg)) {
+      const rest = path.slice(seg.length + 1);
+      return rest ? (rest.startsWith('/') ? rest : `/${rest}`) : '/';
+    }
+    return path || '/';
+  };
+  const pathNoLocale = useMemo(() => stripLocale(pathname), [pathname]);
   const navLinks = [
-    { href: "/posts", label: "专栏" },
-    { href: "/notes", label: "闪念" },
-    { href: "/gallery", label: "视觉" },
-    { href: "/projects", label: "实验室" },
-    { href: "/about", label: "关于" },
+    { href: `${prefix}/posts`, label: t('nav.posts') },
+    { href: `${prefix}/notes`, label: t('nav.notes') },
+    { href: `${prefix}/gallery`, label: t('nav.gallery') },
+    { href: `${prefix}/projects`, label: t('nav.projects') },
+    { href: `${prefix}/about`, label: t('nav.about') },
   ];
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchPreset, setSearchPreset] = useState<{
@@ -27,29 +41,30 @@ export default function Nav() {
   } | undefined>(undefined);
   const [utilityOpen, setUtilityOpen] = useState(false);
   const [hideOnScroll, setHideOnScroll] = useState(false);
+  const [tocHintDismissed, setTocHintDismissed] = useState(false);
 
   const isActive = (href: string) => {
     return pathname.startsWith(href);
   };
 
-  const isHomePage = pathname === '/';
+  const isHomePage = pathNoLocale === '/';
   const isDetailPage = useMemo(() => {
     // /posts/[slug], /notes/[slug], /gallery/[slug], /projects/[slug]
-    return /^(\/posts|\/notes|\/gallery|\/projects)\/[A-Za-z0-9-_]+$/.test(pathname);
-  }, [pathname]);
+    return /^(\/posts|\/notes|\/gallery|\/projects)\/[A-Za-z0-9-_]+$/.test(pathNoLocale);
+  }, [pathNoLocale]);
 
   const sectionInfo = useMemo(() => {
     // Determine top-level section and its Chinese label
-    const m = pathname.match(/^\/(posts|notes|gallery|projects)(?:\/|$)/);
+    const m = pathNoLocale.match(/^\/(posts|notes|gallery|projects)(?:\/|$)/);
     const key = m ? m[1] : undefined;
     const labelMap: Record<string, { label: string; href: string }> = {
-      posts: { label: '专栏', href: '/posts' },
-      notes: { label: '闪念', href: '/notes' },
-      gallery: { label: '视觉', href: '/gallery' },
-      projects: { label: '实验室', href: '/projects' },
+      posts: { label: t('nav.posts'), href: `${prefix}/posts` },
+      notes: { label: t('nav.notes'), href: `${prefix}/notes` },
+      gallery: { label: t('nav.gallery'), href: `${prefix}/gallery` },
+      projects: { label: t('nav.projects'), href: `${prefix}/projects` },
     };
     return key ? labelMap[key] : undefined;
-  }, [pathname]);
+  }, [pathNoLocale, t, prefix]);
 
   const [currentTitle, setCurrentTitle] = useState<string>("");
   useEffect(() => {
@@ -66,10 +81,18 @@ export default function Nav() {
     if (dt) setCurrentTitle(dt);
   }, [isDetailPage, pathname]);
 
-  // Close the utility dropdown on route change
+  // Close the utility dropdown on route change and reset ToC hint
   useEffect(() => {
     setUtilityOpen(false);
+    setTocHintDismissed(false); // Reset ToC hint for new pages
   }, [pathname]);
+
+  // Track ToC hint dismissal when nav hides for the first time
+  useEffect(() => {
+    if (hideOnScroll && !tocHintDismissed) {
+      setTocHintDismissed(true);
+    }
+  }, [hideOnScroll, tocHintDismissed]);
 
   // Global event to open search with preset filters
   useEffect(() => {
@@ -215,6 +238,10 @@ export default function Nav() {
 
   // Only move the nav links container; keep header height constant
   const getNavContainerStyles = () => {
+    // Avoid hydration mismatch: render neutral state until mounted
+    if (!mounted) {
+      return { transform: 'translateY(0)' };
+    }
     if (!isFromHomepage) {
       // Homepage: no offset; Non-home direct load: resting offset
       return { transform: isHomePage ? 'translateY(0)' : 'translateY(20px)' };
@@ -280,9 +307,9 @@ export default function Nav() {
       {mounted && !isHomePage && (
         <div className="mb-6" style={getLogoStyles()}>
           <Link 
-            href="/" 
+            href={prefix || '/'} 
             className="inline-block text-lg font-medium transition-all duration-300 ease-out"
-            aria-label="返回首页"
+            aria-label={t('nav.backHome')}
             onClick={() => {
               sessionStorage.setItem('navigatedFromContent', 'true');
             }}
@@ -313,15 +340,15 @@ export default function Nav() {
         open={utilityOpen}
         onClose={() => setUtilityOpen(false)}
         onOpenSearch={() => { setSearchOpen(true); setUtilityOpen(false); }}
-        showToc={/^(\/posts|\/notes|\/projects)\//.test(pathname)}
+        showToc={/^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)}
       />
 
-      <nav role="navigation" aria-label="主导航">
+      <nav role="navigation" aria-label={t('nav.main')}>
         <div style={getNavContainerStyles()}>
           {isDetailPage ? (
             <div className="breadcrumb-bar" style={{ display: 'flex', justifyContent: 'center' }}>
               <div className="breadcrumb-inner" style={{ maxWidth: '90ch', padding: '0 1rem', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-                <span className="breadcrumb-item"><Link href="/">首页</Link></span>
+                <span className="breadcrumb-item"><Link href={prefix || '/'}>{t('nav.home')}</Link></span>
                 {sectionInfo && (
                   <>
                     <span className="breadcrumb-sep">›</span>
@@ -335,7 +362,7 @@ export default function Nav() {
                   </>
                 )}
                 <button
-                  aria-label="功能"
+                  aria-label={t('nav.utility')}
                   aria-haspopup="menu"
                   aria-expanded={utilityOpen}
                   onClick={() => setUtilityOpen(v => !v)}
@@ -343,13 +370,15 @@ export default function Nav() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: '38px',
                     height: '38px',
                     border: 'none',
                     borderRadius: '8px',
                     background: 'var(--color-paper)',
                     transition: 'all .3s cubic-bezier(0.4,0,0.2,1)',
-                    marginLeft: '48px'
+                    marginLeft: '48px',
+                    padding: (!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) ? '0 12px 0 10px' : '0',
+                    width: (!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) ? 'auto' : '38px',
+                    gap: (!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) ? '6px' : '0'
                   }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-wash-moss)';
@@ -360,7 +389,7 @@ export default function Nav() {
                 >
                   <img
                     src="/images/common/book-cover.svg"
-                    alt="功能"
+                    alt={t('nav.utility')}
                     width={18}
                     height={18}
                     style={{
@@ -370,6 +399,16 @@ export default function Nav() {
                       borderRadius: '0'
                     }}
                   />
+                  {(!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) && (
+                    <span style={{ 
+                      fontSize: '13px', 
+                      color: 'var(--color-seal)',
+                      fontWeight: '500',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {t('nav.toc')}
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
@@ -411,7 +450,7 @@ export default function Nav() {
               ))}
               <li>
                 <button
-                  aria-label="功能"
+                  aria-label={t('nav.utility')}
                   aria-haspopup="menu"
                   aria-expanded={utilityOpen}
                   onClick={() => setUtilityOpen(v => !v)}
@@ -436,7 +475,7 @@ export default function Nav() {
                 >
                   <img
                     src="/images/common/book-cover.svg"
-                    alt="功能"
+                    alt={t('nav.utility')}
                     width={18}
                     height={18}
                     style={{

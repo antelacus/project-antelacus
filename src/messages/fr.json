@@ -1,0 +1,58 @@
+{
+  "site": {
+    "title": "AnteLacus",
+    "motto": "Avant le lac, paix de l'esprit"
+  },
+  "nav": {
+    "home": "Accueil",
+    "main": "Navigation principale",
+    "posts": "Articles",
+    "notes": "Notes",
+    "gallery": "Galerie",
+    "projects": "Laboratoire",
+    "about": "À propos",
+    "utility": "Fonctions",
+    "backHome": "Retour à l'accueil",
+    "toc": "Sommaire"
+  },
+  "utility": {
+    "menu": "Fonctions et sommaire",
+    "search": "Recherche",
+    "language": "Langue",
+    "langSoon": "Changement de langue (bientôt)",
+    "toc": "Table des matières"
+  },
+  "locale": {
+    "zh-CN": "简体",
+    "zh-HK": "繁體",
+    "en": "English",
+    "fr": "Français",
+    "es": "Español"
+  },
+  "search": {
+    "search": "Recherche",
+    "placeholder": "Rechercher dans le titre et le résumé...",
+    "clear": "Effacer",
+    "filters": "Filtres",
+    "loading": "Chargement de l’index...",
+    "error": "Échec du chargement : {message}",
+    "noResults": "Aucun résultat correspondant.",
+    "tryAdjust": "Essayez d’ajuster les mots-clés ou les filtres",
+    "sort": "Trier",
+    "sortRelevance": "Le plus pertinent",
+    "sortNewest": "Le plus récent",
+    "sortOldest": "Le plus ancien",
+    "type": "Type",
+    "all": "Tous",
+    "tags": "Tags",
+    "noTags": "Aucun tag",
+    "year": "Année",
+    "allYears": "Toutes les années"
+  },
+  "home": {},
+  "about": {},
+  "posts": {},
+  "notes": {},
+  "projects": {}
+}
+

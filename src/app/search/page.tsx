@@ -26,7 +26,7 @@ async function fetchIndex(filename: string) {
 
 export default function SearchPage() {
   const [q, setQ] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags] = useState<string[]>([]);
   const [type, setType] = useState<'all' | 'post' | 'note' | 'photo' | 'project'>('all');
   const [items, setItems] = useState<SearchIndexItem[]>([]);
   const [loading, setLoading] = useState(true);

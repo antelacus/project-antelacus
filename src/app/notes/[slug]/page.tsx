@@ -21,7 +21,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
       <main className="content-container content-container-standard text-center">
         <h1>笔记未找到</h1>
         <p>你访问的笔记不存在或已被删除。</p>
-        <Link href="/notes">返回闪念</Link>
+        <Link href="../">返回闪念</Link>
       </main>
     );
   }

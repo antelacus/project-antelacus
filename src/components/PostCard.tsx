@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { PostMeta } from '../lib/posts';
 import { useState, useEffect } from 'react';
@@ -12,6 +13,11 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, layout = 'vertical', compact = false, suppressAnimations = false }: PostCardProps) {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  // Fallback-safe current path when rendering during SSR/hydration
+  const currentPath = usePathname?.() || pathname || '/';
+  const currentLocale = (currentPath.split('/')[1] || '');
+  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');
@@ -31,7 +37,7 @@ export default function PostCard({ post, layout = 'vertical', compact = false, s
   const isHorizontalLike = isHorizontal || isSearch;
   
   // Search layout uses similar structure to horizontal but with compact styling
-  const cardClass = isHorizontalLike ? 'card-link card-organic' : 'block p-4 rounded-md card-organic focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#B42A1E]';
+  const cardClass = isHorizontalLike ? 'card-link card-organic' : 'block p-4 rounded-md card-organic focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#B42A1E]';
   const articleClass = isHorizontalLike ? `card ${isSearch ? 'post-search-card' : 'post-list-card'} ${!suppressAnimations ? 'masonry-item' : ''}` : '';
   
   // Unified hover styles for horizontal-like layouts
@@ -48,7 +54,7 @@ export default function PostCard({ post, layout = 'vertical', compact = false, s
 
   return (
     <Link 
-      href={`/posts/${post.slug}`} 
+      href={`${prefix}/posts/${post.slug}`} 
       className={`${cardClass} ${naturalTilt}`}
       style={isHorizontalLike ? horizontalLikeHoverStyle : { 
         backgroundColor: isHovered ? 'var(--color-wash-moss)' : 'var(--color-paper)',

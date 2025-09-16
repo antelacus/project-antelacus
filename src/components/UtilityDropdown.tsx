@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { locales, isSupportedLocale } from '@/i18n/routing';
 
 interface TocItem {
   id: string;
@@ -18,9 +21,33 @@ export default function UtilityDropdown({
   onOpenSearch: () => void;
   showToc: boolean;
 }) {
+  const t = useTranslations();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
+  const [showLangMenu, setShowLangMenu] = useState<boolean>(false);
+
+  const currentLocale = useMemo(() => {
+    const seg = (pathname || '/').split('/')[1] || '';
+    return isSupportedLocale(seg) ? seg : null;
+  }, [pathname]);
+
+  const changeLocale = (nextLocale: string) => {
+    const segments = (pathname || '/').split('/');
+    if (segments.length > 1 && isSupportedLocale(segments[1])) {
+      segments[1] = nextLocale;
+    } else {
+      segments.splice(1, 0, nextLocale);
+    }
+    let nextPath = segments.join('/');
+    const qs = searchParams?.toString();
+    if (qs) nextPath += `?${qs}`;
+    router.push(nextPath);
+    onClose();
+  };
 
   // Build ToC lazily when opened
   useEffect(() => {
@@ -90,13 +117,18 @@ export default function UtilityDropdown({
     };
   }, [open, onClose]);
 
+  // Reset language submenu when panel closes
+  useEffect(() => {
+    if (!open) setShowLangMenu(false);
+  }, [open]);
+
   if (!open) return null;
 
   return (
     <div
       ref={panelRef}
       role="menu"
-      aria-label="功能与目录"
+      aria-label={t('utility.menu')}
       style={{
         position: "absolute",
         top: "64px",
@@ -118,7 +150,7 @@ export default function UtilityDropdown({
         <button
           type="button"
           onClick={onOpenSearch}
-          aria-label="搜索"
+          aria-label={t('utility.search')}
           style={{
             width: "48px",
             height: "48px",
@@ -140,7 +172,7 @@ export default function UtilityDropdown({
         >
           <img 
             src="/images/common/search.svg" 
-            alt="搜索" 
+            alt={t('utility.search')} 
             width={16} 
             height={16} 
             style={{ 
@@ -153,10 +185,9 @@ export default function UtilityDropdown({
         </button>
         <button
           type="button"
-          disabled
-          aria-disabled="true"
-          aria-label="语言切换（即将推出）"
-          title="语言切换（即将推出）"
+          aria-label={t('utility.language')}
+          aria-expanded={showLangMenu}
+          onClick={() => setShowLangMenu(v => !v)}
           style={{
             width: "48px",
             height: "48px",
@@ -166,28 +197,68 @@ export default function UtilityDropdown({
             border: "none",
             borderRadius: "8px",
             background: "transparent",
-            cursor: "not-allowed",
+            cursor: "pointer",
+            transition: "all .3s cubic-bezier(0.4,0,0.2,1)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--color-wash-moss)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
           }}
         >
           <img 
             src="/images/common/globe.svg" 
-            alt="语言切换" 
+            alt="" 
             width={16} 
-            height={16} 
+            height={16}
             style={{ 
               display: 'block',
               border: 'none',
               padding: '0',
-              borderRadius: '0',
-              opacity: '0.4'
+              borderRadius: '0'
             }}
           />
         </button>
       </div>
 
+      {showLangMenu && (
+        <div role="menu" aria-label={t('utility.language')} style={{ paddingTop: '4px' }}>
+          {Array.from(locales).map(code => {
+            const active = currentLocale ? currentLocale === code : false;
+            return (
+              <button
+                key={code}
+                onClick={() => changeLocale(code)}
+                aria-pressed={active}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  fontSize: '13px',
+                  padding: '8px 10px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: 'transparent',
+                  color: active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)',
+                  cursor: 'pointer',
+                  transition: 'color .2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-seal, #B42A1E)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.color = active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)';
+                }}
+              >{t(`locale.${code}`)}</button>
+            );
+          })}
+        </div>
+      )}
+
       {showToc && toc.length > 0 && (
         <div style={{ marginTop: "8px", paddingTop: "8px", borderTop: "1px solid rgba(30,30,29,0.08)" }}>
-          <div style={{ fontSize: "12px", opacity: 0.7, marginBottom: "6px" }}>文章目录</div>
+          <div style={{ fontSize: "12px", opacity: 0.7, marginBottom: "6px" }}>{t('utility.toc')}</div>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {toc.map((t) => (
               <li key={t.id} style={{ margin: "4px 0" }}>

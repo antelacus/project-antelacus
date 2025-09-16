@@ -89,7 +89,7 @@ body {
 .breadcrumb-item a { border-bottom-color: transparent; }
 .breadcrumb-item a:hover { color: var(--color-seal); border-bottom-color: var(--color-seal); }
 .breadcrumb-sep { margin: 0 8px; opacity: 0.6; }
-.breadcrumb-current { color: rgba(30,30,29,0.9); }
+.breadcrumb-current { color: var(--color-seal); border-bottom: 1px solid var(--color-seal); padding-bottom: 1px; }
 
 /* Smooth scroll for in-page anchors (ToC) */
 html { scroll-behavior: smooth; }
@@ -144,8 +144,23 @@ a:hover {
   text-decoration: none;
 }
 
-/* Improved focus indicator for accessibility */
+/* Improved focus indicator for accessibility - only show on keyboard navigation */
 a:focus {
+  outline: none;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--color-seal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Button focus styles - only show on keyboard navigation */
+button:focus {
+  outline: none;
+}
+
+button:focus-visible {
   outline: 2px solid var(--color-seal);
   outline-offset: 2px;
   border-radius: 2px;
@@ -244,7 +259,7 @@ img {
 }
 
 .about-section {
-  margin-bottom: var(--space-xxl);
+  margin-bottom: var(--space-l);
   padding-bottom: var(--space-lg);
   border-bottom: 1px solid rgba(30, 30, 29, 0.08);
 }
@@ -272,6 +287,10 @@ img {
 
 .section-content p {
   margin-bottom: var(--space-md);
+}
+
+.section-content > :last-child {
+  margin-bottom: 0;
 }
 
 .section-content strong {
@@ -526,7 +545,6 @@ img {
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
-  padding: var(--space-md);
   background: transparent;
   border-radius: var(--radius-md);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -888,6 +906,10 @@ body.suppress-content-entrance .about-content {
 }
 
 .pathway-link:focus {
+  outline: none;
+}
+
+.pathway-link:focus-visible {
   outline: 2px solid var(--color-seal);
   outline-offset: 2px;
 }
@@ -941,6 +963,10 @@ body.suppress-content-entrance .about-content {
 }
 
 .photo-grid-item:focus {
+  outline: none;
+}
+
+.photo-grid-item:focus-visible {
   outline: 2px solid var(--color-seal);
   outline-offset: 2px;
 }
@@ -1107,6 +1133,42 @@ body.suppress-content-entrance .about-content {
   .garden-pathways {
     gap: var(--space-sm);
   }
+}
+
+/* === Reusable Action Button (links & buttons) === */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: calc(var(--space-sm) + 2px) var(--space-md);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  border: 1px solid rgba(30, 30, 29, 0.35);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  line-height: 1.2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-button:hover {
+  background-color: var(--color-wash-stone);
+  border-color: var(--color-seal);
+  transform: translateY(-1px);
+}
+
+.action-button:focus {
+  outline: none;
+}
+
+.action-button:focus-visible {
+  outline: 2px solid var(--color-seal);
+  outline-offset: 2px;
+}
+
+.action-button .icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
 }
 
 
