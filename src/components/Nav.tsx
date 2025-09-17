@@ -25,13 +25,6 @@ export default function Nav() {
     return path || '/';
   };
   const pathNoLocale = useMemo(() => stripLocale(pathname), [pathname]);
-  const navLinks = [
-    { href: `${prefix}/posts`, label: t('nav.posts') },
-    { href: `${prefix}/notes`, label: t('nav.notes') },
-    { href: `${prefix}/gallery`, label: t('nav.gallery') },
-    { href: `${prefix}/projects`, label: t('nav.projects') },
-    { href: `${prefix}/about`, label: t('nav.about') },
-  ];
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchPreset, setSearchPreset] = useState<{
     tags?: string[];
@@ -42,6 +35,10 @@ export default function Nav() {
   const [utilityOpen, setUtilityOpen] = useState(false);
   const [hideOnScroll, setHideOnScroll] = useState(false);
   const [tocHintDismissed, setTocHintDismissed] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  // Helper to select short labels on narrow screens
+  const labelFor = (key: string, shortKey: string) => (isNarrow ? t(shortKey) : t(key));
 
   const isActive = (href: string) => {
     return pathname.startsWith(href);
@@ -58,10 +55,10 @@ export default function Nav() {
     const m = pathNoLocale.match(/^\/(posts|notes|gallery|projects)(?:\/|$)/);
     const key = m ? m[1] : undefined;
     const labelMap: Record<string, { label: string; href: string }> = {
-      posts: { label: t('nav.posts'), href: `${prefix}/posts` },
-      notes: { label: t('nav.notes'), href: `${prefix}/notes` },
-      gallery: { label: t('nav.gallery'), href: `${prefix}/gallery` },
-      projects: { label: t('nav.projects'), href: `${prefix}/projects` },
+      posts: { label: labelFor('nav.posts', 'nav.posts_short'), href: `${prefix}/posts` },
+      notes: { label: labelFor('nav.notes', 'nav.notes_short'), href: `${prefix}/notes` },
+      gallery: { label: labelFor('nav.gallery', 'nav.gallery_short'), href: `${prefix}/gallery` },
+      projects: { label: labelFor('nav.projects', 'nav.projects_short'), href: `${prefix}/projects` },
     };
     return key ? labelMap[key] : undefined;
   }, [pathNoLocale, t, prefix]);
@@ -200,6 +197,15 @@ export default function Nav() {
     setMounted(true);
   }, []);
 
+  // Determine narrow screen after mount to avoid SSR/CSR mismatch
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const check = () => setIsNarrow(window.innerWidth <= 450);
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // Calculate dynamic styles based on animation state
   const getHeaderStyles = () => {
     // Keep header size constant so page content does not shift
@@ -290,6 +296,16 @@ export default function Nav() {
     } as const;
   }, [isDetailPage, sectionInfo, currentTitle, pathname]);
 
+  // Prefer short labels on very small screens without shrinking font size
+  const label = (key: string, shortKey: string) => labelFor(key, shortKey);
+  const navLinks = [
+    { href: `${prefix}/posts`, label: label('nav.posts', 'nav.posts_short') },
+    { href: `${prefix}/notes`, label: label('nav.notes', 'nav.notes_short') },
+    { href: `${prefix}/gallery`, label: label('nav.gallery', 'nav.gallery_short') },
+    { href: `${prefix}/projects`, label: label('nav.projects', 'nav.projects_short') },
+    { href: `${prefix}/about`, label: label('nav.about', 'nav.about_short') },
+  ];
+
   return (
     <header
       className="text-center"
@@ -347,25 +363,43 @@ export default function Nav() {
         <div style={getNavContainerStyles()}>
           {isDetailPage ? (
             <div className="breadcrumb-bar" style={{ display: 'flex', justifyContent: 'center' }}>
-              <div className="breadcrumb-inner" style={{ maxWidth: '90ch', padding: '0 1rem', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-                <span className="breadcrumb-item"><Link href={prefix || '/'}>{t('nav.home')}</Link></span>
-                {sectionInfo && (
-                  <>
-                    <span className="breadcrumb-sep">›</span>
-                    <span className="breadcrumb-item"><Link href={sectionInfo.href}>{sectionInfo.label}</Link></span>
-                  </>
-                )}
-                {currentTitle && (
-                  <>
-                    <span className="breadcrumb-sep">›</span>
-                    <span className="breadcrumb-current" title={currentTitle}>{currentTitle}</span>
-                  </>
-                )}
+              <div className="breadcrumb-inner" style={{ maxWidth: '90ch', padding: '0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', width: '100%' }}>
+                <div className="breadcrumb-text" style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <span className="breadcrumb-prefix" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }}>
+                    <span className="breadcrumb-item"><Link href={prefix || '/'}>{t('nav.home')}</Link></span>
+                    {sectionInfo && (
+                      <>
+                        <span className="breadcrumb-sep">›</span>
+                        <span className="breadcrumb-item"><Link href={sectionInfo.href}>{sectionInfo.label}</Link></span>
+                      </>
+                    )}
+                  </span>
+                  {currentTitle && (
+                    <>
+                      <span className="breadcrumb-sep">›</span>
+                      <span className="breadcrumb-current" style={{ flex: '1 1 auto', minWidth: 0, display: 'block' }}>
+                        <span
+                          className="breadcrumb-current-text"
+                          title={currentTitle}
+                          style={{
+                            display: 'inline-block',
+                            maxWidth: '100%',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            verticalAlign: 'bottom'
+                          }}
+                        >{currentTitle}</span>
+                      </span>
+                    </>
+                  )}
+                </div>
                 <button
                   aria-label={t('nav.utility')}
                   aria-haspopup="menu"
                   aria-expanded={utilityOpen}
                   onClick={() => setUtilityOpen(v => !v)}
+                  className="nav-utility-compact"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -375,7 +409,8 @@ export default function Nav() {
                     borderRadius: '8px',
                     background: 'var(--color-paper)',
                     transition: 'all .3s cubic-bezier(0.4,0,0.2,1)',
-                    marginLeft: '48px',
+                    marginLeft: '12px',
+                    flex: '0 0 auto',
                     padding: (!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) ? '0 12px 0 10px' : '0',
                     width: (!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) ? 'auto' : '38px',
                     gap: (!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) ? '6px' : '0'
@@ -413,7 +448,7 @@ export default function Nav() {
               </div>
             </div>
           ) : (
-            <ul className="flex justify-center flex-wrap gap-x-6 gap-y-2" style={{ alignItems: 'center' }}>
+            <ul className="flex justify-center flex-nowrap gap-x-4 gap-y-0" style={{ alignItems: 'center', overflowX: 'visible' }}>
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link 
@@ -454,6 +489,7 @@ export default function Nav() {
                   aria-haspopup="menu"
                   aria-expanded={utilityOpen}
                   onClick={() => setUtilityOpen(v => !v)}
+                  className="nav-utility-compact"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',

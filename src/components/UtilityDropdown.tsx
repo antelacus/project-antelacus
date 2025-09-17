@@ -224,7 +224,11 @@ export default function UtilityDropdown({
 
       {showLangMenu && (
         <div role="menu" aria-label={t('utility.language')} style={{ paddingTop: '4px' }}>
-          {Array.from(locales).map(code => {
+          {(() => {
+            const ordered: readonly string[] = ['zh-CN','zh-HK','en','es','fr'];
+            const display = ordered.filter(l => (locales as readonly string[]).includes(l));
+            return display;
+          })().map(code => {
             const active = currentLocale ? currentLocale === code : false;
             return (
               <button

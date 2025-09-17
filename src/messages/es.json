@@ -11,6 +11,11 @@
     "gallery": "Galería",
     "projects": "Laboratorio",
     "about": "Acerca de",
+    "posts_short": "Artículos",
+    "notes_short": "Notas",
+    "gallery_short": "Fotos",
+    "projects_short": "Lab",
+    "about_short": "Perfil",
     "utility": "Funciones",
     "backHome": "Volver al inicio",
     "toc": "Índice"

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import PostCard from './PostCard';
 import NoteCard from './NoteCard';
@@ -52,6 +52,7 @@ async function tryLoadStaticIndex(): Promise<SearchIndexItem[] | null> {
 
 export default function SearchModal({ open, onClose, preset }: Props) {
   const t = useTranslations();
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [q, setQ] = useState('');
   const [selectedType, setSelectedType] = useState<'all' | ContentType>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -100,6 +101,18 @@ export default function SearchModal({ open, onClose, preset }: Props) {
     const onKeyDown = (ev: KeyboardEvent) => { if (ev.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
+
+  // Close when clicking anywhere outside the modal container
+  useEffect(() => {
+    if (!open) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      const el = containerRef.current;
+      if (!el) return;
+      if (!el.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
   }, [open, onClose]);
 
   // Track viewport to switch layout and default filter visibility
@@ -175,6 +188,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
       onClick={onClose}
     >
       <div
+        ref={containerRef}
         style={{
           maxWidth: '1100px',
           margin: '5vh auto 0 auto',

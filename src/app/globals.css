@@ -89,7 +89,14 @@ body {
 .breadcrumb-item a { border-bottom-color: transparent; }
 .breadcrumb-item a:hover { color: var(--color-seal); border-bottom-color: var(--color-seal); }
 .breadcrumb-sep { margin: 0 8px; opacity: 0.6; }
-.breadcrumb-current { color: var(--color-seal); border-bottom: 1px solid var(--color-seal); padding-bottom: 1px; }
+.breadcrumb-current { color: var(--color-seal); border-bottom: none; }
+.breadcrumb-current-text { border-bottom: var(--border-width) solid var(--color-seal); }
+
+/* Compact margin for the header utility button at narrow widths to avoid hydration deltas */
+.nav-utility-compact { margin-left: 48px; }
+@media (max-width: 450px) {
+  .nav-utility-compact { margin-left: 12px; }
+}
 
 /* Smooth scroll for in-page anchors (ToC) */
 html { scroll-behavior: smooth; }

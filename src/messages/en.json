@@ -11,6 +11,11 @@
     "gallery": "Gallery",
     "projects": "Lab",
     "about": "About",
+    "posts_short": "Posts",
+    "notes_short": "Notes",
+    "gallery_short": "Photos",
+    "projects_short": "Lab",
+    "about_short": "About",
     "utility": "Utility",
     "backHome": "Back to Home",
     "toc": "ToC"
