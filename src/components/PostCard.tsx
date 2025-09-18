@@ -121,7 +121,7 @@ export default function PostCard({ post, layout = 'vertical', compact = false, s
               )}
             </div>
             {post.cover && (
-              <div className={isSearch ? "post-search-cover" : "post-list-cover"}>
+              <div className={isSearch ? "post-search-cover" : "post-list-cover"} style={{ position: 'relative' }}>
                 <Image
                   src={post.cover}
                   alt={post.title}
@@ -132,6 +132,29 @@ export default function PostCard({ post, layout = 'vertical', compact = false, s
                   sizes={isSearch ? "120px" : "(max-width: 768px) 100vw, 180px"}
                   loading="lazy"
                 />
+                {isSearch && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      padding: '4px 6px',
+                      background: 'linear-gradient(to top, rgba(29,29,27,0.65), rgba(29,29,27,0.25), transparent)',
+                      color: 'var(--color-paper)',
+                      fontSize: '10px',
+                      lineHeight: 1.2
+                    }}
+                  >
+                    <span style={{ opacity: 0.95 }}>{post.date}</span>
+                    {post.lang && (
+                      <>
+                        <span style={{ margin: '0 6px', opacity: 0.7 }}>|</span>
+                        <span style={{ opacity: 0.95 }}>{post.lang}</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </>

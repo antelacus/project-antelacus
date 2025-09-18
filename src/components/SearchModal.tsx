@@ -199,6 +199,229 @@ export default function SearchModal({ open, onClose, preset }: Props) {
     setSort('newest');
   };
 
+  // Unified filters block; used by desktop sidebar and mobile overlay
+  const Filters = () => (
+    <>
+      <div className="mb-4">
+        <div className="mb-2 font-medium">{t('search.sort')}</div>
+        <select
+          value={sort}
+          onChange={e => setSort(e.target.value as 'relevance' | 'newest' | 'oldest')}
+          style={{ 
+            width: '100%', 
+            border: '1px solid rgba(30, 30, 29, 0.1)', 
+            padding: '12px 16px', 
+            borderRadius: 'var(--radius-md)', 
+            background: 'transparent',
+            color: 'var(--color-ink, #1E1E1D)',
+            fontSize: '14px',
+            outline: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+          onFocus={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+          }}
+          onBlur={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+          }}
+          onMouseEnter={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+              (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+              (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            }
+          }}
+        >
+          <option value="relevance">{t('search.sortRelevance')}</option>
+          <option value="newest">{t('search.sortNewest')}</option>
+          <option value="oldest">{t('search.sortOldest')}</option>
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <div className="mb-2 font-medium">{t('search.type')}</div>
+        <select
+          value={selectedType}
+          onChange={e => setSelectedType(e.target.value as 'all' | ContentType)}
+          style={{ 
+            width: '100%', 
+            border: '1px solid rgba(30, 30, 29, 0.1)', 
+            padding: '12px 16px', 
+            borderRadius: 'var(--radius-md)', 
+            background: 'transparent',
+            color: 'var(--color-ink, #1E1E1D)',
+            fontSize: '14px',
+            outline: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+          onFocus={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+          }}
+          onBlur={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+          }}
+          onMouseEnter={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+              (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+              (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            }
+          }}
+        >
+          <option value="all">{t('search.all')}</option>
+          <option value="post">{t('nav.posts')}</option>
+          <option value="note">{t('nav.notes')}</option>
+          <option value="photo">{t('nav.gallery')}</option>
+          <option value="project">{t('nav.projects')}</option>
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <div className="mb-2 font-medium">{t('search.language') || '语言'}</div>
+        <select
+          value={selectedLang}
+          onChange={e => setSelectedLang(isLangFilter(e.target.value) ? e.target.value : 'all')}
+          style={{ 
+            width: '100%', 
+            border: '1px solid rgba(30, 30, 29, 0.1)', 
+            padding: '12px 16px', 
+            borderRadius: 'var(--radius-md)', 
+            background: 'transparent',
+            color: 'var(--color-ink, #1E1E1D)',
+            fontSize: '14px',
+            outline: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+          onFocus={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+          }}
+          onBlur={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+          }}
+          onMouseEnter={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+              (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+              (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            }
+          }}
+        >
+          <option value="all">{t('search.allLanguages') || '全部语言'}</option>
+          {allLangs.map(l => (
+            <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Year before Tags */}
+      <div className="mb-4">
+        <div className="mb-2 font-medium">{t('search.year')}</div>
+        <select
+          value={selectedYear}
+          onChange={e => setSelectedYear(e.target.value)}
+          style={{ 
+            width: '100%', 
+            border: '1px solid rgba(30, 30, 29, 0.1)', 
+            padding: '12px 16px', 
+            borderRadius: 'var(--radius-md)', 
+            background: 'transparent',
+            color: 'var(--color-ink, #1E1E1D)',
+            fontSize: '14px',
+            outline: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+          onFocus={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+          }}
+          onBlur={(e) => {
+            (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+          }}
+          onMouseEnter={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+              (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (e.target !== document.activeElement) {
+              (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+              (e.target as HTMLElement).style.backgroundColor = 'transparent';
+            }
+          }}
+        >
+          <option value="all">{t('search.allYears')}</option>
+          {allYears.map(y => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mb-4">
+        <div className="mb-2 font-medium">{t('search.tags')}</div>
+        <div className="flex flex-wrap gap-1" style={{ maxHeight: '180px', overflow: 'auto' }}>
+          {allTags.map(tg => {
+            const active = selectedTags.includes(tg);
+            return (
+              <button
+                key={tg}
+                onClick={() => setSelectedTags(prev => active ? prev.filter(x => x !== tg) : [...prev, tg])}
+                style={{
+                  fontSize: '12px',
+                  padding: '6px 10px',
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'transparent',
+                  color: active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)',
+                  cursor: 'pointer',
+                  marginRight: '3px',
+                  marginBottom: '3px',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  outline: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.color = 'var(--color-seal, #B42A1E)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.color = active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)';
+                }}
+              >
+                #{tg}
+              </button>
+            );
+          })}
+          {allTags.length === 0 && <span className="text-sm opacity-70">{t('search.noTags')}</span>}
+        </div>
+      </div>
+    </>
+  );
+
   if (!open) return null;
 
   return (
@@ -233,7 +456,8 @@ export default function SearchModal({ open, onClose, preset }: Props) {
               display: 'flex',
               flexDirection: 'column',
               height: '100%',
-              minHeight: 0
+              minHeight: 0,
+              position: 'relative'
             }}
           >
             <div className="p-4 border-b" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
@@ -336,6 +560,25 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                 )}
               </div>
             </div>
+            {isMobile && showFilters && (
+              <div
+                className="search-modal-filters-overlay"
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: 64,
+                  bottom: 0,
+                  background: 'var(--color-paper)',
+                  zIndex: 2,
+                  overflowY: 'auto',
+                  borderTop: '1px solid rgba(0,0,0,0.08)',
+                  padding: '16px'
+                }}
+              >
+                <Filters />
+              </div>
+            )}
             <div
               className="p-4 overflow-auto"
               style={{ height: 'calc(100% - 64px)', minHeight: 0 }}
@@ -354,7 +597,8 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                       date: it.date,
                       tags: it.tags || [],
                       ...(it.summary && { summary: it.summary }),
-                      ...(it.cover && { cover: it.cover })
+                      ...(it.cover && { cover: it.cover }),
+                      ...(it.lang && { lang: it.lang })
                     };
 
                     // Intelligent animation suppression: disable for large result sets
@@ -433,227 +677,12 @@ export default function SearchModal({ open, onClose, preset }: Props) {
             className="p-4 search-modal-filters"
             style={{
               width: isMobile ? '100%' : '320px',
-              display: !isMobile || showFilters ? 'block' : 'none',
+              display: isMobile ? 'none' : 'block',
               height: isMobile ? 'auto' : '100%',
               overflowY: 'auto'
             }}
           >
-            <div className="mb-4">
-              <div className="mb-2 font-medium">{t('search.sort')}</div>
-              <select
-                value={sort}
-                onChange={e => setSort(e.target.value as 'relevance' | 'newest' | 'oldest')}
-                style={{ 
-                  width: '100%', 
-                  border: '1px solid rgba(30, 30, 29, 0.1)', 
-                  padding: '12px 16px', 
-                  borderRadius: 'var(--radius-md)', 
-                  background: 'transparent',
-                  color: 'var(--color-ink, #1E1E1D)',
-                  fontSize: '14px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-                onFocus={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                }}
-                onBlur={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                }}
-                onMouseEnter={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                <option value="relevance">{t('search.sortRelevance')}</option>
-                <option value="newest">{t('search.sortNewest')}</option>
-                <option value="oldest">{t('search.sortOldest')}</option>
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <div className="mb-2 font-medium">{t('search.type')}</div>
-              <select
-                value={selectedType}
-                onChange={e => setSelectedType(e.target.value as 'all' | ContentType)}
-                style={{ 
-                  width: '100%', 
-                  border: '1px solid rgba(30, 30, 29, 0.1)', 
-                  padding: '12px 16px', 
-                  borderRadius: 'var(--radius-md)', 
-                  background: 'transparent',
-                  color: 'var(--color-ink, #1E1E1D)',
-                  fontSize: '14px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-                onFocus={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                }}
-                onBlur={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                }}
-                onMouseEnter={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                <option value="all">{t('search.all')}</option>
-                <option value="post">{t('nav.posts')}</option>
-                <option value="note">{t('nav.notes')}</option>
-                <option value="photo">{t('nav.gallery')}</option>
-                <option value="project">{t('nav.projects')}</option>
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <div className="mb-2 font-medium">{t('search.language') || '语言'}</div>
-              <select
-                value={selectedLang}
-                onChange={e => setSelectedLang(isLangFilter(e.target.value) ? e.target.value : 'all')}
-                style={{ 
-                  width: '100%', 
-                  border: '1px solid rgba(30, 30, 29, 0.1)', 
-                  padding: '12px 16px', 
-                  borderRadius: 'var(--radius-md)', 
-                  background: 'transparent',
-                  color: 'var(--color-ink, #1E1E1D)',
-                  fontSize: '14px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-                onFocus={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                }}
-                onBlur={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                }}
-                onMouseEnter={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                <option value="all">{t('search.allLanguages') || '全部语言'}</option>
-                {allLangs.map(l => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <div className="mb-2 font-medium">{t('search.tags')}</div>
-              <div className="flex flex-wrap gap-1" style={{ maxHeight: '180px', overflow: 'auto' }}>
-                {allTags.map(t => {
-                  const active = selectedTags.includes(t);
-                  return (
-                    <button
-                      key={t}
-                      onClick={() => setSelectedTags(prev => active ? prev.filter(x => x !== t) : [...prev, t])}
-                      style={{
-                        fontSize: '12px',
-                        padding: '6px 10px',
-                        border: 'none',
-                        borderRadius: 'var(--radius-md)',
-                        background: 'transparent',
-                        color: active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)',
-                        cursor: 'pointer',
-                        marginRight: '3px',
-                        marginBottom: '3px',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        outline: 'none'
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.color = 'var(--color-seal, #B42A1E)';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.color = active ? 'var(--color-seal, #B42A1E)' : 'var(--color-ink, #1E1E1D)';
-                      }}
-                    >
-                      #{t}
-                    </button>
-                  );
-                })}
-                {allTags.length === 0 && <span className="text-sm opacity-70">{t('search.noTags')}</span>}
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <div className="mb-2 font-medium">{t('search.year')}</div>
-              <select
-                value={selectedYear}
-                onChange={e => setSelectedYear(e.target.value)}
-                style={{ 
-                  width: '100%', 
-                  border: '1px solid rgba(30, 30, 29, 0.1)', 
-                  padding: '12px 16px', 
-                  borderRadius: 'var(--radius-md)', 
-                  background: 'transparent',
-                  color: 'var(--color-ink, #1E1E1D)',
-                  fontSize: '14px',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-                onFocus={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                }}
-                onBlur={(e) => {
-                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                }}
-                onMouseEnter={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (e.target !== document.activeElement) {
-                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                <option value="all">{t('search.allYears')}</option>
-                {allYears.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
+            <Filters />
           </div>
         </div>
       </div>
