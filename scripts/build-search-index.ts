@@ -15,6 +15,7 @@ interface SearchIndexItem {
   date: string;
   locale: string; // placeholder for future i18n; current site uses single locale
   cover?: string; // optional cover for post/project; gallery uses first image
+  lang?: string; // language for post/note only
 }
 
 async function ensureDir(dir: string) {
@@ -41,6 +42,8 @@ async function run() {
   const items: SearchIndexItem[] = [];
 
   for (const file of postFiles) {
+    // 跳过带语言后缀的帖子文件（仅索引规范 {slug}.mdx）
+    if (/\.[a-z]{2}(?:-[A-Z]{2})?\.mdx$/i.test(file)) continue;
     const slug = file.replace(/\.mdx$/, '');
     const raw = await fs.readFile(path.join(postsDir, file), 'utf-8');
     const { data } = matter(raw);
@@ -54,6 +57,7 @@ async function run() {
       date: (data as any).date,
       locale,
       cover: (data as any).cover,
+      lang: (data as any).lang,
     });
   }
 
@@ -70,6 +74,7 @@ async function run() {
       tags: (data as any).tags || [],
       date: (data as any).date,
       locale,
+      lang: (data as any).lang,
     });
   }
 

@@ -22,6 +22,7 @@ interface SearchIndexItem {
   date: string; // ISO or YYYY-MM-DD
   locale: string;
   cover?: string;
+  lang?: string;
 }
 
 interface Props {
@@ -57,6 +58,10 @@ export default function SearchModal({ open, onClose, preset }: Props) {
   const [selectedType, setSelectedType] = useState<'all' | ContentType>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  const LANG_FILTERS = ['all','zh-CN','zh-HK','en','fr','es'] as const;
+  type LangFilter = typeof LANG_FILTERS[number];
+  const [selectedLang, setSelectedLang] = useState<LangFilter>('all');
+  const isLangFilter = (v: string): v is LangFilter => (LANG_FILTERS as readonly string[]).includes(v);
   const [sort, setSort] = useState<'relevance' | 'newest' | 'oldest'>('newest');
 
   const [items, setItems] = useState<SearchIndexItem[]>([]);
@@ -143,12 +148,27 @@ export default function SearchModal({ open, onClose, preset }: Props) {
     return Array.from(s).sort((a, b) => Number(b) - Number(a));
   }, [items]);
 
+  const allLangs = useMemo(() => {
+    // Only collect langs from posts and notes
+    const s = new Set<string>();
+    items.forEach(it => {
+      if ((it.type === 'post' || it.type === 'note') && it.lang) s.add(it.lang);
+    });
+    return Array.from(s).sort();
+  }, [items]);
+
   const results = useMemo(() => {
     const query = q.trim().toLowerCase();
     const filtered = items.filter(it => {
       if (selectedType !== 'all' && it.type !== selectedType) return false;
       if (selectedTags.length && !selectedTags.every(t => it.tags.includes(t))) return false;
       if (selectedYear !== 'all' && !(it.date || '').startsWith(selectedYear)) return false;
+      if (selectedLang !== 'all') {
+        // Only apply language filter to post/note types
+        if (it.type === 'post' || it.type === 'note') {
+          if ((it.lang || '') !== selectedLang) return false;
+        }
+      }
       if (!query) return true;
       const hay = `${it.title}\n${it.summary || ''}`.toLowerCase();
       return hay.includes(query);
@@ -168,13 +188,14 @@ export default function SearchModal({ open, onClose, preset }: Props) {
       filtered.sort((a, b) => score(b) - score(a));
     }
     return filtered;
-  }, [items, q, selectedType, selectedTags, selectedYear, sort]);
+  }, [items, q, selectedType, selectedTags, selectedYear, selectedLang, sort]);
 
   const clearAll = () => {
     setQ('');
     setSelectedType('all');
     setSelectedTags([]);
     setSelectedYear('all');
+    setSelectedLang('all');
     setSort('newest');
   };
 
@@ -504,6 +525,51 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                 <option value="note">{t('nav.notes')}</option>
                 <option value="photo">{t('nav.gallery')}</option>
                 <option value="project">{t('nav.projects')}</option>
+              </select>
+            </div>
+
+            <div className="mb-4">
+              <div className="mb-2 font-medium">{t('search.language') || '语言'}</div>
+              <select
+                value={selectedLang}
+                onChange={e => setSelectedLang(isLangFilter(e.target.value) ? e.target.value : 'all')}
+                style={{ 
+                  width: '100%', 
+                  border: '1px solid rgba(30, 30, 29, 0.1)', 
+                  padding: '12px 16px', 
+                  borderRadius: 'var(--radius-md)', 
+                  background: 'transparent',
+                  color: 'var(--color-ink, #1E1E1D)',
+                  fontSize: '14px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+                onFocus={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                }}
+                onBlur={(e) => {
+                  (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                }}
+                onMouseEnter={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
+                    (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (e.target !== document.activeElement) {
+                    (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
+                    (e.target as HTMLElement).style.backgroundColor = 'transparent';
+                  }
+                }}
+              >
+                <option value="all">{t('search.allLanguages') || '全部语言'}</option>
+                {allLangs.map(l => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
               </select>
             </div>
 

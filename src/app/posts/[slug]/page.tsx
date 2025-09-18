@@ -7,11 +7,11 @@ import rehypeKatex from 'rehype-katex';
 import Link from 'next/link';
 import Image from 'next/image';
 import TagList from '../../../components/TagList';
-import { languageAlternates, canonicalFor } from '../../../lib/seo';
+import { languageAlternates } from '../../../lib/seo';
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale?: string }> }) {
-  const { slug, locale = 'en' } = await params;
-  const post = await getPostBySlug(slug, locale);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
   if (!post) {
     return {
       title: '文章未找到',
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: post.title,
     description: post.summary || '',
     alternates: {
-      canonical: canonicalFor(locale, `/posts/${post.slug}`),
+      // canonical will be resolved by current locale layout; keep language alternates for SEO
       languages: languageAlternates(`/posts/${post.slug}`),
     },
     openGraph: {
@@ -35,9 +35,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function PostPage({ params }: { params: Promise<{ slug:string; locale?: string }> }) {
-  const { slug, locale } = await params;
-  const post = await getPostBySlug(slug, locale);
+export default async function PostPage({ params }: { params: Promise<{ slug:string }> }) {
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     // Though notFound() is better, we'll keep this custom message for now.
@@ -57,6 +57,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug:stri
           <h1>{post.title}</h1>
           <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
             <span>{post.date}</span>
+            {post.lang && (
+              <>
+                <span className="mx-2">|</span>
+                <span>{post.lang}</span>
+              </>
+            )}
             {post.tags && post.tags.length > 0 && (
               <span className="mx-2">|</span>
             )}

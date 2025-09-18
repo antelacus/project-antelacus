@@ -94,6 +94,12 @@ export default function PostCard({ post, layout = 'vertical', compact = false, s
                 </h2>
                 <div className={`${isSearch ? 'text-xs' : 'text-sm'}`} style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
                   {isSearch ? 'post · ' : ''}{post.date}
+                  {post.lang && (
+                    <>
+                      <span className="mx-2">|</span>
+                      <span>{post.lang}</span>
+                    </>
+                  )}
                 </div>
               </header>
               {post.summary && (
@@ -159,6 +165,12 @@ export default function PostCard({ post, layout = 'vertical', compact = false, s
               </h2>
               <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
                 {post.date}
+                {post.lang && (
+                  <>
+                    <span className="mx-2">|</span>
+                    <span>{post.lang}</span>
+                  </>
+                )}
               </div>
             </header>
             {post.summary && (

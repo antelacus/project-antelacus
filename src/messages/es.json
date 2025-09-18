@@ -52,7 +52,9 @@
     "tags": "Etiquetas",
     "noTags": "Sin etiquetas",
     "year": "Año",
-    "allYears": "Todos los años"
+    "allYears": "Todos los años",
+    "language": "Idioma",
+    "allLanguages": "Todos los idiomas"
   },
   "home": {},
   "about": {},

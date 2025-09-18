@@ -33,6 +33,12 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
           <h1>{note.title}</h1>
           <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
             <span>{note.date}</span>
+            {note.lang && (
+              <>
+                <span className="mx-2">|</span>
+                <span>{note.lang}</span>
+              </>
+            )}
             {note.tags && note.tags.length > 0 && (
               <>
                 <span className="mx-2">|</span>

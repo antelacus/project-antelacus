@@ -15,6 +15,7 @@ interface SearchIndexItem {
   date: string;
   locale: string;
   cover?: string;
+  lang?: string;
 }
 
 export async function GET() {
@@ -42,21 +43,24 @@ export async function GET() {
       imageFolder?: string;
       name?: string;
       description?: string;
+      lang?: string;
     };
 
     for (const file of postFiles) {
+      // 仅索引规范 {slug}.mdx，跳过语言后缀文件
+      if (/\.[a-z]{2}(?:-[A-Z]{2})?\.mdx$/i.test(file)) continue;
       const slug = file.replace(/\.mdx$/, '');
       const raw = await fs.readFile(path.join(postsDir, file), 'utf-8');
       const { data } = matter(raw);
       const fm = data as Frontmatter;
-      items.push({ id: `post:${slug}`, type: 'post', slug, title: fm.title || '', summary: fm.summary, tags: fm.tags || [], date: fm.date || '', locale, cover: fm.cover });
+      items.push({ id: `post:${slug}`, type: 'post', slug, title: fm.title || '', summary: fm.summary, tags: fm.tags || [], date: fm.date || '', locale, cover: fm.cover, lang: fm.lang });
     }
     for (const file of noteFiles) {
       const slug = file.replace(/\.mdx$/, '');
       const raw = await fs.readFile(path.join(notesDir, file), 'utf-8');
       const { data } = matter(raw);
       const fm = data as Frontmatter;
-      items.push({ id: `note:${slug}`, type: 'note', slug, title: fm.title || '', summary: fm.summary, tags: fm.tags || [], date: fm.date || '', locale });
+      items.push({ id: `note:${slug}`, type: 'note', slug, title: fm.title || '', summary: fm.summary, tags: fm.tags || [], date: fm.date || '', locale, lang: fm.lang });
     }
     for (const file of galleryFiles) {
       const slug = file.replace(/\.mdx$/, '');

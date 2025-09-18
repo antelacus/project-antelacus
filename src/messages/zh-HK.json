@@ -52,7 +52,9 @@
     "tags": "標籤",
     "noTags": "暫無標籤",
     "year": "年份",
-    "allYears": "全部年份"
+    "allYears": "全部年份",
+    "language": "語言",
+    "allLanguages": "全部語言"
   },
   "home": {},
   "about": {},

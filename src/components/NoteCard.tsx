@@ -78,6 +78,12 @@ export default function NoteCard({ note, layout = 'vertical', compact = false, s
           </h2>
           <div className={`${isSearch ? 'text-xs' : 'text-sm'}`} style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
             {isSearch ? 'note · ' : ''}{note.date}
+            {note.lang && (
+              <>
+                <span className="mx-2">|</span>
+                <span>{note.lang}</span>
+              </>
+            )}
           </div>
         </header>
         {displaySummary && (

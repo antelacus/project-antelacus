@@ -8,6 +8,7 @@ export interface NoteMeta {
   slug: string;
   title: string;
   date: string;
+  lang?: string;
   summary?: string;
   cover?: string;
   tags?: string[];     // 统一标签系统
@@ -31,6 +32,7 @@ const getAllNotesMetaUncached = async (): Promise<NoteMeta[]> => {
       slug: file.replace(/\.mdx$/, ''),
       title: data.title,
       date: data.date,
+      lang: data.lang,
       summary: data.summary,
       cover: data.cover,
       tags: data.tags || [],
@@ -58,6 +60,7 @@ const getNoteBySlugUncached = async (slug: string): Promise<Note | null> => {
       slug,
       title: data.title,
       date: data.date,
+      lang: data.lang,
       summary: data.summary,
       cover: data.cover,
       tags: data.tags || [],

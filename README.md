@@ -242,23 +242,20 @@ public/images/                   # 统一的图片根目录
   2. **智能重定向**：能将相似但非标准的语言代码（如 `zh-hans`, `zh-sg`, `zh-tw`）自动映射并重定向到标准路径（`zh-CN` 或 `zh-HK`），确保 URL 的唯一性和规范性。
   3. **路径保留**：语言切换时，仅更改 URL 中的 `/{locale}/` 部分，完整保留页面路径和查询参数。
 
-#### 内容翻译与回退
+#### 内容翻译与策略
 
-系统为不同类型的内容设计了清晰的回退链，以保证在译文缺失时仍能提供最合适的内容。
+为确保“多语言是探索的维度，而非内容复制”，本站采用如下策略：
 
-| 内容类型 | 路径 | 查找顺序 (`[locale]` 指当前语言) |
-| :--- | :--- | :--- |
-| **UI 界面** | `src/messages/` | `[locale].json` → `en.json` |
-| **“关于”页** | `src/content/pages/about/` | `about.[locale].mdx` → `about.zh-CN.mdx` → `about.en.mdx` |
-| **专栏文章** | `src/content/posts/` | `{slug}.[locale].mdx` → `{slug}.zh-CN.mdx` → `{slug}.mdx` (基础稿件) |
-| **其他内容** | `src/content/...` | (可按需扩展，规则同上) |
+- **专栏文章**：每篇仅保留一份规范稿件 `src/content/posts/{slug}.mdx`，不再维护按语言的多份译文。不同语言访问网站时，均展示同一篇原文。
+- **UI 界面**：仍通过 `src/messages/[locale].json` 提供多语言界面与导航。
+- **“关于”页**：可选多语言版本（如 `about.[locale].mdx`）；若缺失则按站点默认语言或现有版本展示。
 
 #### 作者指南
 
 - **添加 UI 文案**：优先在 `src/messages/zh-CN.json` 中定义新键值，然后同步至其他语言文件。未翻译的键名将自动回退显示英文内容。
-- **撰写文章译文**：将原始稿件（如 `{slug}.mdx`）复制并重命名为 `{slug}.[locale].mdx`。请确保 frontmatter 中的所有字段（`title`, `summary`, `date`, `tags`, `cover` 等）在新文件中保持一致。
-- **SEO 与站点地图**：所有页面均已自动生成 `hreflang` 标签以告知搜索引擎所有可用语言版本。多语言站点地图（sitemap.xml）的生成将在未来通过 `next-sitemap` 插件实现。
-- **测试与验证**：完整的国际化功能测试清单，请参考 `docs/site-operating.md` 中的“i18n 手工验证清单（QA）”。
+- **撰写文章**：仅创建规范文件 `{slug}.mdx`，无需再创建 `{slug}.[locale].mdx`。
+- **SEO 与站点地图**：仍为页面生成 `hreflang`（链接同一内容在不同 UI 语言下的地址）。
+- **测试与验证**：参考 `docs/site-operating.md` 的 i18n 清单，确认不同语言下可以正常访问同一篇文章。
 
 ---
 

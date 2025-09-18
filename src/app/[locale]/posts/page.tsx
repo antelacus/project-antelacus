@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function PostsPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-  const posts = await getAllPostsMeta(locale);
+  await params;
+  const posts = await getAllPostsMeta();
   return (
     <div className="content-container content-container-standard">
       {posts.length === 0 && <p>暂无内容。</p>}
