@@ -37,7 +37,7 @@ export function middleware(req: NextRequest) {
         .replace(/^\/?/, '');
       const url = req.nextUrl.clone();
       url.pathname = `/${mapped}/${rest}`.replace(/\/$/, '') || `/${mapped}`;
-      const res = NextResponse.redirect(url);
+      const res = NextResponse.redirect(url, 308);
       res.cookies.set('NEXT_LOCALE', mapped, { path: '/' });
       return res;
     }
@@ -48,7 +48,7 @@ export function middleware(req: NextRequest) {
   const detected = normalizeToSupportedLocale(accept);
   const url = req.nextUrl.clone();
   url.pathname = `/${detected}${pathname}`;
-  const res = NextResponse.redirect(url);
+  const res = NextResponse.redirect(url, 308);
   res.cookies.set('NEXT_LOCALE', detected, { path: '/' });
   return res;
 }

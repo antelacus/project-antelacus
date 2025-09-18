@@ -1,23 +1,9 @@
-import { getAllProjectsMeta } from '../../lib/projects';
-import ProjectCard from '../../components/ProjectCard';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { detectFromRequestHeaders } from '@/i18n/detect';
 
-export const metadata = {
-  title: '实验室',
-  description: '技术实验与创意项目展示。',
-};
-
-export default async function ProjectsPage() {
-  const projects = await getAllProjectsMeta();
-  return (
-    <div className="content-container content-container-standard">
-      {projects.length === 0 && <p>暂无项目。</p>}
-      <div className="content-list">
-        {projects.map((project, index) => (
-          <div key={project.slug} className="content-item" style={{ animationDelay: `${index * 0.1}s` }}>
-            <ProjectCard project={project} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-} 
+export default async function ProjectsRedirectShell() {
+  const hdrs = await headers();
+  const detected = detectFromRequestHeaders(hdrs);
+  redirect(`/${detected}/projects`);
+}
