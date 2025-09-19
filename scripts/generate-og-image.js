@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-
+/*
+中文说明：生成统一的 Open Graph 封面图
+— 作用：在 public/images/ 下生成 og-image.svg，供页面 metadata 的 openGraph.images 使用，确保分享与预览一致性。
+— 使用方式：
+  • 手动执行：`npm run seo:og-image`
+— 自动触发：否（按需生成或更新）。
+— 注意：如需 PNG/JPEG，请在生成后自行转换；并在页面 metadata 中更新引用路径。
+*/
 const fs = require('fs');
 const path = require('path');
 

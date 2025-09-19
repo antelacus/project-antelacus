@@ -6,6 +6,10 @@
 3. 写正文内容
 4. `git add && commit && push`，Vercel 自动部署
 
+> 提示：文章仅维护一份规范稿 `{slug}.mdx`（不要创建 `{slug}.[locale].mdx`）。多语言由 URL 路径 `/{locale}/...` 与 UI 文案提供，正文不做多份翻译。
+
+> 部署说明：构建完成后会自动执行 `postbuild` 流水线（生成标签注册表、构建静态搜索索引、内容校验）。
+
 **视觉作品专用流程：**
 1. 在 `public/images/gallery/` 创建照片文件夹：`YYYY-MM-DD-theme-name`
 2. 将照片文件放入文件夹（建议按数字顺序命名：01.jpg, 02.jpg...）
@@ -38,7 +42,7 @@ location: "杭州·西湖"
 | Post | posts | `title` `date` | 专栏 - 原创长文 |
 | Note | notes | `title` `date` | 闪念 - 原创短思考 |
 | Photo| gallery | `title` `date` `imageFolder` | 视觉 - 原创摄影作品集 |
-| Project | projects | `name` `description` `repo` | 实验室 - 技术项目 |
+| Project | projects | `name` `description` `repo` `date` | 实验室 - 技术项目 |
 
 > 其他字段如 `cover`、`tags`、`caption`、`summary`、`location` 均为可选，组件内部有默认处理。
 

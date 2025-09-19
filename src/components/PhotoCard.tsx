@@ -49,7 +49,7 @@ export default function PhotoCard({ photo, layout = 'vertical', compact = false,
           : '0 0 0 rgba(29, 29, 27, 0)',
         transition: suppressAnimations ? 'none' : 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
       } : isGallery ? {
-        backgroundColor: 'transparent',
+        backgroundColor: isHovered ? 'var(--color-wash-moss)' : 'var(--color-paper)',
         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
         boxShadow: isHovered ? '0 6px 20px rgba(29,29,27,0.1)' : 'none',
         transition: suppressAnimations ? 'none' : 'all 0.35s cubic-bezier(0.215, 0.61, 0.355, 1)',

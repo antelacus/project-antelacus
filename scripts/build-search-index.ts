@@ -1,3 +1,11 @@
+/*
+中文说明：构建静态搜索索引
+— 作用：扫描 src/content 下的 MDX 内容（post/note/photo/project），生成轻量 JSON 索引和 manifest，供前端搜索模态加载。
+— 使用方式：
+  • 自动触发：随 `npm run build` 完成后在 `postbuild` 阶段通过 `npm run build:search-index` 自动执行。
+  • 手动执行：`npm run build:search-index`
+— 注意：仅索引规范稿 {slug}.mdx（跳过携带语言后缀的文件）；输出写入 public/search-index，文件名包含内容哈希以便缓存与增量失效。
+*/
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';

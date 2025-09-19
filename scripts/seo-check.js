@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-
+/*
+中文说明：本地 SEO 体检脚本
+— 作用：快速检查 sitemap/robots/关键页面 metadata 的存在性，输出通过/警告汇总，作为人工巡检参考。
+— 使用方式：
+  • 手动执行：`npm run seo:check`
+— 自动触发：否（仅本地辅助工具）。
+— 注意：当前站点的 /sitemap.xml 为 App Router 动态输出，本脚本对旧版静态 sitemap 的检查仅作兼容提示。
+*/
 const fs = require('fs');
 const path = require('path');
 

@@ -1,3 +1,11 @@
+/*
+中文说明：生成全站标签注册表
+— 作用：遍历 src/content 下所有内容的 frontmatter，汇总并规范化标签，生成 src/content/tag-registry.json，作为统一标签来源。
+— 使用方式：
+  • 自动触发：随 `npm run build` 完成后在 `postbuild` 阶段通过 `npm run build:tags` 自动执行。
+  • 手动执行：`npm run build:tags`
+— 注意：注册表用于运行时聚合与构建期校验（validate-content），请保持标签小写与一致性。
+*/
 import fs from 'fs/promises';
 import path from 'path';
 import matter from 'gray-matter';

@@ -1,4 +1,5 @@
 import { getPhotoBySlug } from '../../../lib/gallery';
+import { languageAlternates } from '../../../lib/seo';
 // import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
@@ -17,6 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: photo.title,
     description: photo.caption || `视觉作品 - ${photo.title}`,
+    alternates: {
+      languages: languageAlternates(`/gallery/${photo.slug}`),
+    },
     openGraph: {
       title: photo.title,
       description: photo.caption || `视觉作品 - ${photo.title}`,

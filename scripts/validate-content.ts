@@ -1,3 +1,11 @@
+/*
+中文说明：校验内容 Frontmatter 与标签
+— 作用：使用 Zod 检查各内容类型的必填字段，并（在存在 tag-registry.json 时）校验标签是否存在且规范化；失败将退出构建（非零退出码）。
+— 使用方式：
+  • 自动触发：随 `npm run build` 完成后在 `postbuild` 阶段通过 `npm run validate:content` 自动执行。
+  • 手动执行：`npm run validate:content`
+— 注意：用于阻断无效内容进入部署流水线；如缺少注册表将跳过严格标签校验并给出提示。
+*/
 import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';

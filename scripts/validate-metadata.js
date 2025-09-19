@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-
+/*
+中文说明：校验主页 Metadata 配置
+— 作用：扫描 src/app/page.tsx 的 metadata 配置（标题、描述、OpenGraph、Twitter、Robots、Canonical 等）并检查 OG 图片文件存在性。
+— 使用方式：
+  • 手动执行：`npm run seo:validate`
+— 自动触发：否（本地/CI 辅助）。
+— 注意：正则检查为基础存在性检测，实际内容可按需求调整；若采用多语言或布局改造，请同步更新检查规则。
+*/
 const fs = require('fs');
 const path = require('path');
 

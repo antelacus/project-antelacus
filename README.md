@@ -2,7 +2,7 @@
 
 ## 一、项目简介
 
-本项目为 antelacus.com 个人博客网站，旨在打造一个支持 Markdown 写作、图片发布、社交媒体内容同步的高可定制化博客平台。网站部署在 Vercel，使用 Next.js 框架，绑定自有域名 www.antelacus.com。
+本项目为 antelacus.com 个人博客网站，旨在打造一个支持 Markdown 写作、图片发布、社交媒体内容同步的高可定制化博客平台。网站部署在 Vercel，使用 Next.js 框架，绑定自有域名 antelacus.com。
 
 ### （一）项目目标与需求
 
@@ -34,6 +34,17 @@
 - **构建时处理**: 在 `next build` 过程中，自定义脚本 (`scripts/*.ts`) 会自动执行，扫描所有 MDX 内容，生成 **标签注册表** (`tag-registry.json`) 和 **静态搜索索引**，实现了元数据的自动化管理。
 - **渲染策略**: 网站主要采用 **静态站点生成 (SSG)**，为访客提供极致的加载速度和 SEO 友好性。部分交互功能（如搜索弹窗）则由客户端组件负责。
 
+  - 构建期脚本（`scripts/`）：
+    - `generate-tag-registry.ts`：汇总 `src/content/*/*.mdx` 中的 `tags`，生成 `src/content/tag-registry.json` 作为全站唯一标签来源，供运行时聚合与构建校验使用。
+    - `build-search-index.ts`：扫描 MDX 生成轻量搜索索引至 `public/search-index/`，产出带内容哈希的 `index.<locale>.<digest>.json` 与 `manifest.json`，供前端搜索模态加载与回退 API 使用。
+    - `validate-content.ts`：用 Zod 校验 Frontmatter（必填字段、标签是否存在于注册表并规范化、相册 `imageFolder` 等），失败时以非零码退出，阻断部署。
+    - `seo-check.js`：本地快速体检（sitemap/robots/核心页面 metadata 存在性）。
+    - `generate-og-image.js`：生成统一的 Open Graph 封面 `public/images/og-image.svg`，并输出接入指引。
+    - `validate-metadata.js`：校验主页 metadata 关键字段与 OG 图片存在性，给出摘要提示。
+    - `submit-sitemap.js`：Search Console 提交流程指引与可视化输出（历史逻辑会读取 `public/sitemap.xml`；现站点已采用 App Router 动态 `/sitemap.xml`）。
+
+  - 集成方式：以上已串联进 `package.json` 的 `postbuild` 流水线：`build:tags && build:search-index && validate:content`，确保每次部署生成最新标签与搜索索引并完成内容校验。
+
 #### 技术栈亮点
 - **前端框架**: Next.js / React
 - **UI 与样式**: 通过 `src/app/globals.css` 中的 CSS 变量实现全局主题控制，遵循项目的美学设计规范。
@@ -45,7 +56,7 @@
 #### 🎨 样式控制分工
 
 **统一控制（`src/app/globals.css`）**：
-- **全局颜色系统**：所有CSS变量（`--color-primary`、`--color-bg`等）
+- **全局颜色系统**：所有CSS变量（`--color-paper`、`--color-ink`、`--color-seal`、`--color-wash-moss`、`--color-wash-stone`）
 - **容器类**：`.content-container-standard`、`.content-container-wide` 等布局容器
 - **卡片基础样式**：`.card`、`.card-link`、卡片悬停效果
 - **组件样式**：所有卡片组件的完整样式定义
@@ -53,7 +64,7 @@
 - **背景色**：通过 `body` 和CSS变量全局统一
 
 **页面独立控制**：
-- **容器选择**：每个页面选择使用哪个容器类（`container` vs `gallery-detail` vs `homepage`）
+- **容器选择**：每个页面选择使用哪个容器类（`content-container-standard` vs `content-container-wide`）
 - **特定布局**：如专栏页面的横向布局
 - **个别间距**：一些特殊的 `marginTop`、`padding` 调整
 
@@ -102,8 +113,6 @@
 #### 容器类命名
 - `.content-container-standard`：标准内容容器 (90ch)
 - `.content-container-wide`：宽内容容器 (110ch)
-- `.gallery-detail`：详情页面布局
-- `.homepage`：首页瀑布流布局（1200px宽度）
 
 #### 卡片相关命名
 - `.card`：基础卡片样式
@@ -254,7 +263,7 @@ public/images/                   # 统一的图片根目录
 
 - **添加 UI 文案**：优先在 `src/messages/zh-CN.json` 中定义新键值，然后同步至其他语言文件。未翻译的键名将自动回退显示英文内容。
 - **撰写文章**：仅创建规范文件 `{slug}.mdx`，无需再创建 `{slug}.[locale].mdx`。
-- **SEO 与站点地图**：仍为页面生成 `hreflang`（链接同一内容在不同 UI 语言下的地址）。
+- **SEO 与站点地图**：通过动态 `/sitemap.xml` 输出多语言 `hreflang`；并在专栏详情等页面通过 metadata 的 `alternates.languages` 提供语言备选。
 - **测试与验证**：参考 `docs/site-operating.md` 的 i18n 清单，确认不同语言下可以正常访问同一篇文章。
 
 ---
@@ -269,3 +278,49 @@ public/images/                   # 统一的图片根目录
 - [ ] **隐私政策与服务条款**：在未来启用任何涉及用户数据的服务（如 AdSense、邮件订阅、评论系统）之前，撰写并发布符合相关法规（如 GDPR）的《隐私政策》与《服务条款》，以保障用户权利和网站合规性。
 
 ---
+
+### （三）无障碍体验提升
+
+**问题清单（待改进）**：
+- [ ] SearchModal（搜索弹窗）
+  - 缺少焦点陷阱（Tab 可跳出对话框到页面背后）
+  - 打开时未设置初始焦点（应落在搜索输入框）
+  - 无显式“关闭”按钮（目前依赖遮罩点击与 ESC）
+  - 对话框缺少名称（aria-labelledby 或 aria-label）
+  - 标签筛选按钮未用 aria-pressed 暴露选中态
+  - 移动端“筛选”开关有 aria-expanded 但缺 aria-controls 关联面板
+  - 关闭后未将焦点还原到触发按钮
+- [ ] UtilityDropdown（功能集合面板）
+  - 使用 role="menu" 但子项为普通按钮，未实现菜单键盘语义（上下方向键、Home/End）
+  - 打开时未将焦点移入面板，且无焦点陷阱（仅 ESC 关闭已实现）
+- [ ] 面包屑导航
+  - 建议包裹在 `<nav aria-label="breadcrumb">` 中，提供可感知的导航地标
+- [ ] 图标与装饰性图片
+  - 个别按钮内的 `<img>` 同时存在可见文本/aria-label，建议将装饰性图标设为空 alt 或 `aria-hidden="true"` 以避免冗余朗读
+- [ ] 文字对比度
+  - 次要文字颜色 `rgba(29,29,27,0.6)` 在浅色背景上需核对 AA 对比度，尤其是小字号
+
+**审计建议（自查清单）**：
+- **键盘操作路径**：
+  - 首屏按 Tab：跳转链接（Skip Link）是否出现；Enter 是否聚焦到主内容区
+  - 逐项 Tab 浏览顶栏：焦点样式可见、顺序合理
+  - 打开 Utility 面板（空格/回车）：
+    - 焦点是否移入面板、能用 Tab/Shift+Tab 达到全部可交互元素
+    - ESC 是否关闭并将焦点还原到触发器
+  - 打开 Search（空格/回车）：
+    - 初始焦点是否在搜索输入框
+    - Tab 是否被约束在对话框内部（焦点循环）
+    - ESC 是否关闭并还原焦点到触发器
+    - 标签按钮是否可用空格切换、并以 aria-pressed 暴露状态
+- **屏幕阅读器快测**：
+  - macOS VoiceOver（Cmd+F5）/ Windows NVDA：使用地标导航快速定位 navigation/main/（建议的）breadcrumb
+  - 查看标题结构列表：1 个 H1、合理的 H2/H3 层级
+  - 详情页：标题/摘要朗读是否在主要内容之前
+  - SearchModal：是否被宣告为对话框、具名标题、开启期间焦点受限
+- **自动化检测**：
+  - Chrome DevTools Lighthouse（Accessibility）与 axe DevTools 扫描并修复命中项
+- **专项核对**：
+  - 对比度：使用对比度工具验证次要文本达到 WCAG AA（普通文本 ≥ 4.5:1）
+  - 图片：内容图片提供有意义的 alt；装饰性图标使用空 alt 或 aria-hidden
+  - 面包屑：加入 `<nav aria-label="breadcrumb">`
+  - 对话框语义：`role="dialog" + aria-modal="true" + aria-labelledby/aria-label`，并实现焦点陷阱与焦点还原

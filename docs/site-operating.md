@@ -140,10 +140,10 @@
 
 ### （六）执行清单
 1. GA4 + Search Console + Vercel Analytics 接入
-2. 集成 `next-sitemap` 自动生成 sitemap
-3. 引入 `next-seo` 统一 meta / OG
-4. 建立 `/tags/` 路由与面包屑组件
-5. 创建 Linktree-like 个人主页聚合社媒
+2. 保持 robots.txt 指向动态 `/sitemap.xml`
+3. 页面 metadata：全局与详情页完善 `title`、`description`、Open Graph、`alternates.languages`
+4. 面包屑：详情页输出 `BreadcrumbList` JSON-LD（已在 `src/components/Nav.tsx` 实现）
+5. 标签页与卡片：保持语义与可访问性
 6. 制定 12 周内容日历
 7. 开通 ConvertKit 欢迎自动邮件
 8. A/B 测试广告密度与页面布局
@@ -181,7 +181,7 @@
 1. **支柱页面（Pillar Page）**：如《量化交易入门终极指南》，覆盖 3k+ 词。
 2. **集群页面（Cluster Content）**：围绕支柱主题撰写长尾文章，并用内部链接网状关联。
 3. **内部链接**：集群→支柱、支柱→集群、集群↔集群；提升整体主题权威。
-4. **多语言 hreflang**：为核心文章提供英/中文版本，扩大全球流量。
+4. **多语言 hreflang**：通过动态 `/sitemap.xml` 与页面 `alternates.languages` 输出各语种互链。
 
 ### （十一）多平台内容分发工作流
 1. **Blog**：发布 3k–5k 字原文（含代码、图表）。
@@ -221,17 +221,16 @@
 
 #### 1. 技术基础配置
 - **Sitemap 管理**：
-  - 自动生成和更新 sitemap.xml
-  - 实时监控新增页面
-  - 定期验证 sitemap 有效性
+  - 使用 App Router 的动态 `/sitemap.xml`（`src/app/sitemap.ts`）自动生成并包含多语言 `hreflang`
+  - `robots.txt` 已指向 `https://antelacus.com/sitemap.xml`
 - **Robots.txt 优化**：
   - 正确配置爬虫访问规则
   - 包含 sitemap 链接
   - 避免阻止重要页面
 - **页面 Metadata**：
-  - 完整的 title 和 description
-  - Open Graph 和 Twitter Cards
-  - 结构化数据标记
+  - 详情页统一提供 `title`、`description`、Open Graph
+  - 详情页提供 `alternates.languages`（posts/notes/gallery/projects 均已覆盖）
+  - 主页/布局在 `src/app/layout.tsx` 设置全局默认 metadata
 
 #### 2. Google Search Console 操作流程
 - **网站验证**：
@@ -269,7 +268,6 @@
 - **定期检查**：
   - 每周查看 Search Console 报告
   - 监控 Core Web Vitals
-  - 分析用户行为数据
 - **持续改进**：
   - 根据数据调整内容策略
   - 优化页面性能和用户体验
@@ -317,7 +315,7 @@
 - **FID (首次输入延迟)**: < 80ms
 
 #### 2. 核心技术指标
-- **站点结构**：正确配置 `robots.txt` 与 `sitemap.xml`，并保持 URL 结构语义化。
+- **站点结构**：正确配置 `robots.txt` 与动态 `sitemap.xml`，并保持 URL 结构语义化。
 - **页面加载速度**: 目标 < 1.5s。
 - **移动端友好性**: 100% 通过 Google Mobile-Friendly Test。
 - **无障碍访问**: 遵循 WCAG 2.1 AA 标准。
@@ -345,7 +343,7 @@
 #### 1. 提交策略
 - **及时提交**：新内容发布后 24 小时内，通过 Google Search Console 的 URL Inspection 工具请求索引。
 - **更新再提交**：重要页面（如核心文章、项目页面）内容更新后，重新请求索引。
-- **定期批量提交**：定期通过 `sitemap.xml` 文件批量提交 URL。
+- **定期批量提交**：依靠动态 `sitemap.xml` 文件批量提交 URL。
 
 #### 2. 预期时间线
 - **Sitemap 处理**: 1-2 天
@@ -365,9 +363,9 @@
 - **用途**: 验证网站的基本 SEO 配置是否完整。
 - **运行**: `npm run seo:check`
 - **检查项**:
-  - Sitemap 文件 (`sitemap.xml`) 是否存在及其包含的 URL 数量。
-  - `Robots.txt` 配置是否正确，以及是否引用了 Sitemap。
-  - 关键页面的 Metadata 配置完整性。
+  - 动态 Sitemap (`/sitemap.xml`) 与 robots.txt 引用
+  - `Robots.txt` 配置是否正确
+  - 关键页面的 Metadata 配置完整性
 
 #### 2. Metadata 验证 (`scripts/validate-metadata.js`)
 - **用途**: 深度验证每个页面的元数据配置。
@@ -390,120 +388,6 @@
 - **运行**: `npm run seo:submit`
 - **内容**:
   - 详细的 Search Console 操作步骤。
-  - 当前 `sitemap.xml` 包含的所有 URL 列表。
 
 #### 5. 帖子内容完整性验证 (`scripts/validate-content.ts`)
 - **运行**: `npm run validate:content`
-
-### （六）SEO 最佳实践
-
-#### 1. 页面优化
-- 每个页面都应有唯一的 `title` 和 `description`。
-- 使用语义化的 HTML 结构（如 `<main>`, `<article>`, `<nav>`）。
-- 优化图片的 `alt` 文本和文件名，使其具有描述性。
-
-#### 2. 内容优化
-- 持续创作高质量、对用户有价值的原创内容。
-- 在内容中自然地分布关键词，避免堆砌。
-- 定期更新和扩展现有内容，保持其时效性。
-
-#### 3. 技术优化
-- 保持快速的页面加载速度。
-- 实现响应式设计，确保在所有设备上都有良好的浏览体验。
-- 优化 URL 结构，使其简洁且具有描述性。
-- 正确配置结构化数据，帮助搜索引擎理解页面内容。
-
-### （七）相关资源
-
-#### 1. 外部工具
-- [Google Search Console](https://search.google.com/search-console)
-- [Google Analytics](https://analytics.google.com/)
-- [Vercel Analytics](https://vercel.com/analytics)
-- [PageSpeed Insights](https://pagespeed.web.dev/)
-- [Mobile-Friendly Test](https://search.google.com/test/mobile-friendly)
-
-#### 2. 项目内部文档
-- [内容发布规范](./content-publishing.md) - 内容创作与优化指南。
-- [品牌美学设计](./aesthetic-thesis.md) - 用户体验与视觉优化。
-
----
-
-## 四、博客开发方式对比与选型说明
-
-### （一）主要方式对比
-
-| 方式                   | 易编辑 | 可定制 | 免费 | 移动端 | 社交同步 | Notion同步 |
-|------------------------|--------|--------|------|--------|----------|------------|
-| 静态博客+托管          | ★★★    | ★★★    | ★★★  | ★★     | ★★       | ★（需配置） |
-| 现成博客平台           | ★★★    | ★      | ★★   | ★★★    | ★★       | ☆          |
-| Notion+第三方生成器    | ★★★    | ★★     | ★★   | ★★★    | ★        | ★★★        |
-| 低代码/无代码平台      | ★★★    | ★      | ★     | ★★★    | ★★       | ★★         |
-| 纯手写/自研            | ★      | ★★★    | ★★★  | ★      | ★★★      | ★          |
-
-### （二）Next.js 与主流静态博客生成器对比
-
-| 生成器   | 语言/生态 | 上手难度 | 主题/插件 | 可定制性 | 适合场景         | 备注           |
-|----------|-----------|----------|-----------|----------|------------------|----------------|
-| Next.js  | React/JS  | ★★★★     | ★★        | ★★★★     | 博客+复杂网站    | 全能，需JS基础  |
-| Hexo     | Node.js   | ★★       | ★★★★      | ★★       | 纯博客           | 中文生态好      |
-| Hugo     | Go        | ★★★      | ★★★★      | ★★★      | 博客/文档/大站点 | 生成极快        |
-| Jekyll   | Ruby      | ★★★      | ★★★       | ★★       | 博客             | GitHub Pages原生|
-| Astro    | 多框架    | ★★★      | ★★★       | ★★★★     | 博客/文档/官网   | 新一代，极快    |
-
-**最终选型说明**：尽管 Next.js 上手有一定门槛，但其极高的可定制性和强大的生态（React/MDX）非常适合个人博客的长期发展和功能扩展。结合 Vercel 的无缝部署体验，是本项目在综合考量下的最佳选择。
-
----
-
-### （十六）i18n 手工验证清单（QA）
-- 首访 `/`：按浏览器 Accept-Language 重定向到 `/zh-CN|zh-HK|en|fr|es`；不支持语言回退 `/en`。
-- 语言切换：在任意路径使用右上角语言切换，保持原路径与查询，仅变更语言前缀。
-- UI 文案：导航、搜索模态、工具面板文案随语言变化；标签名保持英文不变。
-- 关于页：`/about` 加载 `about.{locale}.mdx`；缺失时回退 `zh-CN` 内容。
-- 文章：存在 `{slug}.{locale}.mdx` 时优先显示；缺失时回退默认 `{slug}.mdx`。卡片标题/摘要一致。
-- hreflang/canonical：主页、列表页、文章详情与关于页均输出对应 `alternates.languages` 与 `canonical`。
-- API/静态资源：`/api/**` 与 `/images/**` 不受中间件重定向影响可直接访问。
-
-### （十七）多语言站点地图（Sitemap）扩展计划
-为降低当前迭代风险，先完成 i18n 页面与 SEO 标记，sitemap 多语言扩展作为下一里程碑实施。
-
-建议采用 next-sitemap 统一生成：
-
-1) 安装与基础配置（计划）
-- 开发依赖：`npm i -D next-sitemap`
-- 新增配置文件 `next-sitemap.config.js`（示例结构）：
-```js
-/** @type {import('next-sitemap').IConfig} */
-module.exports = {
-  siteUrl: 'https://antelacus.com',
-  generateRobotsTxt: true,
-  exclude: ['/api/*'],
-  transform: async (config, path) => {
-    // 生成默认条目（包含优先级、变更频率等）
-    return {
-      loc: path,
-      changefreq: 'weekly',
-      priority: 0.7,
-      lastmod: new Date().toISOString(),
-    };
-  },
-  alternateRefs: [
-    { href: 'https://antelacus.com/zh-CN', hreflang: 'zh-CN' },
-    { href: 'https://antelacus.com/zh-HK', hreflang: 'zh-HK' },
-    { href: 'https://antelacus.com/en', hreflang: 'en' },
-    { href: 'https://antelacus.com/fr', hreflang: 'fr' },
-    { href: 'https://antelacus.com/es', hreflang: 'es' },
-  ],
-};
-```
-
-2) 路由本地化路径生成（计划）
-- 若采用手动 routes 映射：在生成阶段读取内容目录，拼装 `/[locale]/posts/[slug]` 等所有路径。
-- 若采用 `sourceDir` 自动扫描：结合 `transform` 钩子，对每个 `/{locale}/...` 发射对应 `alternateRefs`。
-
-3) 脚本与流水线（计划）
-- 新增 npm 脚本：`"sitemap:gen": "next-sitemap"`
-- 在 `postbuild` 之后单独执行或替换现有 `public/sitemap.xml`，并更新 `robots.txt` 的引用。
-
-4) 验证（计划）
-- 本地查看 `sitemap.xml` 是否包含多语言 URL 与 `<xhtml:link rel="alternate" hreflang="...">`。
-- 使用 Search Console 的“站点地图”重新提交并观察收录差异。

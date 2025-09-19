@@ -1,4 +1,5 @@
 import { getProjectBySlug } from '../../../lib/projects';
+import { languageAlternates } from '../../../lib/seo';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MDXRemote } from 'next-mdx-remote/rsc';
@@ -12,7 +13,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
   return { 
     title: project.name, 
-    description: project.description || '' 
+    description: project.description || '',
+    alternates: {
+      languages: languageAlternates(`/projects/${project.slug}`),
+    },
+    openGraph: {
+      title: project.name,
+      description: project.description || '',
+      type: 'article',
+      url: `https://antelacus.com/projects/${project.slug}`,
+      images: project.cover ? [project.cover] : [],
+    },
   };
 }
 

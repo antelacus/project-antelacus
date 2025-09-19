@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-
+/*
+中文说明：提交站点地图到 Google Search Console 的引导脚本
+— 作用：打印提交流程与注意事项，并（在旧版项目中）读取 public/sitemap.xml 进行可视化列出。
+— 使用方式：
+  • 手动执行：`npm run seo:submit`
+— 自动触发：否（操作指南）。
+— 注意：当前项目使用 App Router 动态 `/sitemap.xml`，无需再维护 `public/sitemap.xml`；提交时填写动态地址即可。
+*/
 const fs = require('fs');
 const path = require('path');
 

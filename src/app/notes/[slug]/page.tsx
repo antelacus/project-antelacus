@@ -1,4 +1,5 @@
 import { getNoteBySlug } from '../../../lib/notes';
+import { languageAlternates } from '../../../lib/seo';
 import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import TagList from '../../../components/TagList';
@@ -9,7 +10,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!note) {
     return { title: '笔记未找到' };
   }
-  return { title: note.title, description: note.summary || '' };
+  return { 
+    title: note.title, 
+    description: note.summary || '',
+    alternates: {
+      languages: languageAlternates(`/notes/${note.slug}`),
+    },
+    openGraph: {
+      title: note.title,
+      description: note.summary || '',
+      type: 'article',
+      url: `https://antelacus.com/notes/${note.slug}`,
+    },
+  };
 }
 
 export default async function NotePage({ params }: { params: Promise<{ slug: string }> }) {

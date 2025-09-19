@@ -51,7 +51,7 @@ export default function NoteCard({ note, layout = 'vertical', compact = false, s
         }
       }}
       style={{ 
-        backgroundColor: isHovered ? 'var(--color-wash-stone)' : 'var(--color-paper)',
+        backgroundColor: isHovered ? 'var(--color-wash-moss)' : 'var(--color-paper)',
         transform: isHovered 
           ? `translateY(${isSearch ? '-1px' : '-3px'}) scale(${isSearch ? '1.005' : '1.01'})` 
           : 'translateY(0) scale(1)',
