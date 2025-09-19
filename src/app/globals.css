@@ -1106,6 +1106,41 @@ body.suppress-content-entrance .about-content {
   }
 }
 
+/* === Interwoven Courtyard Grid (交错庭院) === */
+.interwoven-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-lg);
+}
+
+/* Base item takes 3 columns on desktop (4 items per row) */
+.interwoven-item {
+  grid-column: span 3;
+}
+
+/* Responsive behavior */
+@media (max-width: 1200px) {
+  .interwoven-item {
+    grid-column: span 4; /* 3 per row */
+  }
+}
+
+@media (max-width: 900px) {
+  .interwoven-item {
+    grid-column: span 6; /* 2 per row */
+  }
+}
+
+@media (max-width: 600px) {
+  .interwoven-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-md);
+  }
+  .interwoven-item {
+    grid-column: span 6; /* 1 per row */
+  }
+}
+
 /* === Search Modal Responsive Layout === */
 @media (max-width: 768px) {
   .search-modal-content {

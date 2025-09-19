@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 
 interface PhotoCardProps {
   photo: PhotoMeta;
-  layout?: 'vertical' | 'search';
+  layout?: 'vertical' | 'search' | 'gallery';
   compact?: boolean;
   suppressAnimations?: boolean;
 }
@@ -21,6 +21,7 @@ export default function PhotoCard({ photo, layout = 'vertical', compact = false,
   const [naturalTilt, setNaturalTilt] = useState('');
 
   const isSearch = layout === 'search';
+  const isGallery = layout === 'gallery';
 
   // Qi Enhancement: Natural Spontaneity - generate subtle randomness
   useEffect(() => {
@@ -47,6 +48,11 @@ export default function PhotoCard({ photo, layout = 'vertical', compact = false,
           ? '0 4px 15px rgba(29, 29, 27, 0.12), 0 2px 6px rgba(29, 29, 27, 0.06)' 
           : '0 0 0 rgba(29, 29, 27, 0)',
         transition: suppressAnimations ? 'none' : 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+      } : isGallery ? {
+        backgroundColor: 'transparent',
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: isHovered ? '0 6px 20px rgba(29,29,27,0.1)' : 'none',
+        transition: suppressAnimations ? 'none' : 'all 0.35s cubic-bezier(0.215, 0.61, 0.355, 1)',
       } : {
         transform: isHovered 
           ? 'translateY(-4px) scale(1.02)' 
@@ -106,6 +112,28 @@ export default function PhotoCard({ photo, layout = 'vertical', compact = false,
               sizes="120px"
               loading="lazy"
             />
+          </div>
+        </article>
+      ) : isGallery ? (
+        // Gallery layout - framed image with subtle caption below
+        <article>
+          <div className="photo-grid-item">
+            <Image
+              src={photo.coverImage!}
+              alt={photo.caption || photo.title || ''}
+              width={800}
+              height={600}
+              className="photo-grid-image"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
+            />
+          </div>
+          <div className="mt-2">
+            <h2 className="text-base font-normal card-title" style={{ color: 'rgba(30, 30, 29, 0.9)'}}>{photo.title}</h2>
+            <div className="text-xs" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
+              <span>{photo.date}</span>
+              {photo.location && <><span className="mx-2">|</span><span>{photo.location}</span></>}
+            </div>
           </div>
         </article>
       ) : (

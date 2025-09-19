@@ -1,6 +1,5 @@
 import { getAllPhotosMeta } from '@/lib/gallery';
 import PhotoCard from '@/components/PhotoCard';
-import MasonryGrid from '@/components/MasonryGrid';
 
 export const metadata = {
   title: '视觉',
@@ -18,13 +17,20 @@ export default async function GalleryPage() {
         </div>
       ) : (
         <div className="gallery-content">
-          <MasonryGrid columns={3} gap={20}>
-            {photos.map((photo, index) => (
-              <div key={photo.slug} style={{ animationDelay: `${index * 0.1}s` }}>
-                <PhotoCard photo={photo} />
-              </div>
-            ))}
-          </MasonryGrid>
+          <div className="interwoven-grid">
+            {photos.map((photo, index) => {
+              const isFeatured = index % 9 === 0 || index % 9 === 5; // curated pattern
+              return (
+                <div
+                  key={photo.slug}
+                  className="interwoven-item"
+                  style={isFeatured ? { gridColumn: 'span 6' } : undefined}
+                >
+                  <PhotoCard photo={photo} layout="gallery" />
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -511,18 +511,12 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                         transform: 'translateY(-50%)',
                         padding: '6px 10px',
                         border: 'none',
-                        borderRadius: '0',
-                        background: 'var(--color-seal, #B42A1E)',
-                        color: 'var(--color-paper, #F9F8F6)',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'transparent',
+                        color: 'var(--color-seal, #B42A1E)',
                         cursor: 'pointer',
                         fontSize: '12px',
                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.opacity = '0.8';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.opacity = '1';
                       }}
                     >{t('search.clear')}</button>
                   )}
@@ -531,46 +525,18 @@ export default function SearchModal({ open, onClose, preset }: Props) {
                 {isMobile && (
                   <button
                     type="button"
-                    className="search-modal-filter-toggle"
+                    className="action-button"
                     aria-expanded={showFilters}
                     onClick={() => setShowFilters(v => !v)}
-                    style={{
-                      padding: '12px 16px',
-                      border: showFilters ? 'none' : '1px solid rgba(30, 30, 29, 0.1)',
-                      borderRadius: 'var(--radius-md)',
-                      background: showFilters ? 'var(--color-seal, #B42A1E)' : 'transparent',
-                      color: showFilters ? 'var(--color-paper, #F9F8F6)' : 'var(--color-ink, #1E1E1D)',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showFilters) {
-                        (e.target as HTMLElement).style.backgroundColor = 'var(--color-wash-moss, #EFF1ED)';
-                        (e.target as HTMLElement).style.borderColor = 'var(--color-seal, #B42A1E)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showFilters) {
-                        (e.target as HTMLElement).style.backgroundColor = 'transparent';
-                        (e.target as HTMLElement).style.borderColor = 'rgba(30, 30, 29, 0.1)';
-                      }
-                    }}
                   >{t('search.filters')}</button>
                 )}
               </div>
             </div>
-            {isMobile && showFilters && (
+            {isMobile && showFilters ? (
               <div
-                className="search-modal-filters-overlay"
+                className="search-modal-filters-inline"
                 style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 64,
-                  bottom: 0,
-                  background: 'var(--color-paper)',
-                  zIndex: 2,
+                  flex: 1,
                   overflowY: 'auto',
                   borderTop: '1px solid rgba(0,0,0,0.08)',
                   padding: '16px'
@@ -578,98 +544,99 @@ export default function SearchModal({ open, onClose, preset }: Props) {
               >
                 <Filters />
               </div>
+            ) : (
+              <div
+                className="p-4 overflow-auto"
+                style={{ flex: 1, minHeight: 0 }}
+              >
+                {loading ? (
+                  <p>{t('search.loading')}</p>
+                ) : error ? (
+                  <p>{t('search.error', {message: error})}</p>
+                ) : (
+                  <div className="space-y-3">
+                    {results.map(it => {
+                      // Convert SearchIndexItem to the appropriate meta type and render the corresponding card
+                      const baseData = {
+                        slug: it.slug,
+                        title: it.title,
+                        date: it.date,
+                        tags: it.tags || [],
+                        ...(it.summary && { summary: it.summary }),
+                        ...(it.cover && { cover: it.cover }),
+                        ...(it.lang && { lang: it.lang })
+                      };
+
+                      // Intelligent animation suppression: disable for large result sets
+                      const suppressAnimations = results.length > 8;
+                      const compact = results.length > 12;
+
+                      switch (it.type) {
+                        case 'post':
+                          return (
+                            <PostCard
+                              key={it.id}
+                              post={baseData as PostMeta}
+                              layout="search"
+                              compact={compact}
+                              suppressAnimations={suppressAnimations}
+                            />
+                          );
+                        case 'note':
+                          return (
+                            <NoteCard
+                              key={it.id}
+                              note={baseData as NoteMeta}
+                              layout="search"
+                              compact={compact}
+                              suppressAnimations={suppressAnimations}
+                            />
+                          );
+                        case 'photo':
+                          return (
+                            <PhotoCard
+                              key={it.id}
+                              photo={{
+                                ...baseData,
+                                coverImage: it.cover,
+                                caption: it.summary, // Use summary as caption for search
+                                location: undefined // We don't have location in search index
+                              } as PhotoMeta}
+                              layout="search"
+                              compact={compact}
+                              suppressAnimations={suppressAnimations}
+                            />
+                          );
+                        case 'project':
+                          return (
+                            <ProjectCard
+                              key={it.id}
+                              project={{
+                                ...baseData,
+                                name: it.title,
+                                description: it.summary || '',
+                                repo: '#', // We don't have repo URL in search index
+                                status: undefined // We don't have status in search index
+                              } as ProjectMeta}
+                              layout="search"
+                              compact={compact}
+                              suppressAnimations={suppressAnimations}
+                            />
+                          );
+                        default:
+                          return null;
+                      }
+                    })}
+                    {results.length === 0 && (
+                      <div className="text-center py-8 opacity-70">
+                        <p>{t('search.noResults')}</p>
+                        <p className="text-sm mt-2">{t('search.tryAdjust')}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
-            <div
-              className="p-4 overflow-auto"
-              style={{ height: 'calc(100% - 64px)', minHeight: 0 }}
-            >
-              {loading ? (
-                <p>{t('search.loading')}</p>
-              ) : error ? (
-                <p>{t('search.error', {message: error})}</p>
-              ) : (
-                <div className="space-y-3">
-                  {results.map(it => {
-                    // Convert SearchIndexItem to the appropriate meta type and render the corresponding card
-                    const baseData = {
-                      slug: it.slug,
-                      title: it.title,
-                      date: it.date,
-                      tags: it.tags || [],
-                      ...(it.summary && { summary: it.summary }),
-                      ...(it.cover && { cover: it.cover }),
-                      ...(it.lang && { lang: it.lang })
-                    };
-
-                    // Intelligent animation suppression: disable for large result sets
-                    const suppressAnimations = results.length > 8;
-                    const compact = results.length > 12;
-
-                    switch (it.type) {
-                      case 'post':
-                        return (
-                          <PostCard
-                            key={it.id}
-                            post={baseData as PostMeta}
-                            layout="search"
-                            compact={compact}
-                            suppressAnimations={suppressAnimations}
-                          />
-                        );
-                      case 'note':
-                        return (
-                          <NoteCard
-                            key={it.id}
-                            note={baseData as NoteMeta}
-                            layout="search"
-                            compact={compact}
-                            suppressAnimations={suppressAnimations}
-                          />
-                        );
-                      case 'photo':
-                        return (
-                          <PhotoCard
-                            key={it.id}
-                            photo={{
-                              ...baseData,
-                              coverImage: it.cover,
-                              caption: it.summary, // Use summary as caption for search
-                              location: undefined // We don't have location in search index
-                            } as PhotoMeta}
-                            layout="search"
-                            compact={compact}
-                            suppressAnimations={suppressAnimations}
-                          />
-                        );
-                      case 'project':
-                        return (
-                          <ProjectCard
-                            key={it.id}
-                            project={{
-                              ...baseData,
-                              name: it.title,
-                              description: it.summary || '',
-                              repo: '#', // We don't have repo URL in search index
-                              status: undefined // We don't have status in search index
-                            } as ProjectMeta}
-                            layout="search"
-                            compact={compact}
-                            suppressAnimations={suppressAnimations}
-                          />
-                        );
-                      default:
-                        return null;
-                    }
-                  })}
-                  {results.length === 0 && (
-                    <div className="text-center py-8 opacity-70">
-                      <p>{t('search.noResults')}</p>
-                      <p className="text-sm mt-2">{t('search.tryAdjust')}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Right: filters */}
