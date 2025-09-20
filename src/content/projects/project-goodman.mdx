@@ -9,4 +9,29 @@ tags: ["AI", "Accounting", "Next.js"]
 status: "active"
 ---
 
-该项目包含 Goodman 的全部代码与部署配置，欢迎 Star 与 PR！ 
+## 功能概览
+
+| 模块 | 描述 | 典型场景 |
+| --- | --- | --- |
+| 财务信息提取 | 上传 PDF 文档，AI 自动抽取关键信息并生成结构化结果 | 合同、发票、报表 |
+| 财务指标分析 | 基于数据库文档，AI 对话式计算财务指标 | 财报分析、趋势预测 |
+| 财务合规指导 | 结合法规 + 业务文档，判断处理是否合规并给出建议 | 税务筹划、风险识别 |
+
+## 亮点特性
+
+- GPT-4.1 + OpenAI Embeddings，语义搜索精准匹配
+- 零后端依赖：文档解析与向量检索均在前端完成，兼容 Vercel 免费额度
+- 实时预览与复制：分析结果一键复制，公式高亮可点击校验
+- 模块化架构：易于接入自有 LLM / Embedding 服务
+- 响应式 UI：Tailwind CSS 4 打造现代财务应用体验
+
+## 技术栈
+
+| 类别 | 选型 |
+| --- | --- |
+| 前端框架 | Next.js 15 · React 19 |
+| 状态管理 | Zustand |
+| 样式 | Tailwind CSS 4 |
+| AI 服务 | OpenAI GPT-4.1 · Embeddings |
+| 文档处理 | pdfjs-dist · xlsx |
+| 部署 | Vercel Serverless |

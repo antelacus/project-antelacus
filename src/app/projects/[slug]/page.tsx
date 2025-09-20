@@ -3,6 +3,7 @@ import { languageAlternates } from '../../../lib/seo';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import remarkGfm from 'remark-gfm';
 import TagList from '../../../components/TagList';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -114,7 +115,14 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </div>
         
         <div className="prose">
-          <MDXRemote source={project.content} />
+          <MDXRemote 
+            source={project.content}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm],
+              }
+            }}
+          />
         </div>
       </article>
     </div>

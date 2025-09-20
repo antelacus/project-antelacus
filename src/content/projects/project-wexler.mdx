@@ -9,4 +9,49 @@ tags: ["Machine Learning", "Python"]
 status: "active"
 ---
 
-该项目包含 Wexler 的全部代码与部署配置，欢迎 Star 与 PR！ 
+## 技术栈
+
+- 分析工具：Python，Jupyter Notebook
+- 可视化：Matplotlib，Seaborn
+- 模型方法：LightFM
+
+## 项目结构
+
+```text
+project-wexler/
+├── docs/                      # GitHub Pages 页面内容
+├── Project_Wexler_Code.ipynb  # 从数据预处理到建模的完整 Notebook
+├── .gitignore                 # Git 忽略文件配置
+├── requirements.txt           # Python 依赖
+└── README.md                  # 项目说明
+```
+
+## 项目目标
+
+- 利用机器学习模型对目标变量进行精确预测
+- 探索数据特征与目标变量之间的关系
+- 比较多种模型性能并选择最优方案
+- 解释模型结果并提出改进建议
+
+## 分析流程
+
+1. 项目背景说明：明确业务目标与预测任务
+2. 数据探索与清洗：
+   - 缺失值处理、异常检测
+   - 可视化数据分布与变量相关性
+3. 特征工程：
+   - 独热编码、数值转换、特征缩放
+4. 模型训练与选择：
+   - 对比 Linear Regression、XGBoost 等
+5. 模型评估与调优：
+   - 使用 RMSE、R²、交叉验证
+6. 模型解释：
+   - 分析特征重要性，理解预测依据
+7. 总结与展望：
+   - 反思模型局限与未来改进方向
+
+
+## 数据来源与授权
+
+- 数据集：Kaggle - Retailrocket recommender system dataset
+- 协议：MIT License

@@ -374,6 +374,48 @@ img {
  * with the "Living Manuscript" aesthetic for an immersive reading experience.
  */
 
+/* ——— MDX: Table styling (quiet, structural, stone-wash borders) ——— */
+.prose table {
+  width: 100%;
+  border-collapse: collapse; /* crisp grid without gaps */
+  margin: var(--space-lg) 0;
+  background-color: var(--color-paper);
+  border: 1px solid rgba(30, 30, 29, 0.12); /* outer frame: light ink */
+  border-radius: var(--radius-sm);
+  overflow: hidden; /* preserve rounded corners where supported */
+}
+
+.prose thead th {
+  background-color: var(--color-wash-stone); /* structural header wash */
+  color: var(--color-ink);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid rgba(30, 30, 29, 0.18); /* slightly stronger baseline */
+}
+
+.prose th,
+.prose td {
+  padding: var(--space-sm) var(--space-md);
+  vertical-align: top;
+  color: var(--color-ink);
+  border-right: 1px solid rgba(30, 30, 29, 0.10);
+}
+
+.prose tr + tr td {
+  border-top: 1px solid rgba(30, 30, 29, 0.08); /* row separators */
+}
+
+.prose tr th:last-child,
+.prose tr td:last-child {
+  border-right: none; /* clean edge */
+}
+
+/* Compact table on narrow screens without losing structure */
+@media (max-width: 640px) {
+  .prose th,
+  .prose td { padding: var(--space-xs) var(--space-sm); }
+}
+
 /* Quiet Reveal Animation for Content */
 @keyframes quietReveal {
   from { 
@@ -417,6 +459,32 @@ img {
   padding-left: var(--space-lg);
 }
 
+/* Ensure ordered list numbering displays clearly across levels */
+.content-container-standard article ol {
+  list-style: decimal;
+}
+
+.content-container-standard article ol > li::marker {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.content-container-standard article ol ol {
+  list-style: lower-alpha;
+}
+
+.content-container-standard article ol ol > li::marker {
+  color: var(--color-ink);
+}
+
+.content-container-standard article ol ol ol {
+  list-style: lower-roman;
+}
+
+.content-container-standard article ol ol ol > li::marker {
+  color: var(--color-ink);
+}
+
 .content-container-standard article li {
   margin-bottom: var(--space-sm);
   padding-left: var(--space-sm);
@@ -424,6 +492,22 @@ img {
 
 .content-container-standard article li::marker {
   color: var(--color-seal);
+}
+
+/* Hierarchical list markers for Markdown content (ul only, no spacing changes) */
+.content-container-standard article ul > li::marker {
+  content: "· ";
+  color: var(--color-ink);
+}
+
+.content-container-standard article ul ul > li::marker {
+  content: "– ";
+  color: var(--color-ink);
+}
+
+.content-container-standard article ul ul ul li::marker {
+  content: "- ";
+  color: var(--color-ink);
 }
 
 .content-container-standard article pre {

@@ -9,4 +9,41 @@ tags: ["Data Analysis", "Python", "SQL"]
 status: "active"
 ---
 
-该项目包含 White 的全部代码与部署配置，欢迎 Star 与 PR！ 
+## 技术栈
+
+- 数据存储：PostgreSQL
+- 分析工具：Python，Jupyter Notebook
+- 可视化：Matplotlib，Seaborn
+- 模型方法：RFM 模型、Cohort 留存分析、SARIMAX 时间序列预测
+
+## 项目结构
+
+```text
+project-white/
+├── docs/                      # GitHub Pages 页面内容
+├── Project_White.ipynb        # 分析用 Jupyter Notebook
+├── Project_White.pdf          # 分析报告 PDF 版本
+├── SQL_statements.pdf         # 数据处理用 SQL 语句
+├── .gitignore                 # Git 忽略文件配置
+├── requirements.txt           # Python 依赖说明
+└── README.md                  # 项目说明
+```
+
+## 项目亮点
+
+### 客户分析（Customer Analysis）
+
+- 利用 RFM 模型对客户价值进行评分
+- 使用 Cohort 分析评估与预测客户留存
+- 识别“潜力客户”“忠诚客户”“需要唤醒客户”群体
+
+### 商品分析（Product Analysis）
+
+- 分析商品销售集中度、价格结构与趋势
+- 构建 SARIMAX 模型进行季节性销售预测
+- 提出库存优化与促销策略建议
+
+## 数据来源与授权
+
+- 数据集：UCI Machine Learning Repository - Online Retail II
+- 协议：MIT License
