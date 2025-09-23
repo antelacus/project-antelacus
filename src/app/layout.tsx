@@ -15,6 +15,27 @@ export const metadata: Metadata = {
   },
   description: 'Ante Lacus, Pax Mentis',
   keywords: ['博客', '个人网站', 'AnteLacus'],
+  metadataBase: new URL('https://antelacus.com'),
+  openGraph: {
+    title: 'AnteLacus',
+    description: 'Ante Lacus, Pax Mentis',
+    siteName: 'AnteLacus',
+    type: 'website',
+    images: [
+      {
+        url: '/og.png',
+        width: 1200,
+        height: 630,
+        alt: 'Ante Lacus, Pax Mentis',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AnteLacus',
+    description: 'Ante Lacus, Pax Mentis',
+    images: ['/og.png'],
+  },
   icons: {
     icon: '/images/common/logo-icon.svg',
     shortcut: '/images/common/logo-icon.svg',

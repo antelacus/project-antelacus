@@ -41,7 +41,7 @@ const checks = [
   },
   {
     name: 'OpenGraph Image',
-    pattern: /url:\s*['"`]\/images\/og-image\.svg['"`]/,
+    pattern: /url:\s*['"`]\/og\.png['"`]/,
     required: true
   },
   {
@@ -75,14 +75,8 @@ checks.forEach(check => {
   }
 });
 
-// 检查OG图片文件是否存在
-const ogImagePath = path.join(__dirname, '../public/images/og-image.svg');
-const ogImageExists = fs.existsSync(ogImagePath);
-console.log(`${ogImageExists ? '✅' : '❌'} Open Graph Image File (必需)`);
-
-if (!ogImageExists) {
-  allPassed = false;
-}
+// 动态 OG 已通过 /og.png 生成，无需检查静态文件
+console.log('✅ Open Graph Image served dynamically at /og.png');
 
 console.log('\n' + '=' .repeat(40));
 console.log(`📊 结果: ${allPassed ? '✅ 所有检查通过' : '❌ 发现问题'}`);

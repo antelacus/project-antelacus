@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/images/og-image.svg',
+        url: '/og.png',
         width: 1200,
         height: 630,
         alt: 'Ante Lacus, Pax Mentis',
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Ante Lacus, Pax Mentis',
     description: 'Ante Lacus, Pax Mentis',
-    images: ['/images/og-image.svg'],
+    images: ['/og.png'],
   },
   robots: {
     index: true,

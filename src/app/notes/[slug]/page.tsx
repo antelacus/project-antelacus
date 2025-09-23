@@ -22,6 +22,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: note.summary || '',
       type: 'article',
       url: `https://antelacus.com/notes/${note.slug}`,
+      images: [{ url: `/notes/${note.slug}/og.png`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [`/notes/${note.slug}/og.png`],
     },
   };
 }
