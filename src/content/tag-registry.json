@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2025-09-23T08:56:11.399Z",
+  "updatedAt": "2025-12-08T07:59:52.940Z",
   "tags": [
     {
       "id": "accounting",
@@ -10,7 +10,7 @@
     },
     {
       "id": "ai",
-      "count": 4,
+      "count": 3,
       "types": [
         "note",
         "post",
@@ -18,24 +18,10 @@
       ]
     },
     {
-      "id": "attention is all you need.",
-      "count": 1,
-      "types": [
-        "post"
-      ]
-    },
-    {
       "id": "data analysis",
       "count": 1,
       "types": [
         "project"
-      ]
-    },
-    {
-      "id": "llm",
-      "count": 1,
-      "types": [
-        "post"
       ]
     },
     {
@@ -64,13 +50,6 @@
       "count": 1,
       "types": [
         "project"
-      ]
-    },
-    {
-      "id": "transformer",
-      "count": 1,
-      "types": [
-        "post"
       ]
     },
     {
