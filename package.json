@@ -2,19 +2,20 @@
   "name": "project-antelacus",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build:tags": "ts-node scripts/generate-tag-registry.ts",
-    "build:search-index": "ts-node scripts/build-search-index.ts",
-    "validate:content": "ts-node scripts/validate-content.ts",
+    "build:tags": "tsx scripts/generate-tag-registry.ts",
+    "build:search-index": "tsx scripts/build-search-index.ts",
+    "validate:content": "tsx scripts/validate-content.ts",
     "postbuild": "npm run build:tags && npm run build:search-index && npm run validate:content",
-    "seo:check": "node scripts/seo-check.js",
+    "seo:check": "node scripts/seo-check.cjs",
     "seo:og-image": "node scripts/generate-og-image.js",
-    "seo:validate": "node scripts/validate-metadata.js",
-    "seo:submit": "node scripts/submit-sitemap.js"
+    "seo:validate": "node scripts/validate-metadata.cjs",
+    "seo:submit": "node scripts/submit-sitemap.cjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.11",
@@ -32,6 +33,7 @@
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
+    "sharp": "^0.34.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -44,6 +46,7 @@
     "eslint-config-next": "15.4.8",
     "tailwindcss": "^4",
     "ts-node": "^10",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

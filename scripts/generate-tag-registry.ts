@@ -21,6 +21,15 @@ interface TagRegistryManifest {
   tags: TagRegistryItem[];
 }
 
+async function readJsonFile<T>(file: string): Promise<T | null> {
+  try {
+    const raw = await fs.readFile(file, 'utf-8');
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 function normalizeTagId(raw: string): string {
   return raw.trim().toLowerCase();
 }
@@ -81,14 +90,17 @@ async function run() {
     .map(([id, { count, types }]) => ({ id, count, types: Array.from(types).sort() }))
     .sort((a, b) => a.id.localeCompare(b.id));
 
-  const registry: TagRegistryManifest = {
-    updatedAt: new Date().toISOString(),
-    tags: items,
-  };
-
   const outDir = path.join(process.cwd(), 'src/content');
   await ensureDir(outDir);
   const outFile = path.join(outDir, 'tag-registry.json');
+  const previous = await readJsonFile<TagRegistryManifest>(outFile);
+  const tagsChanged = JSON.stringify(previous?.tags ?? []) !== JSON.stringify(items);
+
+  const registry: TagRegistryManifest = {
+    updatedAt: tagsChanged ? new Date().toISOString() : (previous?.updatedAt ?? new Date().toISOString()),
+    tags: items,
+  };
+
   await fs.writeFile(outFile, JSON.stringify(registry, null, 2), 'utf-8');
   console.log(`Tag registry written: ${path.relative(process.cwd(), outFile)} (${items.length} tags)`);
 }
@@ -97,5 +109,4 @@ run().catch(err => {
   console.error('Failed to generate tag registry:', err);
   process.exit(1);
 });
-
 

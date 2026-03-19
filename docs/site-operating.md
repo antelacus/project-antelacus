@@ -5,7 +5,7 @@
 #### 1. 流量规模
 - **日均 PV＜500 或月 PV＜1–1.5 万**：广告收入通常只有几美元/月，难以覆盖因广告带来的用户流失
 - **月 PV≥3–5 万**：AdSense 才有望贡献可感知的收入（几十至上百美元/月），且优化空间更大
-- **建议**：先用 Google Analytics、Vercel Analytics 等实测 2–3 个月流量，确认稳定上升后再启用广告
+- **建议**：先用 Google Analytics、Cloudflare Web Analytics 等实测 2–3 个月流量，确认稳定上升后再启用广告
 
 #### 2. 内容深度与覆盖
 - **内容层次**：站点目前以「技术随笔 + 旅行照片 + 项目案例」为主，内容层次尚处于扩充阶段
@@ -123,7 +123,7 @@
 | 漏斗层级 | 指标 | 工具 |
 |----------|------|------|
 | 曝光 | Impressions / Reach | Search Console, Twitter Analytics |
-| 访问 | Sessions / Pageviews | GA4, Vercel Analytics |
+| 访问 | Sessions / Pageviews | GA4, Cloudflare Web Analytics |
 | 订阅 | Email CTR / Form Submit | ConvertKit / Substack |
 | 转化 | 广告 RPM / 购买率 | AdSense, Gumroad |
 | 保留 | 次月回访率 | GA4 Cohort |
@@ -139,7 +139,7 @@
 - **18–36 月**：会员付费墙、赞助内容、线下 Workshop
 
 ### （六）执行清单
-1. GA4 + Search Console + Vercel Analytics 接入
+1. GA4 + Search Console + Cloudflare Web Analytics 接入
 2. 保持 robots.txt 指向动态 `/sitemap.xml`
 3. 页面 metadata：全局与详情页完善 `title`、`description`、Open Graph、`alternates.languages`
 4. 面包屑：详情页输出 `BreadcrumbList` JSON-LD（已在 `src/components/Nav.tsx` 实现）
@@ -149,10 +149,10 @@
 8. A/B 测试广告密度与页面布局
 
 #### SEO 工具与脚本
-- **SEO 检查脚本** (`scripts/seo-check.js`)：验证 sitemap、robots.txt 和页面 metadata
-- **Sitemap 提交指南** (`scripts/submit-sitemap.js`)：Google Search Console 操作步骤
+- **SEO 检查脚本** (`scripts/seo-check.cjs`)：验证 sitemap、robots.txt 和页面 metadata
+- **Sitemap 提交指南** (`scripts/submit-sitemap.cjs`)：Google Search Console 操作步骤
 - **Open Graph 图片生成器** (`scripts/generate-og-image.js`)：自动生成社交媒体分享图片
-- **Metadata 验证脚本** (`scripts/validate-metadata.js`)：检查 metadata 配置完整性
+- **Metadata 验证脚本** (`scripts/validate-metadata.cjs`)：检查 metadata 配置完整性
 
 ### （七）总结
 - 先打基础（技术 SEO + 高价值内容）→ 再扩引流（社媒矩阵）→ 后做变现（广告 + 数字产品 + 会员）
@@ -359,7 +359,7 @@
 
 项目内置了一系列自动化脚本来辅助 SEO 检查与维护。
 
-#### 1. SEO 配置检查 (`scripts/seo-check.js`)
+#### 1. SEO 配置检查 (`scripts/seo-check.cjs`)
 - **用途**: 验证网站的基本 SEO 配置是否完整。
 - **运行**: `npm run seo:check`
 - **检查项**:
@@ -367,7 +367,7 @@
   - `Robots.txt` 配置是否正确
   - 关键页面的 Metadata 配置完整性
 
-#### 2. Metadata 验证 (`scripts/validate-metadata.js`)
+#### 2. Metadata 验证 (`scripts/validate-metadata.cjs`)
 - **用途**: 深度验证每个页面的元数据配置。
 - **运行**: `npm run seo:validate`
 - **验证项**:
@@ -383,7 +383,7 @@
   - 图片包含网站名称、Slogan 和品牌元素。
   - 自动保存到 `public/images/og-image.svg`。
 
-#### 4. Sitemap 提交指南 (`scripts/submit-sitemap.js`)
+#### 4. Sitemap 提交指南 (`scripts/submit-sitemap.cjs`)
 - **用途**: 提供在 Google Search Console 手动提交 Sitemap 的操作指引。
 - **运行**: `npm run seo:submit`
 - **内容**:

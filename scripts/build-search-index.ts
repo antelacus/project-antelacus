@@ -26,12 +26,29 @@ interface SearchIndexItem {
   lang?: string; // language for post/note only
 }
 
+interface SearchIndexManifest {
+  version: number;
+  locale: string;
+  files: Record<string, string>;
+  generatedAt: string;
+  count: number;
+}
+
 async function ensureDir(dir: string) {
   await fs.mkdir(dir, { recursive: true });
 }
 
 function hashContent(content: string): string {
   return crypto.createHash('md5').update(content).digest('hex').slice(0, 10);
+}
+
+async function readJsonFile<T>(file: string): Promise<T | null> {
+  try {
+    const raw = await fs.readFile(file, 'utf-8');
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
 async function run() {
@@ -138,16 +155,24 @@ async function run() {
   const filename = `index.${locale}.${digest}.json`;
   await fs.writeFile(path.join(outDir, filename), body, 'utf-8');
 
-  const manifest = {
+  const manifestFile = path.join(outDir, 'manifest.json');
+  const previous = await readJsonFile<SearchIndexManifest>(manifestFile);
+  const filesChanged = JSON.stringify(previous?.files ?? {}) !== JSON.stringify({ [locale]: filename });
+  const countChanged = (previous?.count ?? -1) !== items.length;
+
+  const manifest: SearchIndexManifest = {
     version: 1,
     locale,
     files: {
       [locale]: filename,
     },
-    generatedAt: new Date().toISOString(),
+    generatedAt:
+      filesChanged || countChanged
+        ? new Date().toISOString()
+        : (previous?.generatedAt ?? new Date().toISOString()),
     count: items.length,
   };
-  await fs.writeFile(path.join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf-8');
+  await fs.writeFile(manifestFile, JSON.stringify(manifest, null, 2), 'utf-8');
   console.log(`Search index written: ${filename} (${items.length} items)`);
 }
 
@@ -155,5 +180,4 @@ run().catch(err => {
   console.error('Failed to build search index:', err);
   process.exit(1);
 });
-
 

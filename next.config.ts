@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const nextConfig: NextConfig = {
+  // Emit a self-contained server bundle for the VPS Docker image.
+  output: 'standalone',
+
   // Performance optimizations for the "Living Manuscript" aesthetic
   
   // Enable experimental features for better performance
