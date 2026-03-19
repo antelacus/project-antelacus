@@ -1,4 +1,4 @@
-import { locales, defaultLocale } from '@/i18n/routing';
+import { locales } from '@/i18n/routing';
 import { getAllPostsMeta } from '@/lib/posts';
 import { getAllNotesMeta } from '@/lib/notes';
 import { getAllProjectsMeta } from '@/lib/projects';
@@ -21,7 +21,6 @@ function withLocales(path: string): Record<string, string> {
   // we derive alternates for every supported locale by swapping the prefix.
   const normalized = path.startsWith('/') ? path : `/${path}`;
   const parts = normalized.split('/').filter(Boolean);
-  const currentLocale = parts[0];
   const rest = parts.slice(1).join('/');
   const languages: Record<string, string> = {};
   for (const l of locales) {
@@ -117,5 +116,3 @@ export default async function sitemap(): Promise<SitemapEntry[]> {
   }
   return deduped;
 }
-
-

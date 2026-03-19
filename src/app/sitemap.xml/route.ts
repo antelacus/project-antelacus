@@ -1,9 +1,8 @@
-import type { NextRequest } from 'next/server';
 import generateSitemap from '../sitemap';
 
 // Custom XML renderer to ensure correct namespaces expected by Google
 // Uses http:// schema URIs per sitemaps.org and W3C specs
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const entries = await generateSitemap();
 
   const xmlParts: string[] = [];
@@ -54,5 +53,4 @@ function escapeXml(input: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 }
-
 

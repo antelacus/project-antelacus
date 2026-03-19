@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function AdminDashboardPage() {
   return (
     <section
@@ -33,7 +35,9 @@ export default function AdminDashboardPage() {
         <h2 style={{ marginTop: 0 }}>Next implementation targets</h2>
         <p style={{ marginBottom: '0.5rem' }}>Use this area for the first dynamic content type:</p>
         <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
-          <li>create/edit note form</li>
+          <li>
+            <Link href="/admin/notes">create and edit notes</Link>
+          </li>
           <li>validation and persistence via Supabase</li>
           <li>publish flow with route/tag revalidation</li>
         </ul>
