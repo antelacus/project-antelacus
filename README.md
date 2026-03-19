@@ -2,7 +2,7 @@
 
 ## 一、项目简介
 
-本项目为 antelacus.com 个人博客网站，旨在打造一个支持 Markdown 写作、图片发布、社交媒体内容同步的高可定制化博客平台。网站部署在 Vercel，使用 Next.js 框架，绑定自有域名 antelacus.com。
+本项目为 antelacus.com 个人博客网站，旨在打造一个支持 Markdown 写作、图片发布、社交媒体内容同步的高可定制化博客平台。网站当前自托管在 VPS 上，使用 Next.js 框架，结合 Docker、nginx 与 Cloudflare 交付生产流量。
 
 ### （一）项目目标与需求
 
@@ -16,7 +16,7 @@
 ### （二）技术选型
 
 - **框架**：Next.js（React 生态，支持静态生成和高度定制）
-- **部署平台**：Vercel（与 Next.js 深度集成，自动化部署）
+- **部署平台**：VPS 自托管（Docker + nginx + Cloudflare）
 - **代码托管**：GitHub
 - **内容格式**：Markdown/MDX
 - **域名**：antelacus.com（Cloudflare 保护）
@@ -27,7 +27,7 @@
 
 ### （一）总体架构
 
-本站基于 **Next.js** 的 **App Router** 构建，并部署于 **Vercel** 平台，实现了高效的开发与自动化部署流程。其核心架构思想是 **“内容即代码” (Content as Code)**。
+本站基于 **Next.js** 的 **App Router** 构建，并部署于 **VPS 自托管环境**，通过 Docker 容器运行应用、nginx 反向代理对外提供服务。其核心架构思想是 **“内容即代码” (Content as Code)**。
 
 #### 数据与内容流
 - **内容源**: 所有内容（专栏、闪念、项目等）均以 **MDX 文件** 的形式存储在 `src/content/` 目录下。这种方式使得内容可以直接纳入 Git 版本控制，便于追踪修改、协作和批量处理。
@@ -38,10 +38,10 @@
     - `generate-tag-registry.ts`：汇总 `src/content/*/*.mdx` 中的 `tags`，生成 `src/content/tag-registry.json` 作为全站唯一标签来源，供运行时聚合与构建校验使用。
     - `build-search-index.ts`：扫描 MDX 生成轻量搜索索引至 `public/search-index/`，产出带内容哈希的 `index.<locale>.<digest>.json` 与 `manifest.json`，供前端搜索模态加载与回退 API 使用。
     - `validate-content.ts`：用 Zod 校验 Frontmatter（必填字段、标签是否存在于注册表并规范化、相册 `imageFolder` 等），失败时以非零码退出，阻断部署。
-    - `seo-check.js`：本地快速体检（sitemap/robots/核心页面 metadata 存在性）。
+    - `seo-check.cjs`：本地快速体检（sitemap/robots/核心页面 metadata 存在性）。
     - `generate-og-image.js`：生成统一的 Open Graph 封面 `public/images/og-image.svg`，并输出接入指引。
-    - `validate-metadata.js`：校验主页 metadata 关键字段与 OG 图片存在性，给出摘要提示。
-    - `submit-sitemap.js`：Search Console 提交流程指引与可视化输出（历史逻辑会读取 `public/sitemap.xml`；现站点已采用 App Router 动态 `/sitemap.xml`）。
+    - `validate-metadata.cjs`：校验主页 metadata 关键字段与 OG 图片存在性，给出摘要提示。
+    - `submit-sitemap.cjs`：Search Console 提交流程指引与可视化输出（历史逻辑会读取 `public/sitemap.xml`；现站点已采用 App Router 动态 `/sitemap.xml`）。
 
   - 集成方式：以上已串联进 `package.json` 的 `postbuild` 流水线：`build:tags && build:search-index && validate:content`，确保每次部署生成最新标签与搜索索引并完成内容校验。
 
@@ -49,7 +49,7 @@
 - **前端框架**: Next.js / React
 - **UI 与样式**: 通过 `src/app/globals.css` 中的 CSS 变量实现全局主题控制，遵循项目的美学设计规范。
 - **国际化**: 集成 `next-intl`，通过基于路径的路由 (`/{locale}/...`) 和完善的内容回退机制提供多语言支持。
-- **自动化**: Vercel 自动部署、构建时脚本自动生成元数据和索引，简化了维护工作流。
+- **自动化**: 构建时脚本自动生成元数据和索引，结合 VPS 部署流程完成站点更新。
 
 ### （二）页面样式控制架构
 
@@ -219,7 +219,7 @@ public/images/                   # 统一的图片根目录
 #### 架构设计
 
 - **静态索引**：在网站构建（`next build`）期间，通过脚本 (`scripts/build-search-index.ts`) 自动扫描所有 MDX 内容，生成一个轻量级的 JSON 文件作为搜索索引。
-- **自动化构建**：索引生成、标签注册和内容校验已集成到 `postbuild` 脚本中，每次通过 Vercel 部署时都会自动更新，无需手动操作。
+- **自动化构建**：索引生成、标签注册和内容校验已集成到 `postbuild` 脚本中，每次在 VPS 上执行部署构建时都会自动更新。
 - **前端搜索**：搜索功能完全在客户端执行，加载静态索引文件后进行实时过滤和排序，无需后端服务器或外部服务，性能高且成本为零。
 - **开发环境回退**：为解决本地开发环境（`next dev`）中静态索引不存在的问题，提供了一个 API 路由 (`/api/search-index`)，用于动态生成索引内容。
 

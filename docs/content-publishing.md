@@ -4,18 +4,20 @@
 1. 在 `src/content/<posts|notes|projects>/` 新建 `.mdx` 文件
 2. 填写对应 front-matter 字段（见下表）
 3. 写正文内容
-4. `git add && commit && push`，Vercel 自动部署
+4. 在 VPS 上执行 `git add && git commit`，如需备份再执行 `git push`
+5. 在项目根目录运行 `docker compose up -d --build` 发布最新内容
 
 > 提示：文章仅维护一份规范稿 `{slug}.mdx`（不要创建 `{slug}.[locale].mdx`）。多语言由 URL 路径 `/{locale}/...` 与 UI 文案提供，正文不做多份翻译。
 
-> 部署说明：构建完成后会自动执行 `postbuild` 流水线（生成标签注册表、构建静态搜索索引、内容校验）。
+> 部署说明：容器构建阶段会自动执行 `postbuild` 流水线（生成标签注册表、构建静态搜索索引、内容校验）。
 
 **视觉作品专用流程：**
 1. 在 `public/images/gallery/` 创建照片文件夹：`YYYY-MM-DD-theme-name`
 2. 将照片文件放入文件夹（建议按数字顺序命名：01.jpg, 02.jpg...）
 3. 在 `src/content/gallery/` 新建对应的 `.mdx` 文件
 4. 设置 `imageFolder` 字段指向照片文件夹名
-5. `git add && commit && push`，Vercel 自动部署
+5. 在 VPS 上执行 `git add && git commit`，如需备份再执行 `git push`
+6. 在项目根目录运行 `docker compose up -d --build` 发布最新内容
 
 **示例：**
 ```
@@ -63,7 +65,7 @@ location: "杭州·西湖"
 运行 `npm run validate:content`（已在 `package.json` scripts 中配置），执行 `scripts/validate-content.ts`：
 
 ```bash
-npx ts-node scripts/validate-content.ts
+npm run validate:content
 ```
 
 若缺必填字段将报错并返回非 0 状态码，可在 CI 中使用。

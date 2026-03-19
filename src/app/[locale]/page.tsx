@@ -1,5 +1,3 @@
-export const dynamic = 'force-static';
-
 import type { Metadata } from 'next';
 import { getAllPostsMeta } from '@/lib/posts';
 import { getAllNotesMeta } from '@/lib/notes';
@@ -85,5 +83,4 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
     </div>
   );
 }
-
 

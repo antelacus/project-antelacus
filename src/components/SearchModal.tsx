@@ -36,16 +36,11 @@ interface Props {
   };
 }
 
-async function tryLoadStaticIndex(): Promise<SearchIndexItem[] | null> {
+async function tryLoadDynamicIndex(): Promise<SearchIndexItem[] | null> {
   try {
-    const res = await fetch('/search-index/manifest.json', { cache: 'no-store' });
-    if (!res.ok) return null;
-    const manifest = await res.json();
-    const filename = manifest.files?.zh;
-    if (!filename) return null;
-    const idxRes = await fetch(`/search-index/${filename}`, { cache: 'no-store' });
-    if (!idxRes.ok) return null;
-    return (await idxRes.json()) as SearchIndexItem[];
+    const apiRes = await fetch('/api/search-index', { cache: 'no-store' });
+    if (!apiRes.ok) return null;
+    return (await apiRes.json()) as SearchIndexItem[];
   } catch {
     return null;
   }
@@ -81,15 +76,9 @@ export default function SearchModal({ open, onClose, preset }: Props) {
     setLoading(true);
     (async () => {
       try {
-        const staticData = await tryLoadStaticIndex();
-        if (staticData && staticData.length) {
-          setItems(staticData);
-        } else {
-          const apiRes = await fetch('/api/search-index', { cache: 'no-store' });
-          if (!apiRes.ok) throw new Error('索引接口不可用');
-          const data = (await apiRes.json()) as SearchIndexItem[];
-          setItems(data);
-        }
+        const dynamicData = await tryLoadDynamicIndex();
+        if (!dynamicData) throw new Error('索引接口不可用');
+        setItems(dynamicData);
         setError(null);
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : '索引加载失败';
@@ -656,5 +645,3 @@ export default function SearchModal({ open, onClose, preset }: Props) {
     </div>
   );
 }
-
-

@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : null;
+
 const nextConfig: NextConfig = {
+  // Emit a self-contained server bundle for the VPS Docker image.
+  output: 'standalone',
+
   // Performance optimizations for the "Living Manuscript" aesthetic
   
   // Enable experimental features for better performance
@@ -18,6 +24,14 @@ const nextConfig: NextConfig = {
     // Add blur placeholder support
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: supabaseHost
+      ? [
+          {
+            protocol: 'https',
+            hostname: supabaseHost,
+          },
+        ]
+      : [],
   },
 
   // Compress pages and static files

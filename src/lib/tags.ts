@@ -20,24 +20,15 @@ export interface TagStats {
   items: ContentMeta[];
 }
 
+export interface TagSummary {
+  id: string;
+  count: number;
+  types: string[];
+}
+
 // 聚合所有内容的标签
 export async function getAllTags(): Promise<string[]> {
-  const [posts, notes, photos, projects] = await Promise.all([
-    getAllPostsMeta(),
-    getAllNotesMeta(),
-    getAllPhotosMeta(),
-    getAllProjectsMeta(),
-  ]);
-
-  const allTags = new Set<string>();
-
-  // 收集所有标签
-  posts.forEach(post => post.tags?.forEach(tag => allTags.add(tag)));
-  notes.forEach(note => note.tags?.forEach(tag => allTags.add(tag)));
-  photos.forEach(photo => photo.tags?.forEach(tag => allTags.add(tag)));
-  projects.forEach(project => project.tags?.forEach(tag => allTags.add(tag)));
-
-  return Array.from(allTags).sort();
+  return Array.from((await getTagStats()).keys()).sort();
 }
 
 // 获取标签统计信息
@@ -79,6 +70,16 @@ export async function getTagStats(): Promise<Map<string, TagStats>> {
   });
 
   return tagStatsMap;
+}
+
+export async function getTagSummaries(): Promise<TagSummary[]> {
+  return Array.from((await getTagStats()).values())
+    .map((stats) => ({
+      id: stats.tag,
+      count: stats.count,
+      types: Array.from(stats.types).sort(),
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id));
 }
 
 // 根据标签筛选内容

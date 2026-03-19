@@ -1,50 +1,19 @@
-import fs from 'fs/promises';
-import path from 'path';
-import matter from 'gray-matter';
 import { cache } from 'react';
 import { unstable_cache } from 'next/cache';
-
-export interface NoteMeta {
-  slug: string;
-  title: string;
-  date: string;
-  lang?: string;
-  summary?: string;
-  cover?: string;
-  tags?: string[];     // 统一标签系统
-}
-
-export interface Note extends NoteMeta {
-  content: string;
-}
-
-const NOTES_DIR = path.join(process.cwd(), 'src/content/notes');
+import {
+  getPublishedNoteBySlug,
+  getPublishedNotes,
+} from './server/notes-repo';
+import type { Note, NoteMeta } from './note-types';
+export type { Note, NoteMeta } from './note-types';
 
 const getAllNotesMetaUncached = async (): Promise<NoteMeta[]> => {
-  const files = await fs.readdir(NOTES_DIR);
-  const notes: NoteMeta[] = [];
-  for (const file of files) {
-    if (!file.endsWith('.mdx')) continue;
-    const filePath = path.join(NOTES_DIR, file);
-    const source = await fs.readFile(filePath, 'utf-8');
-    const { data } = matter(source);
-    notes.push({
-      slug: file.replace(/\.mdx$/, ''),
-      title: data.title,
-      date: data.date,
-      lang: data.lang,
-      summary: data.summary,
-      cover: data.cover,
-      tags: data.tags || [],
-    });
-  }
-  notes.sort((a, b) => b.date.localeCompare(a.date));
-  return notes;
+  return getPublishedNotes();
 };
 
 export const getAllNotesMeta = unstable_cache(
   getAllNotesMetaUncached,
-  ['notes-meta'],
+  ['notes-meta', 'dynamic-content-v3'],
   {
     revalidate: 3600,
     tags: ['notes']
@@ -52,29 +21,13 @@ export const getAllNotesMeta = unstable_cache(
 );
 
 const getNoteBySlugUncached = async (slug: string): Promise<Note | null> => {
-  const filePath = path.join(NOTES_DIR, `${slug}.mdx`);
-  try {
-    const source = await fs.readFile(filePath, 'utf-8');
-    const { data, content } = matter(source);
-    return {
-      slug,
-      title: data.title,
-      date: data.date,
-      lang: data.lang,
-      summary: data.summary,
-      cover: data.cover,
-      tags: data.tags || [],
-      content,
-    };
-  } catch {
-    return null;
-  }
+  return getPublishedNoteBySlug(slug);
 };
 
 export const getNoteBySlug = cache(
   unstable_cache(
     getNoteBySlugUncached,
-    ['note'],
+    ['note', 'dynamic-content-v3'],
     {
       revalidate: 7200,
       tags: ['notes']
