@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { locales } from './src/i18n/routing';
 import { normalizeToSupportedLocale, mapPathLocaleSegment } from './src/i18n/detect';
+import { updateSupabaseSession } from './src/lib/supabase/middleware';
 
-export function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl;
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
   // Ignore internal/static paths (kept in config.matcher too)
   const ignored = pathname.startsWith('/_next') ||
@@ -16,6 +17,10 @@ export function middleware(req: NextRequest) {
     pathname.startsWith('/ads.txt') ||
     pathname.startsWith('/api');
   if (ignored) return NextResponse.next();
+
+  if (pathname.startsWith('/admin') || pathname.startsWith('/auth')) {
+    return updateSupabaseSession(req);
+  }
 
   // Get the first path segment
   const segments = pathname.split('/'); // "" | locale | ...
@@ -58,5 +63,3 @@ export const config = {
     '/((?!_next|favicon|images|fonts|robots.txt|sitemap.xml|sw.js|ads.txt|api).*)',
   ],
 };
-
-
