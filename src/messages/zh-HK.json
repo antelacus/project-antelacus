@@ -56,6 +56,18 @@
     "language": "語言",
     "allLanguages": "全部語言"
   },
+  "meta": {
+    "posts_title": "專欄",
+    "posts_description": "深度文章與專題分析合集。",
+    "notes_title": "閃念",
+    "notes_description": "思維碎片與靈感記錄合集。",
+    "gallery_title": "視覺",
+    "gallery_description": "攝影作品與視覺創作合集。",
+    "projects_title": "實驗室",
+    "projects_description": "技術實驗與創意項目展示。",
+    "about_title": "關於",
+    "about_description": "關於 AnteLacus 博客和站長的介紹。"
+  },
   "home": {},
   "about": {},
   "posts": {},

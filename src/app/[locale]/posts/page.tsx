@@ -1,21 +1,16 @@
 import { getAllPostsMeta } from '@/lib/posts';
 import PostCard from '@/components/PostCard';
+import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   return {
-    title: '专栏',
-    description: '深度文章与专题分析合集。',
+    title: await getMetaMessage(locale, 'meta.posts_title'),
+    description: await getMetaMessage(locale, 'meta.posts_description'),
     alternates: {
-      canonical: `/${locale}/posts`,
-      languages: {
-        'zh-CN': '/zh-CN/posts',
-        'zh-HK': '/zh-HK/posts',
-        'en': '/en/posts',
-        'fr': '/fr/posts',
-        'es': '/es/posts'
-      }
-    }
+      canonical: canonicalFor(locale, '/posts'),
+      languages: languageAlternates('/posts'),
+    },
   };
 }
 

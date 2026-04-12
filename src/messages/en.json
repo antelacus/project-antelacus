@@ -56,6 +56,18 @@
     "language": "Language",
     "allLanguages": "All languages"
   },
+  "meta": {
+    "posts_title": "Posts",
+    "posts_description": "In-depth articles and thematic analyses.",
+    "notes_title": "Notes",
+    "notes_description": "Thought fragments and inspiration logs.",
+    "gallery_title": "Gallery",
+    "gallery_description": "Photography and visual creations.",
+    "projects_title": "Lab",
+    "projects_description": "Technical experiments and creative projects.",
+    "about_title": "About",
+    "about_description": "About the AnteLacus blog and its author."
+  },
   "home": {},
   "about": {},
   "posts": {},

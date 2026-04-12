@@ -1,5 +1,6 @@
 import { getNoteBySlug } from '../../../lib/notes';
 import { languageAlternates } from '../../../lib/seo';
+import { noteJsonLd } from '../../../lib/structured-data';
 import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import TagList from '../../../components/TagList';
@@ -45,8 +46,11 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
     );
   }
 
+  const jsonLd = noteJsonLd(note);
+
   return (
     <div className="content-container content-container-standard">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article data-title={note.title}>
         <header>
           <h1>{note.title}</h1>

@@ -1,5 +1,6 @@
 import { getProjectBySlug } from '../../../lib/projects';
 import { languageAlternates } from '../../../lib/seo';
+import { softwareProjectJsonLd } from '../../../lib/structured-data';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MDXRemote } from 'next-mdx-remote/rsc';
@@ -55,8 +56,11 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
     }
   };
 
+  const jsonLd = softwareProjectJsonLd(project);
+
   return (
     <div className="content-container content-container-standard">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article data-title={project.name}>
         <header>
           <h1>{project.name}</h1>

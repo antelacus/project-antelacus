@@ -1,10 +1,18 @@
 import { getAllPhotosMeta } from '@/lib/gallery';
 import PhotoCard from '@/components/PhotoCard';
+import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
-export const metadata = {
-  title: '视觉',
-  description: '摄影作品与视觉创作合集。',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  return {
+    title: await getMetaMessage(locale, 'meta.gallery_title'),
+    description: await getMetaMessage(locale, 'meta.gallery_description'),
+    alternates: {
+      canonical: canonicalFor(locale, '/gallery'),
+      languages: languageAlternates('/gallery'),
+    },
+  };
+}
 
 export default async function GalleryPage() {
   const photos = await getAllPhotosMeta();

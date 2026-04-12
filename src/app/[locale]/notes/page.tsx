@@ -1,10 +1,18 @@
 import { getAllNotesMeta } from '@/lib/notes';
 import NoteCard from '@/components/NoteCard';
+import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
-export const metadata = {
-  title: '闪念',
-  description: '思维碎片与灵感记录合集。',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  return {
+    title: await getMetaMessage(locale, 'meta.notes_title'),
+    description: await getMetaMessage(locale, 'meta.notes_description'),
+    alternates: {
+      canonical: canonicalFor(locale, '/notes'),
+      languages: languageAlternates('/notes'),
+    },
+  };
+}
 
 export default async function NotesPage() {
   const notes = await getAllNotesMeta();

@@ -1,12 +1,12 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { getAboutMdx } from '@/lib/pages';
-import { languageAlternates, canonicalFor } from '@/lib/seo';
+import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   return {
-    title: '关于我',
-    description: '关于 AnteLacus 博客和站长的介绍。',
+    title: await getMetaMessage(locale, 'meta.about_title'),
+    description: await getMetaMessage(locale, 'meta.about_description'),
     alternates: {
       canonical: canonicalFor(locale, '/about'),
       languages: languageAlternates('/about'),

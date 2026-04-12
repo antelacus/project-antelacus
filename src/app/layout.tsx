@@ -7,6 +7,7 @@ import SkipLink from '../components/SkipLink';
 import type { Metadata, Viewport } from 'next';
 import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from './fonts';
 import { isSupportedLocale, defaultLocale } from '@/i18n/routing';
+import { websiteJsonLd } from '@/lib/structured-data';
 
 export const metadata: Metadata = {
   title: {
@@ -14,8 +15,30 @@ export const metadata: Metadata = {
     template: '%s | AnteLacus',
   },
   description: 'Ante Lacus, Pax Mentis',
-  keywords: ['博客', '个人网站', 'AnteLacus'],
   metadataBase: new URL('https://antelacus.com'),
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: process.env.SITE_VERIFICATION_GOOGLE || undefined,
+    other: {
+      ...(process.env.SITE_VERIFICATION_BING ? { 'msvalidate.01': process.env.SITE_VERIFICATION_BING } : {}),
+      ...(process.env.SITE_VERIFICATION_BAIDU ? { 'baidu-site-verification': process.env.SITE_VERIFICATION_BAIDU } : {}),
+    },
+  },
   openGraph: {
     title: 'AnteLacus',
     description: 'Ante Lacus, Pax Mentis',
@@ -49,6 +72,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: 'cover',
+  themeColor: '#F9F8F6',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -113,6 +137,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+        />
       </head>
       <body>
         <PerformanceMonitor enableDevLogs={process.env.NODE_ENV === 'development'} />

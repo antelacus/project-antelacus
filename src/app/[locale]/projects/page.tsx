@@ -1,10 +1,18 @@
 import { getAllProjectsMeta } from '@/lib/projects';
 import ProjectCard from '@/components/ProjectCard';
+import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
-export const metadata = {
-  title: '实验室',
-  description: '技术实验与创意项目展示。',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  return {
+    title: await getMetaMessage(locale, 'meta.projects_title'),
+    description: await getMetaMessage(locale, 'meta.projects_description'),
+    alternates: {
+      canonical: canonicalFor(locale, '/projects'),
+      languages: languageAlternates('/projects'),
+    },
+  };
+}
 
 export default async function ProjectsPage() {
   const projects = await getAllProjectsMeta();
