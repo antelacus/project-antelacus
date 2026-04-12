@@ -5,10 +5,19 @@
 - Version: `v2.1.0`
 - Feature: `dynamic-content`
 - Type: `REQ`
-- Status: Drafted for review
+- Status: Historical requirements snapshot (Supabase phase)
 - Date: `2026-03-19`
+- Last updated: `2026-03-27`
 
-## 1. Context
+## 1. Historical Note
+
+This document captures the original requirements that drove the `v2.1.0` dynamic-content rollout on Supabase.
+
+It remains useful as historical context because it documents why AnteLacus moved away from file-based runtime publishing and what functional capabilities the first dynamic system needed to prove.
+
+However, as of `2026-03-27`, this is **not** the long-term target architecture anymore. The current direction is to preserve the dynamic-content model while replacing the managed Supabase dependency with a self-hosted SQLite-backed system on the VPS.
+
+## 2. Context
 
 `project-antelacus` is now live on the VPS as `v2.0.0`, served through Docker, nginx, and Cloudflare. Production hosting is stable, but content is still managed as repository files under `src/content/*` and `public/images/gallery/*`.
 
@@ -20,7 +29,7 @@ That means new posts, notes, projects, and gallery entries still require:
 
 The goal of `v2.1.0` is to keep the current site UX and public URL structure while changing the content system so new content can be published instantly without a full code deployment.
 
-## 2. Problem Statement
+## 3. Problem Statement
 
 The current file-based publishing model is a bottleneck:
 
@@ -30,7 +39,7 @@ The current file-based publishing model is a bottleneck:
 - search/tag metadata are generated from files at build time instead of from live content
 - there is no authenticated admin workflow for publishing from the browser
 
-## 3. Goals
+## 4. Goals
 
 ### Primary Goals
 
@@ -46,7 +55,7 @@ The current file-based publishing model is a bottleneck:
 - Keep rollback simple during the transition from file-based to dynamic content.
 - Minimize downtime and avoid breaking public URLs.
 
-## 4. Non-Goals
+## 5. Non-Goals
 
 - Rebuilding the public site design system or navigation structure
 - Multi-author editorial workflows
@@ -54,7 +63,7 @@ The current file-based publishing model is a bottleneck:
 - Full MDX execution from the database in `v2.1.0`
 - Replatforming away from VPS hosting
 
-## 5. Proposed Product Direction
+## 6. Proposed Product Direction
 
 ### Recommended Architecture
 
@@ -72,7 +81,7 @@ The current file-based publishing model is a bottleneck:
 - fits the current Next.js stack well
 - supports future expansion without changing the hosting model
 
-## 6. Scope
+## 7. Scope
 
 ### In Scope
 
@@ -96,7 +105,7 @@ The current file-based publishing model is a bottleneck:
 - AI-assisted writing tools
 - advanced analytics implementation
 
-## 7. Current System Impact
+## 8. Current System Impact
 
 The following areas are currently file-based and will be affected:
 
@@ -111,7 +120,7 @@ The following areas are currently file-based and will be affected:
 - `scripts/build-search-index.ts`
 - `scripts/validate-content.ts`
 
-## 8. Functional Requirements
+## 9. Functional Requirements
 
 ### Content Storage
 
@@ -144,7 +153,7 @@ The following areas are currently file-based and will be affected:
 - The migration must be repeatable in development and safe in production.
 - A fallback path must exist during rollout in case dynamic reads fail.
 
-## 9. Acceptance Criteria
+## 10. Acceptance Criteria
 
 - An admin can create and publish a new note from a protected workflow.
 - The note appears publicly within seconds without rebuilding the app container.
@@ -154,7 +163,7 @@ The following areas are currently file-based and will be affected:
 - Images can be uploaded and rendered from managed storage.
 - Public visitors cannot access admin routes or service-role credentials.
 
-## 10. Risks
+## 11. Risks
 
 - Content schema mismatch during migration from MDX frontmatter to SQL
 - SEO regressions if metadata generation changes
@@ -162,7 +171,7 @@ The following areas are currently file-based and will be affected:
 - Security risk if admin or service-role flows are exposed to the client
 - Increased implementation complexity if database MDX rendering is attempted too early
 
-## 11. Open Decisions
+## 12. Open Decisions
 
 - Whether admin editing in `v2.1.0` should be:
   - minimal internal forms, or
@@ -171,7 +180,7 @@ The following areas are currently file-based and will be affected:
 - Whether legacy file-based content should remain readable during the transition window
 - Whether the first release should support only one admin user or multiple privileged users
 
-## 12. Recommended Release Shape
+## 13. Recommended Release Shape
 
 Deliver `v2.1.0` in a hybrid-safe sequence:
 

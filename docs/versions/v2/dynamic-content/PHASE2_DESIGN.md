@@ -4,10 +4,17 @@
 
 - Version: `v2.1.0`
 - Feature: `dynamic-content`
-- Status: Drafted for review
+- Status: Historical design snapshot (Supabase phase)
 - Date: `2026-03-19`
+- Last updated: `2026-03-27`
 
-## 1. Design Summary
+## 1. Historical Note
+
+This document captures the original `v2.1.0` design direction built around Supabase.
+
+It remains useful because it documents the first dynamic-content architecture that replaced file-based runtime publishing. But it is no longer the intended long-term platform. As of `2026-03-27`, AnteLacus is pivoting toward a self-hosted SQLite-backed design for the next phase.
+
+## 2. Design Summary
 
 `v2.1.0` introduces a database-backed content layer while preserving:
 
@@ -22,7 +29,7 @@ The recommended design is:
 - server-only data access is centralized behind repository-style modules
 - private admin workflows publish content and trigger route/tag revalidation
 
-## 2. Target Architecture
+## 3. Target Architecture
 
 ### Runtime Topology
 
@@ -44,7 +51,7 @@ The recommended design is:
   - media objects
   - admin authentication
 
-## 3. Content Model
+## 4. Content Model
 
 ## Core Tables
 
@@ -104,7 +111,7 @@ If needed, add JSON columns or side tables for content-type-specific fields such
 - project repository/demo links
 - gallery location metadata
 
-## 4. Media Strategy
+## 5. Media Strategy
 
 ### Storage
 
@@ -120,7 +127,7 @@ If needed, add JSON columns or side tables for content-type-specific fields such
 - Resolve public delivery URLs server-side or at write time.
 - Avoid saving secrets in the client.
 
-## 5. Application Layer Refactor
+## 6. Application Layer Refactor
 
 Replace file readers with repository-style data access modules.
 
@@ -142,7 +149,7 @@ Replace file readers with repository-style data access modules.
 
 These should become thin adapters over the new server repositories so page components keep stable interfaces where possible.
 
-## 6. Admin Interface
+## 7. Admin Interface
 
 ### Recommended v2.1.0 Scope
 
@@ -159,7 +166,7 @@ These should become thin adapters over the new server repositories so page compo
 - explicit server-only boundaries for admin data access
 - schema validation on all writes
 
-## 7. Search / Tags / Sitemap
+## 8. Search / Tags / Sitemap
 
 ### Search
 
@@ -188,7 +195,7 @@ Recommended first step:
 
 - build sitemap from published DB records instead of file metadata
 
-## 8. Migration Strategy
+## 9. Migration Strategy
 
 ### Phase A - Foundation
 
@@ -220,14 +227,14 @@ Recommended first step:
 - verify parity
 - retire file-based runtime readers
 
-## 9. Rollback Strategy
+## 10. Rollback Strategy
 
 - Keep `v2.0.0` tag as the stable VPS-only fallback.
 - Introduce dynamic reads behind feature flags or repository-level switches if needed.
 - During rollout, preserve the ability to fall back to file-based reads for not-yet-migrated content types.
 - Avoid destructive deletion of legacy content files until parity is proven.
 
-## 10. Testing Strategy
+## 11. Testing Strategy
 
 - schema validation tests
 - repository integration tests
@@ -240,7 +247,7 @@ Recommended first step:
   - sitemap correctness
   - image rendering
 
-## 11. Key Decisions for Approval
+## 12. Key Decisions for Approval
 
 - Approve Supabase as the content backend for `v2.1.0`
 - Approve markdown-in-DB for the initial dynamic release
