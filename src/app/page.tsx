@@ -8,24 +8,9 @@ import { languageAlternates } from '@/lib/seo';
 export const metadata: Metadata = {
   title: 'Ante Lacus, Pax Mentis',
   description: 'Ante Lacus, Pax Mentis',
-  keywords: [
-    'AnteLacus',
-    '个人博客',
-    '技术博客',
-    '学习笔记',
-    '项目展示',
-    '创意空间',
-    '设计思考',
-    '技术分享'
-  ],
   authors: [{ name: 'AnteLacus' }],
   creator: 'AnteLacus',
   publisher: 'AnteLacus',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
   metadataBase: new URL('https://antelacus.com'),
   alternates: {
     canonical: '/',
@@ -52,17 +37,6 @@ export const metadata: Metadata = {
     title: 'Ante Lacus, Pax Mentis',
     description: 'Ante Lacus, Pax Mentis',
     images: ['/og.png'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
   },
 };
 

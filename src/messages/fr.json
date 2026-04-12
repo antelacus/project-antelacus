@@ -56,6 +56,18 @@
     "language": "Langue",
     "allLanguages": "Toutes les langues"
   },
+  "meta": {
+    "posts_title": "Articles",
+    "posts_description": "Articles approfondis et analyses thématiques.",
+    "notes_title": "Notes",
+    "notes_description": "Fragments de pensée et notes d'inspiration.",
+    "gallery_title": "Galerie",
+    "gallery_description": "Photographies et créations visuelles.",
+    "projects_title": "Laboratoire",
+    "projects_description": "Expériences techniques et projets créatifs.",
+    "about_title": "À propos",
+    "about_description": "À propos du blog AnteLacus et de son auteur."
+  },
   "home": {},
   "about": {},
   "posts": {},

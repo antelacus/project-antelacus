@@ -1,5 +1,6 @@
 import { getPhotoBySlug } from '../../../lib/gallery';
 import { languageAlternates } from '../../../lib/seo';
+import { imageGalleryJsonLd } from '../../../lib/structured-data';
 // import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
@@ -49,8 +50,11 @@ export default async function GalleryPage({ params }: { params: Promise<{ slug: 
     );
   }
 
+  const jsonLd = imageGalleryJsonLd(photo);
+
   return (
     <main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <header className="content-container content-container-standard text-center mt-12">
         <h1>{photo.title}</h1>
         <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>

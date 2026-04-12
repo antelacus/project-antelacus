@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import TagList from '../../../components/TagList';
 import { languageAlternates } from '../../../lib/seo';
+import { blogPostingJsonLd } from '../../../lib/structured-data';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -55,8 +56,11 @@ export default async function PostPage({ params }: { params: Promise<{ slug:stri
     );
   }
 
+  const jsonLd = blogPostingJsonLd(post);
+
   return (
     <div className="content-container content-container-standard">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article data-title={post.title}>
         <header>
           <h1>{post.title}</h1>
