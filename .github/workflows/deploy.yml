@@ -4,6 +4,10 @@ name: Deploy
 on:
   push:
     branches: [main]
+    # 只改文档不重新构建线上站点
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
   workflow_dispatch:
 
 # 本工作流不检出代码、不调用 GitHub API，令牌不需要任何权限
