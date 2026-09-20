@@ -6,6 +6,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# 本工作流不检出代码、不调用 GitHub API，令牌不需要任何权限
+permissions: {}
+
 concurrency:
   group: deploy-production
   cancel-in-progress: false
@@ -16,11 +19,14 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Deploy to production
-        uses: appleboy/ssh-action@v1
+        # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          # 校验服务器主机密钥，防止连接被劫持到冒名主机
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
           command_timeout: 15m
           script: |
             # 任何一步失败立即中止：拉取失败时绝不能用旧代码继续构建并报告成功
