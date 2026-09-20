@@ -1,0 +1,40 @@
+name: Deploy
+
+# 推送到 main 即部署到 VPS。服务器上的检出目录只用于部署，不在那里编辑。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          command_timeout: 15m
+          script: |
+            # 任何一步失败立即中止：拉取失败时绝不能用旧代码继续构建并报告成功
+            set -euo pipefail
+            cd /home/deploy/antelacus
+            git fetch --prune origin
+            git checkout main
+            # 只允许快进：服务器上的检出若被改动过，宁可失败也不覆盖
+            git merge --ff-only origin/main
+            echo "deploying $(git rev-parse --short HEAD)"
+            # 构建成功后才替换容器；构建失败时旧容器继续服务
+            docker compose up -d --build
+            for i in $(seq 1 20); do
+              if curl -fsS -o /dev/null http://localhost:3002/; then echo "healthy after $((i*3))s"; exit 0; fi
+              sleep 3
+            done
+            echo "health check failed"; docker compose logs --tail 60; exit 1
