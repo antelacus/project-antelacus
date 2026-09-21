@@ -48,11 +48,12 @@
 验收测试已写红（`2ae10fb`）：`npm test` 里 17 个 `todo`，按批次转正——某批完成 = 去掉它名下测试的 `todo` 标记且全绿；`npm run test:runtime` 需要一个运行中的服务。关版条件之一：`todo 0`。
 
 ### Batch 1 — 部署闸门
-- 状态：open
+- 状态：done `dac7cc0`
 - 范围：`.github/workflows/check.yml`（新，可被调用：lint、`tsc`、`npm test`、文档预算 + 工具包测试）、`.github/workflows/deploy.yml`（`check` 任务调用它并声明 `contents: read`，`deploy` 任务 `needs: check`）· 覆盖 REQ §5.1
 - 验收判据：§5.1-a 一个带类型错误的临时 PR，其闸门运行为红；§5.1-b `deploy.yml` 里 `deploy` 依赖 `check`，且本批的 PR 运行里闸门为绿
 - 依赖：none
 - 备注：构建、中间件清单断言、运行时验收这三步在 Batch 3 加入闸门——在那之前它们必然为红
+- 证据：绿——运行 35565503630（32 个测试：15 过、17 todo；预算 4 份；工具包 13 个测试）；红——临时 PR #3 的运行 35565619395 停在 `tsc`，报出故意放入的类型错误，后续步骤跳过，PR 已关闭、分支已删。`deploy` 对 `check` 的依赖由解析 `deploy.yml` 得到；它在 `main` 上的第一次真实运行发生在本版合并时
 
 ### Batch 2 — 路由规则（纯函数）
 - 状态：open
