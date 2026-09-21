@@ -90,13 +90,13 @@ Update this file when:
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
 
-Who rules on what: TD-005 is a hotfix (v2.1.4). Every other item below goes to **Phase 0 of v2.2.0**, which takes each one into scope, accepts it, or declines it — none of them is parked.
+Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes each one into scope, accepts it, or declines it — none of them is parked.
 
-### TD-005 - Next 15.4.8 and 12 other production dependencies carry known vulnerabilities
+### TD-005 - Five production dependency advisories remain, each behind a major upgrade
 
-- Status: `Open` · Severity: `Critical` · Area: `dependencies` · Identified: `2026-09-21`
-- Context: `npm audit --omit=dev` reports 13 (2 critical, 8 high). Direct ones: `next` (server-action source exposure, DoS; fixed in 15.5.25), `next-mdx-remote` (see TD-006), `sharp`, `image-size`, `next-intl` (open-redirect path not reachable here: its middleware/navigation are not imported).
-- Recommended follow-up: hotfix — `next` to 15.5.x plus `npm audit fix`, on its own so a regression is attributable.
+- Status: `Open` · Severity: `High` · Area: `dependencies` · Identified: `2026-09-21`
+- Context: after v2.1.4 (`next` 15.5.25 + `npm audit fix`), `npm audit --omit=dev` reports 5: `next` (moderate) and `postcss` via `next` (high) — fixed only in Next 16; `next-mdx-remote` (high — see TD-006); `sharp` (high, fixed in 0.35 — nothing imports it, Next uses it for image optimisation); `next-intl` (moderate, fixed in 4.14.5 — its open-redirect path is not reachable here because its middleware and navigation are not imported).
+- Recommended follow-up: `next-intl` and `sharp` bumps are small and can ride v2.2.0; Next 16 is its own version.
 
 ### TD-006 - Database content is compiled and executed as code on the server
 

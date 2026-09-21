@@ -4,6 +4,11 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.1.4 - 2026-09-21
+
+### Security
+- Upgraded Next.js from 15.4.8 to 15.5.25 (server-action source exposure and denial-of-service advisories) and applied the non-breaking dependency fixes. Known production vulnerabilities went from 13 (2 critical) to 5 (none critical); the remaining five need major upgrades and are tracked as TD-005.
+
 ## v2.1.3 - 2026-09-21
 
 ### Security
