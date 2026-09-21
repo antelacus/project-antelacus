@@ -2,6 +2,11 @@
 //   BASE_URL=http://localhost:3000 npm run test:runtime          — a local build; pages that need the database are left out
 //   BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime — production, everything
 // A build's route table is not evidence of cacheability; these response headers are.
+//
+// A local server needs no database for this subset. Build and start it with placeholder values:
+//   export NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=dummy \
+//          SUPABASE_SERVICE_ROLE_KEY=dummy SUPABASE_ADMIN_EMAILS=owner@example.com
+//   npx next build && npx next start -p 3917 &      then   BASE_URL=http://localhost:3917 npm run test:runtime
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
