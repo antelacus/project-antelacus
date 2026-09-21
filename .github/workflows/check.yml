@@ -1,0 +1,35 @@
+name: Check
+
+# 闸门：任何分支的推送与 PR 都跑；deploy.yml 也调用它，过了才部署。
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # 与 Dockerfile 的基础镜像一致
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+      - name: Doc budgets
+        run: python3 scripts/check_doc_budget.py
+      - name: Doc-budget checker's own tests
+        run: pipx run pytest scripts/tests -q

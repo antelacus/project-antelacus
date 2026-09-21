@@ -10,7 +10,7 @@ on:
       - 'docs/**'
   workflow_dispatch:
 
-# 本工作流不检出代码、不调用 GitHub API，令牌不需要任何权限
+# 默认不给令牌任何权限；只有检出代码的 check 任务单独要 contents: read
 permissions: {}
 
 concurrency:
@@ -18,7 +18,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # 闸门不过就不部署。被调用的工作流不能提升权限，所以在这里（调用方）声明
+  check:
+    uses: ./.github/workflows/check.yml
+    permissions:
+      contents: read
+
   deploy:
+    needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
