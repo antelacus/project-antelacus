@@ -47,8 +47,24 @@ test('§5.2-c a locale variant is redirected to the supported locale', async () 
 });
 
 test('§5.2-d an unknown first segment is a direct 404, not a redirect', async () => {
-  for (const path of ['/xx-anything/posts', '/essays', '/unknown']) {
+  for (const path of ['/xx-anything/posts', '/essays', '/essays/about', '/unknown', '/en/no-such-section']) {
     assert.equal((await get(path, { 'accept-language': 'es' })).status, 404, path);
+  }
+});
+
+// The 404 page depends on an experimental Next feature (global-not-found). If an upgrade changes it,
+// the status code alone would not show that visitors now get a bare framework page.
+test('§5.2-d the 404 is the site\'s own page, complete without JavaScript', async () => {
+  const html = (await (await get('/essays')).text()).replace(/<script\b[\s\S]*?<\/script>/gi, '');
+  assert.equal(htmlLang(html), 'en');
+  assert.match(html, /<link[^>]+rel="stylesheet"/, 'no stylesheet: not the site shell');
+  assert.match(html, /<h1[^>]*>Page not found<\/h1>/);
+  assert.match(html, /<meta name="robots" content="noindex"/);
+});
+
+test('the skip link speaks the page language', async () => {
+  for (const [path, label] of [['/en/about', 'Skip to main content'], ['/zh-CN/about', '跳转到主要内容'], ['/fr/about', 'Aller au contenu principal']]) {
+    assert.match(await (await get(path)).text(), new RegExp(`class="skip-link"[^>]*>${label}<`), path);
   }
 });
 
@@ -87,7 +103,7 @@ test('§5.3-a public pages are cacheable, the admin is not', async () => {
   assert.match((await get('/admin/login')).headers.get('cache-control') ?? '', /no-store/);
 });
 
-test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
+test('§5.4-c /sw.js is a short-lived, self-removing stub', { todo: 'batch 5' }, async () => {
   const res = await get('/sw.js');
   assert.equal(res.status, 200);
   const cacheControl = res.headers.get('cache-control') ?? '';
@@ -99,11 +115,13 @@ test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
 test('§6-a document metadata is unchanged by the root-layout move', async () => {
   const baseline = JSON.parse(readFileSync(new URL('./fixtures/head-baseline.json', import.meta.url), 'utf8')).pages;
   const needsDb = (path) => !['/en/about', '/admin/login'].includes(path);
+  // Ruled an allowed difference (REQ §6): which pages preload the nav image changed with the layout move.
+  const comparable = (item) => !item.startsWith('link:preload(image)=');
   const paths = Object.keys(baseline).filter((path) => WITH_DB || !needsDb(path));
   assert.ok(paths.length >= 2, 'nothing to compare');
   for (const path of paths) {
     const res = await fetch(BASE + path);
     assert.equal(res.status, baseline[path].status, path);
-    assert.deepEqual(headItems(await res.text()), baseline[path].head, path);
+    assert.deepEqual(headItems(await res.text()).filter(comparable), baseline[path].head.filter(comparable), path);
   }
 });

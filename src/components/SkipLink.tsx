@@ -10,7 +10,7 @@
 
 "use client";
 
-export default function SkipLink() {
+export default function SkipLink({ label }: { label: string }) {
   const handleSkipToMain = () => {
     const mainElement = document.getElementById('main-content');
     if (mainElement) {
@@ -73,7 +73,7 @@ export default function SkipLink() {
         e.currentTarget.style.boxShadow = '0 4px 12px rgba(180, 42, 30, 0.15), 0 2px 4px rgba(180, 42, 30, 0.1)';
       }}
     >
-      跳转到主要内容
+      {label}
     </a>
   );
 }

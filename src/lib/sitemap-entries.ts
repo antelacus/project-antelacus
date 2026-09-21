@@ -43,7 +43,9 @@ function page(urlPath: string, lastModified?: string | Date, priority?: number):
   };
 }
 
-export default async function sitemap(): Promise<SitemapEntry[]> {
+// Deliberately not `app/sitemap.ts`: a file of that name is itself a route generated at build time,
+// which would make the build need the database.
+export async function getSitemapEntries(): Promise<SitemapEntry[]> {
   const entries: SitemapEntry[] = [];
 
   // Static top-level pages for each locale

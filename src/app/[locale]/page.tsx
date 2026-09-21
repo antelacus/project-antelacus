@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 import { getAllPostsMeta } from '@/lib/posts';
 import { getAllNotesMeta } from '@/lib/notes';
 import { getAllPhotosMeta } from '@/lib/gallery';
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function LocalizedHome({ params }: { params: Promise<{ locale: string }> }) {
-  await params;
+  const { locale } = await params;
+  setRequestLocale(locale);
   const [posts, notes, photos, projects] = await Promise.all([
     getAllPostsMeta(),
     getAllNotesMeta(),

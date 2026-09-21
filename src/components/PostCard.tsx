@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { PostMeta } from '../lib/posts';
 import { useState, useEffect } from 'react';
+import { isSupportedLocale } from '@/i18n/routing';
 
 interface PostCardProps {
   post: PostMeta;
@@ -17,7 +18,7 @@ export default function PostCard({ post, layout = 'vertical', compact = false, s
   // Fallback-safe current path when rendering during SSR/hydration
   const currentPath = usePathname?.() || pathname || '/';
   const currentLocale = (currentPath.split('/')[1] || '');
-  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');

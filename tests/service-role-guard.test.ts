@@ -28,7 +28,7 @@ function importsServiceRole(path: string): boolean {
 }
 
 test('only the admin guard imports the service-role client', () => {
-  const files = [...sourceFiles(join(ROOT, 'src')), join(ROOT, 'middleware.ts')];
+  const files = sourceFiles(join(ROOT, 'src'));
   assert.ok(files.length > 50, `scanned ${files.length} files — the scan itself looks broken`);
 
   const importers = files.filter(importsServiceRole).map((path) => relative(ROOT, path));

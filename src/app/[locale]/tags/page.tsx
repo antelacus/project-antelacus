@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import { setRequestLocale } from 'next-intl/server';
 
 import { getTagSummaries } from '@/lib/tags';
 
 export default async function TagsIndexLocalePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const tags = await getTagSummaries();
 
   return (

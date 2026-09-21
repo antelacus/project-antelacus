@@ -15,8 +15,9 @@
 |-------------|---------|----------|
 | `src/i18n/routing.ts` | 支持的语言、默认语言、**公开栏目清单**（`/<语言>/` 之下的一级路径名）——三者的唯一来源 | infra |
 | `src/i18n/detect.ts` | 把语言标签（路径段、`Accept-Language`）归到支持的语言；归不到则为空 | core |
-| `src/i18n/route-decision.ts`（新） | **语言路由的全部规则**：路径、`Accept-Language`、记住的选择 → 「放行」或「308 到某地址」 | core |
+| `src/i18n/route-decision.ts`（新） | **语言路由的全部规则**：路径、`Accept-Language`、记住的选择 → 「放行」「308 到某地址」或「不存在」 | core |
 | `src/middleware.ts`（由根目录移入） | 薄壳：排除名单 → `/admin`、`/auth` 走会话续期 → 其余执行 `route-decision` 的结论。自身不含规则 | IO |
+| `src/app/global-not-found.tsx`（新） | 全站唯一的 404 页：英文、站点外壳（`SiteDocument`）、无导航；构建时生成一次 | infra |
 | `src/app/site-metadata.ts`（新） | 全站的 `metadata` 与 `viewport` 对象（由现根布局原样搬来） | infra |
 | `src/components/SiteDocument.tsx`（新） | `<html lang>`、`<head>`、`<body>` 的公共外壳：全局 CSS、KaTeX 样式、字体变量与预载都在这里引入；`lang` 由调用方传入 | infra |
 | `src/app/[locale]/layout.tsx` | **公开站点的根布局**：校验语言（不支持 → `notFound()`）、`setRequestLocale`、用 `SiteDocument` 输出 `lang`、挂导航与翻译；导出 `metadata`、`viewport` | IO |
@@ -45,7 +46,8 @@
    - 是支持的语言 → 放行。
    - 为空，或在公开栏目清单里（`posts`、`about`…）→ 没有前缀：308 到 `/<语言>/<原路径>`，语言取 记住的选择 → `Accept-Language` → `en`。
    - 能归到支持的语言的变体（`zh-tw`、`en-US`）→ 308 到对应语言。
-   - 其余一切（`xx-anything`、`essays`）→ 放行；它落进 `[locale]`，根布局判为 404。原请求直接得到 404，不经重定向。
+   - 其余一切（`xx-anything`、`essays`）→ 「不存在」：中间件把请求改写到一个匹配不到任何路由的地址，Next 以 `global-not-found` 作答。原请求直接得到 404，不经重定向，不渲染任何页面。
+   - 支持的语言之下的未知栏目（`/en/garbage`）本来就匹配不到路由，得到同一张 404 页。
 
 变体的判定按语言标签的**主标签**精确匹配（`en-US` 的主标签是 `en`），不按字符串前缀——不用「以 es 开头」来判，那会把 `/essays` 带到 `/es`（实测现行代码正是如此）。栏目按清单查，不猜。
 
@@ -58,7 +60,7 @@
 - CI：`check.yml` 由 PR 与所有分支的推送触发，并被 `deploy.yml` 调用。
 
 ## 4 模块间契约
-- `decideLocaleRoute(input: { pathname: string; acceptLanguage: string | null; preferredLocale: string | null }): { kind: 'pass' } | { kind: 'redirect'; pathname: string }`
+- `decideLocaleRoute(input: { pathname: string; acceptLanguage: string | null; preferredLocale: string | null }): { kind: 'pass' } | { kind: 'redirect'; pathname: string } | { kind: 'not-found' }`
   - 纯函数，无 IO，不抛错；任何畸形输入都落到「没有偏好」。
   - `preferredLocale` 不是支持的语言时当作 `null`。
   - 重定向只改路径，查询串由中间件原样带上。
@@ -73,7 +75,7 @@ N/A —— 本版不改数据库结构。
 
 ## 6 异常流
 - `Accept-Language` 缺失或畸形 → 按无偏好处理，落到 `en`。
-- 不支持的语言前缀、未知的顶级路径 → `[locale]` 根布局 `notFound()`，状态码 404，页面用英文外壳。
+- 不支持的语言前缀、未知的顶级路径 → 由 `route-decision` 判为「不存在」，状态码 404，页面为 `global-not-found`。`[locale]` 根布局里的 `notFound()` 只是兜底，任何行为不得依赖它。
 - `/admin`、`/auth` 的会话续期失败（Supabase 不可达）→ 放行，由页面自己的管理员校验决定去向（fail-closed 在校验处，不在中间件）。
 - 保存成功但缓存失效调用抛错 → 保存仍算成功，错误上抛到后台页面显示；内容最迟一小时后自行可见。不回滚保存：内容已落库是事实，缓存只是延迟。
 - 闸门里任一步失败 → 后续步骤与部署都不执行。
@@ -93,6 +95,12 @@ N/A —— 本版不改数据库结构。
 - **Next.js**：`metadata` 与 `viewport` 是路由段的导出，不能放进组件；两个根布局都得各自导出。
 - **Next.js**：动态段的页面要在首次访问后被缓存，必须导出 `generateStaticParams`（可返回空数组）。
 - **Next.js**：`app/` 下名为 `sitemap.ts` 的文件本身就是一条在构建期生成的路由；要让 sitemap 在请求时生成，它不能以这个名字留在 `app/` 里。
+- **Next.js**：`[locale]` 本身也是动态段——根布局同样要导出 `generateStaticParams`（空数组），否则其下的列表页按请求渲染，运行时为 `no-store`（实测）。
+- **Next.js**：`loading.tsx` 会在**同级布局之外**再包一层 Suspense。没有顶层布局时，放在 `app/` 下的 `loading.tsx` 包住了根布局：加载占位先于 `<html>` 流出、状态码已是 200，根布局的 `notFound()` 来不及改成 404（实测）。故它放在 `[locale]/` 下。
+- **Next.js**：布局与页面并行渲染。根布局 `notFound()` 时页面仍会渲染；页面抛错则整个响应是 500 而非 404（实测）。
+- **Next.js**：静态渲染的页面里，客户端组件调用 `useSearchParams()` 而其上没有 Suspense 边界，运行时为 500。导航在每个页面上，故它及其子组件不用这个 hook。
+- **Next.js**：根布局里调用 `notFound()` 是框架不鼓励的用法（15.5 的开发模式有专门的守卫，Next 16 禁止）。404 不得建立在它之上。
+- **Next.js**：`global-not-found` 是 15.5 的实验性功能（`experimental.globalNotFound`），是官方为「多个根布局」与「顶层动态段作根布局」给出的 404 方案——本项目两条都占。它不经任何布局，须自带整份文档。运行时验收断言这张页面是站点自己的页面；升级 Next 时若行为有变，闸门会红。
 - **next-intl**：`NextIntlClientProvider` 在服务端渲染时会经请求头解析语言，除非此前调用过 `setRequestLocale`。不调用的后果不是报错，而是页面在运行时静默地变成 `no-store`。
 - **浏览器**：Service Worker 的更新检查发生在访客再次打开站点时；距上次取脚本超过 24 小时，这次检查会绕过 HTTP 缓存，`immutable` 不妨碍它。所以回访的老访客会拿到新脚本；不再回访的访客不受影响，也无需处理。新脚本须在安装时跳过等待、激活时接管页面，否则会在旧页面开着时一直等待。
 - **Cloudflare**：默认不缓存 HTML。本版的「可缓存」指应用自身复用已生成的页面。

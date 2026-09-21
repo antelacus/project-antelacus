@@ -2,7 +2,7 @@ import { mapLanguageTag, normalizeToSupportedLocale } from './detect';
 import { isSupportedLocale, localizedSections, type AppLocale } from './routing';
 
 export type LocaleRouteInput = { pathname: string; acceptLanguage: string | null; preferredLocale: string | null };
-export type LocaleRouteDecision = { kind: 'pass' } | { kind: 'redirect'; pathname: string };
+export type LocaleRouteDecision = { kind: 'pass' } | { kind: 'redirect'; pathname: string } | { kind: 'not-found' };
 
 const PASS: LocaleRouteDecision = { kind: 'pass' };
 
@@ -21,8 +21,9 @@ export function decideLocaleRoute({ pathname, acceptLanguage, preferredLocale }:
   const variant = mapLanguageTag(first);
   if (variant) return redirect(variant, `/${rest.join('/')}`);
 
-  // Anything else is neither a language nor a section: let it fall through to the 404.
-  return PASS;
+  // Neither a language nor a section. Decided here rather than passed on: `[locale]` would match it,
+  // and a 404 raised from there still renders the page (database reads, a cache entry per junk URL).
+  return { kind: 'not-found' };
 }
 
 function redirect(locale: AppLocale, rest: string): LocaleRouteDecision {

@@ -1,9 +1,12 @@
-import generateSitemap from '../sitemap';
+import { getSitemapEntries } from '@/lib/sitemap-entries';
+
+// Generated per request; the data behind it is cached by the loaders. A static handler would run at build time.
+export const dynamic = 'force-dynamic';
 
 // Custom XML renderer to ensure correct namespaces expected by Google
 // Uses http:// schema URIs per sitemaps.org and W3C specs
 export async function GET() {
-  const entries = await generateSitemap();
+  const entries = await getSitemapEntries();
 
   const xmlParts: string[] = [];
   xmlParts.push('<?xml version="1.0" encoding="UTF-8"?>');

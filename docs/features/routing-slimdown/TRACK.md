@@ -29,6 +29,9 @@
   - 2026-09-21 · Codex 设计门十一条发现：十条采纳、SHOULD-1 驳回 · Jason · 级联：DESIGN 全篇
   - 2026-09-21 · REQ 增加「外观与 `<head>` 不变」一条要求（由 MUST-5 引出）· Jason · 级联：REQ §6
   - 2026-09-21 · `development` 分支退役：本版的 PR 直接合入 `main`，关版时删除该分支并改 `CLAUDE.md` 的分支约定 · Jason · 级联：REQ §5.5、Phase 6 boxes
+  - 2026-09-21 · §6-a 多出的导航图片预加载（`link rel=preload as=image`）接受为允许的差异 · Jason · 级联：REQ §6、`tests/runtime/acceptance.runtime.mjs`
+  - 2026-09-21 · 404 由 `route-decision` 判定（新增「不存在」结论），页面用 `global-not-found`：站点外壳、英文、无导航；文案采用默认稿 · Jason · 级联：DESIGN §2、§4、§6、§8，REQ §5.2 规则 4
+  - 2026-09-21 · SkipLink 文案随页面语言（`utility.skip_to_content`）· Jason · 级联：`src/messages/*.json`
 
 **Phase 0 记录**
 
@@ -63,10 +66,13 @@
 - 依赖：Batch 1
 
 ### Batch 3 — 中间件与根布局搬迁
-- 状态：open
+- 状态：in-progress（未提交）——范围内各项与两条裁定均已做完，待提交、推送后看闸门
 - 范围：`src/middleware.ts`（移入并改为薄壳，排除 `og.png` 后缀）；`src/app/site-metadata.ts`、`src/components/SiteDocument.tsx`（新）；`src/app/[locale]/layout.tsx`、`src/app/admin/layout.tsx` 成为根布局；详情页实现搬入 `[locale]`，全部页面 `setRequestLocale`，详情页 `generateStaticParams` 返回空；删除顶层布局、顶层 not-found、重定向空壳；`src/app/sitemap.ts` → `src/lib/sitemap-entries.ts`；八处写死的语言列表改读 `routing.ts`；闸门加入构建 + 清单断言 + 运行时验收（本地子集）· 覆盖 REQ §5.2、§5.3-a、§6-a
 - 验收判据：`invariant 2a / 2b / 3` 转正；对本地构建的服务 `npm run test:runtime` 全绿（不读数据库的子集）；闸门里构建在假环境变量下完成且清单含中间件入口
 - 依赖：Batch 2
+- 证据（本地，假环境变量，删 `.next` 后构建 → `next start`）：`npm test` 26 过、0 败、6 todo（`invariant 2a / 2b / 3` 由红转绿）；构建无数据库完成，清单入口 `["/"]`；运行时 12 条：11 过、1 todo（§5.4-c，Batch 5）；§6-a 在裁定后转绿（两页 28、35 项全同）；`/essays` 等五个地址 404 且不再需要数据库；20 个垃圾地址不留缓存、不读库（实验中测得）。§5.3-a 先红后绿：`/en/about` 由 `no-store` 变为 `s-maxage` + `HIT`，`/admin/login` 为 `no-store`
+- 设计未预见、已按实测处理（见 DESIGN §8）：`loading.tsx` 移入 `[locale]`；`[locale]` 布局导出空的 `generateStaticParams`；`UtilityDropdown` 去掉 `useSearchParams`
+- `locales` 的顺序改为语言菜单的顺序（`es` 在 `fr` 前），菜单外观不变
 
 ### Batch 4 — 新鲜度与语言记忆
 - 状态：open

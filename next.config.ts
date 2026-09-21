@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
   // Enable experimental features for better performance
   experimental: {
     optimizePackageImports: ['next'],
+    // The site's 404 page (src/app/global-not-found.tsx): there is no single root layout to hang a not-found.tsx on.
+    globalNotFound: true,
   },
 
   // Image optimization settings

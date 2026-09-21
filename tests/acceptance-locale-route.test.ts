@@ -11,6 +11,7 @@ const decide = (input: Pick<LocaleRouteInput, 'pathname'> & Partial<LocaleRouteI
 
 const redirectTo = (pathname: string): LocaleRouteDecision => ({ kind: 'redirect', pathname });
 const pass: LocaleRouteDecision = { kind: 'pass' };
+const notFound: LocaleRouteDecision = { kind: 'not-found' };
 
 test('acceptance §5.2-a supported locale prefixes pass through', () => {
   assert.deepEqual(decide({ pathname: '/en/posts' }), pass);
@@ -31,10 +32,12 @@ test('acceptance §5.2-c locale variants redirect to the supported locale, path 
   assert.deepEqual(decide({ pathname: '/zh-Hans/notes/some-slug' }), redirectTo('/zh-CN/notes/some-slug'));
 });
 
-test('acceptance §5.2-d unknown first segments are passed on to become a direct 404', () => {
-  for (const pathname of ['/xx-anything/posts', '/essays', '/friends', '/english-notes', '/unknown', '/de/posts']) {
-    assert.deepEqual(decide({ pathname, acceptLanguage: 'es' }), pass, pathname);
+test('acceptance §5.2-d unknown first segments are a direct 404, decided here and not by a page', () => {
+  for (const pathname of ['/xx-anything/posts', '/essays', '/essays/about', '/friends', '/english-notes', '/unknown', '/de/posts']) {
+    assert.deepEqual(decide({ pathname, acceptLanguage: 'es', preferredLocale: 'fr' }), notFound, pathname);
   }
+  // Under a supported locale the router decides: an unknown section there matches no route.
+  assert.deepEqual(decide({ pathname: '/en/garbage' }), pass);
 });
 
 test('acceptance §5.2-e language tags map by primary subtag, never by string prefix', () => {

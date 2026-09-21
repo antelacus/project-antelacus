@@ -1,4 +1,5 @@
 import { getAllPhotosMeta } from '@/lib/gallery';
+import { setRequestLocale } from 'next-intl/server';
 import PhotoCard from '@/components/PhotoCard';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
@@ -14,7 +15,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function GalleryPage() {
+export default async function GalleryPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const photos = await getAllPhotosMeta();
   
   return (

@@ -1,3 +1,5 @@
+import { locales } from '@/i18n/routing';
+
 const SITE_URL = 'https://antelacus.com';
 const SITE_NAME = 'AnteLacus';
 
@@ -8,7 +10,7 @@ export function websiteJsonLd() {
     name: SITE_NAME,
     url: SITE_URL,
     description: 'Ante Lacus, Pax Mentis',
-    inLanguage: ['zh-CN', 'zh-HK', 'en', 'fr', 'es'],
+    inLanguage: [...locales],
   };
 }
 

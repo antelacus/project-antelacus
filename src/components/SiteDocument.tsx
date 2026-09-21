@@ -1,89 +1,24 @@
-import './globals.css';
+import '@/app/globals.css';
 import 'katex/dist/katex.min.css';
 import React from 'react';
-import { cookies } from 'next/headers';
-import PerformanceMonitor from '../components/PerformanceMonitor';
-import SkipLink from '../components/SkipLink';
-import type { Metadata, Viewport } from 'next';
-import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from './fonts';
-import { isSupportedLocale, defaultLocale } from '@/i18n/routing';
+import PerformanceMonitor from './PerformanceMonitor';
+import SkipLink from './SkipLink';
+import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from '@/app/fonts';
+import type { AppLocale } from '@/i18n/routing';
+import { getMetaMessage } from '@/lib/seo';
 import { websiteJsonLd } from '@/lib/structured-data';
 
-export const metadata: Metadata = {
-  title: {
-    default: 'AnteLacus',
-    template: '%s | AnteLacus',
-  },
-  description: 'Ante Lacus, Pax Mentis',
-  metadataBase: new URL('https://antelacus.com'),
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  verification: {
-    google: process.env.SITE_VERIFICATION_GOOGLE || undefined,
-    other: {
-      ...(process.env.SITE_VERIFICATION_BING ? { 'msvalidate.01': process.env.SITE_VERIFICATION_BING } : {}),
-      ...(process.env.SITE_VERIFICATION_BAIDU ? { 'baidu-site-verification': process.env.SITE_VERIFICATION_BAIDU } : {}),
-    },
-  },
-  openGraph: {
-    title: 'AnteLacus',
-    description: 'Ante Lacus, Pax Mentis',
-    siteName: 'AnteLacus',
-    type: 'website',
-    images: [
-      {
-        url: '/og.png',
-        width: 1200,
-        height: 630,
-        alt: 'Ante Lacus, Pax Mentis',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'AnteLacus',
-    description: 'Ante Lacus, Pax Mentis',
-    images: ['/og.png'],
-  },
-  icons: {
-    icon: '/images/common/logo-icon.svg',
-    shortcut: '/images/common/logo-icon.svg',
-    apple: '/images/common/logo-icon.svg',
-  },
-};
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-  viewportFit: 'cover',
-  themeColor: '#F9F8F6',
-};
-
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
-  const lang = isSupportedLocale(cookieLocale) ? cookieLocale : defaultLocale;
+// The document shell shared by the two root layouts. It must not read the request (cookies, headers):
+// the caller passes `lang`, which keeps every public page cacheable.
+export default async function SiteDocument({ lang, children }: { lang: AppLocale; children: React.ReactNode }) {
+  // Rendered above the translation provider, so the one string the shell shows is read here.
+  const skipLabel = await getMetaMessage(lang, 'utility.skip_to_content');
   return (
     <html
       lang={lang}
       className={`${cormorantGaramond.variable} ${sourceSerif4.variable} ${jetbrainsMono.variable} ${sourceHanSerif.variable}`}
     >
+      {/* eslint-disable-next-line @next/next/no-head-element -- this IS the root layouts' document; the rule only knows app/layout.tsx */}
       <head>
         {/* Preload critical fonts for immediate rendering */}
         <link
@@ -145,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <PerformanceMonitor enableDevLogs={process.env.NODE_ENV === 'development'} />
-        <SkipLink />
+        <SkipLink label={skipLabel} />
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>

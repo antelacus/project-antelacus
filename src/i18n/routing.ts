@@ -1,9 +1,10 @@
+// The order is the order of the language menu.
 export const locales = [
   'zh-CN',
   'zh-HK',
   'en',
-  'fr',
   'es',
+  'fr',
 ] as const;
 
 export type AppLocale = typeof locales[number];

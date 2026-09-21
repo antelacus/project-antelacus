@@ -28,7 +28,7 @@ function walk(node: ts.Node, visit: (node: ts.Node) => void) {
 
 const allSources = sourceFiles(join(ROOT, 'src'));
 
-test('invariant 2a — only admin/auth code reads the request (next/headers)', { todo: 'batch 3' }, () => {
+test('invariant 2a — only admin/auth code reads the request (next/headers)', () => {
   assert.ok(allSources.length > 50, `scanned ${allSources.length} files — the scan looks broken`);
   // Reading cookies or headers anywhere on the public render path turns every page into no-store.
   const allowed = (path: string) =>
@@ -41,7 +41,7 @@ test('invariant 2a — only admin/auth code reads the request (next/headers)', {
   assert.deepEqual(offenders, []);
 });
 
-test('invariant 2b — every layout and page under [locale] calls setRequestLocale', { todo: 'batch 3' }, () => {
+test('invariant 2b — every layout and page under [locale] calls setRequestLocale', () => {
   // Without it next-intl resolves the locale from request headers and the page silently becomes no-store.
   const entries = sourceFiles(join(ROOT, 'src/app/[locale]')).filter((path) => /\/(layout|page)\.tsx$/.test(path));
   assert.ok(entries.length >= 10, `found ${entries.length} layouts/pages under [locale] — the scan looks broken`);
@@ -56,7 +56,7 @@ test('invariant 2b — every layout and page under [locale] calls setRequestLoca
   assert.deepEqual(missing.map(rel), []);
 });
 
-test('invariant 3 — the supported locales are listed only in src/i18n/routing.ts', { todo: 'batch 3' }, () => {
+test('invariant 3 — the supported locales are listed only in src/i18n/routing.ts', () => {
   const offenders = allSources
     .filter((path) => rel(path) !== 'src/i18n/routing.ts')
     .filter((path) => {

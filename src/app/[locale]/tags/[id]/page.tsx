@@ -1,4 +1,5 @@
 import { getContentByTag } from '@/lib/tags';
+import { setRequestLocale } from 'next-intl/server';
 import PostCard from '@/components/PostCard';
 import NoteCard from '@/components/NoteCard';
 import PhotoCard from '@/components/PhotoCard';
@@ -20,7 +21,8 @@ export async function generateMetadata({ params }: { params: RouteParams }) {
 }
 
 export default async function TagDetailLocalePage({ params }: { params: RouteParams }) {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
   const tag = decodeURIComponent(id);
   const items = await getContentByTag(tag);
 
