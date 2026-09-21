@@ -123,7 +123,7 @@ Codex 设计门（只读，xhigh，会话 `01a0c1f8-39fd-7ed1-b987-c8eaf35c8267`
 ### Session-end pickup (2026-09-21)
 
 **Working tree state at session close**:
-- Branch: `feat/routing-slimdown`. HEAD (parent of the `/pause` commit landing this pickup): `ef4f146`（Batch 2 记入 TRACK；代码侧最后一笔是 `740c787`）
+- Branch: `feat/routing-slimdown`. HEAD (parent of the `/pause` commit landing this pickup): `075b047`（本 pickup 的初稿；其前 `94e0be5` 补了运行时验收的头注，`ef4f146` 把 Batch 2 记入 TRACK；代码侧最后一笔是 `740c787`）
 - Working tree: clean；分支与 `origin` 一致
 
 **Where work stands**:
