@@ -1,0 +1,21 @@
+#!/bin/sh
+# post-merge hook — dispatcher (non-blocking).
+# Prints Phase 6 arrears (TRACK docs with unchecked release boxes) right after
+# a merge lands, because "merged" reads as "done" and Phase 6 gets forgotten.
+# Never fails the merge: always exits 0.
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+SCRIPT="$REPO_ROOT/.githooks/post-merge.py"
+
+[ -f "$SCRIPT" ] || exit 0
+
+for candidate in python python3; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+        "$candidate" "$SCRIPT" "$REPO_ROOT" || true
+        exit 0
+    fi
+done
+if command -v py >/dev/null 2>&1; then
+    py -3 "$SCRIPT" "$REPO_ROOT" || true
+fi
+exit 0
