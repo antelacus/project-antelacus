@@ -76,15 +76,19 @@
 - `locales` 的顺序改为语言菜单的顺序（`es` 在 `fr` 前），菜单外观不变
 
 ### Batch 4 — 新鲜度与语言记忆
-- 状态：open
-- 范围：`src/app/admin/(protected)/notes/actions.ts`（保存成功后 `revalidateTag('notes')`）、`src/lib/{posts,notes,gallery,projects}.ts`（详情缓存 7200 → 3600）、`src/components/UtilityDropdown.tsx`（手动切换时写 `preferred_locale`）· 覆盖 REQ §5.3-b、§5.2 规则 7
-- 验收判据：`acceptance §5.3-b`、`§5.3 detail data` 转正；浏览器里切换语言后出现该 cookie，再访问 `/` 被带到所选语言
+- 状态：done `11d070b`
+- 范围：`src/app/admin/(protected)/notes/actions.ts`（保存后 `revalidateTag('notes')`）、`src/lib/{posts,notes,gallery,projects}.ts`（详情缓存 7200 → 3600）、`src/components/UtilityDropdown.tsx`（手动切换时写 `preferred_locale`）· 覆盖 REQ §5.3-b、§5.2 规则 7
+- 与开批时的设想不同：保存动作原本就经 `src/lib/server/note-revalidation.ts` 使 `notes` 标签失效，另带二十余条按路径的失效（其中数条指向已不存在的页面）。读笔记的页面都经该标签取数，故只留标签失效、内联进动作，辅助文件删除
+- 证据：`acceptance §5.3-b`、`§5.3 detail data` 转正（`npm test` 28 过、0 败、4 todo）；闸门运行 35572362235 为绿，计数与本地一致
+- 证据（浏览器，本地构建，`Accept-Language: en-US`）：打开 `/fr/about?ref=keepme` 不产生 cookie → 菜单切到简体：地址 `/zh-CN/about?ref=keepme`（查询串保留），cookie `preferred_locale=zh-CN`、`Path=/`、`Secure`、`Lax`、365 天 → 访问 `/about` 落在 `/zh-CN/about` → 直接打开 `/fr/about` 仍为法语。用 `/about` 代替 `/`：本地首页读不了库
+- 未验证（只能上线后做）：REQ §5.3-b 的实测——发布一篇测试笔记，随即访问其详情页与笔记列表
 - 依赖：Batch 3
 
 ### Batch 5 — 瘦身与文档对齐
 - 状态：open
 - 范围：删除 `tests/acceptance-slimdown.test.ts` 的 `REMOVED_FILES` 所列文件、五个 `npm` 脚本、依赖 `ts-node`/`image-size`/`next-tweet`、`src/lib/tags.ts` 的四个无人调用的导出；`public/sw.js` 换成自注销脚本；删 `next.config.ts` 的 `.css|.js` 缓存规则；重写 `CLAUDE.md`；核对 README · 覆盖 REQ §5.4、§5.5
 - 验收判据：`acceptance §5.4-a / -b / -c`、`§5.5-a` 转正；`npm test` 报 `todo 0`；运行时 `§5.4-c` 为绿
+- 候选，待 Jason 裁定：`SiteDocument` 里两条手写的字体预加载（`/fonts/*.woff2`）指向不存在的文件，线上同为 404；字体实际由 `next/font` 自托管并自带预加载。删除会改 `<head>`，需在 REQ §6 增一条允许的差异
 - 依赖：Batch 3
 
 ## 三、门与发布
