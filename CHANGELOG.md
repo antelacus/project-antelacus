@@ -4,6 +4,11 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.1.3 - 2026-09-21
+
+### Security
+- Draft notes could be read without signing in: `/admin/notes` checked the admin only in its layout, and the page streamed its data before the redirect to the login page took effect. The privileged database client is now handed out only after the admin check. No draft existed while the flaw was live.
+
 ## v2.1.0 - 2026-03-19
 
 ### Added
