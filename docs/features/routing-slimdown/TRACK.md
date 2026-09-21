@@ -123,6 +123,16 @@ Codex 设计门（只读，xhigh，会话 `01a0c1f8-39fd-7ed1-b987-c8eaf35c8267`
 - 静态化：根布局不读 cookie 后，构建的路由表把关于页标为 `●`，**但运行时它与首次访问生成的 `/fr/about` 的响应头都是 `no-store`**；在 `[locale]` 布局里加 `setRequestLocale(locale)` 后，二者都变为 `s-maxage=…`，首次 `MISS`、再次 `HIT`。⇒ MUST-1 成立；且**构建的路由表不能作为「可缓存」的证据，只有运行时的响应头可以**。
 - 去掉 `sitemap.ts` 这个构建期路由后，构建在没有 Supabase 的情况下完成。⇒ MUST-3 的方向可行。
 
+Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 `01a0c2f6-46ea-7493-b335-12b0f131e32e`，用时 88 分钟；对象 = `6b112a5` 的 `src/i18n/route-decision.ts` 与 `src/middleware.ts`）。五条引文均已对过源码，一致；「实测」为评审之后对本地构建的服务所做：
+- MUST-1：`config.matcher` 按**前缀**排除（`api`、`images`、`fonts`、`favicon`、`_next`、`sitemap.xml`、`sw.js`、`ads.txt`），`/apiary`、`/imagesfoo`、`/sw.jsx` 等因此绕过 `decideLocaleRoute`，落进 `[locale]` —— status: open · 实测：上述地址本地均为 500（首页读库失败），`/api/nope` 为 404 站点页
+- MUST-2：`pathname.startsWith('/admin') || pathname.startsWith('/auth')` 吞掉 `/administrator`、`/authors`，它们不经 404 判定，还白做一次会话续期 —— status: open · 实测：`/administrator`、`/authors`、`/auth` 本地均为 500，`/admin/nope` 为 404 站点页
+- MUST-3：`Accept-Language: fr;bogus` 被当作法语（`;` 之后一律丢弃），而 REQ §7 要求畸形值按无偏好处理 —— status: open · 实测：`fr;bogus` → `/fr/posts`；`bogus`、`;;;` → `/en/posts`
+- SHOULD-1：畸形的语言样路径段（`/en--US/about`、`/zh-/posts`）被当作变体重定向，应为 404 —— status: open · 实测：均 308
+- NICE-1：`/posts//x` 先被 Next 规范化为 `/posts/x`（308），再被带到 `/en/posts/x`（308），两跳 —— status: open · 实测：第一跳属实
+- 覆盖表（17 条验收判据）：覆盖 7；部分 6（§5.2-a、-f、-h，§5.3-b，§5.4-a、-c）；无测试 2（§5.1-a、-b——证据是 Batch 1 记录的两次闸门运行）；只能上线后验 2（§5.3-a、§6-a）
+- 评审确认成立：查询串保留；重定向不出本源、无循环；`preferred_locale` 只认精确的支持语言（`EN` 不认）；各 `og.png` 不被重定向；`/404/unmatched` 不与现有路由相撞
+- 待核，已实测：`/anything/og.png` → 404 站点页；`/%65n/about` → 404 站点页；`/EN/about` → 308 `/en/about`。未测：超长路径、编码斜杠。评审另指出 DESIGN §2.2 的「以 `/og.png` 结尾的任何路径」比 REQ 规则 5 宽
+
 **Phase 4 证据**：尚无。
 
 **Phase 6 boxes**：
