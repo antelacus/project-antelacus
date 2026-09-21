@@ -56,9 +56,10 @@
 - 证据：绿——运行 35565503630（32 个测试：15 过、17 todo；预算 4 份；工具包 13 个测试）；红——临时 PR #3 的运行 35565619395 停在 `tsc`，报出故意放入的类型错误，后续步骤跳过，PR 已关闭、分支已删。`deploy` 对 `check` 的依赖由解析 `deploy.yml` 得到；它在 `main` 上的第一次真实运行发生在本版合并时
 
 ### Batch 2 — 路由规则（纯函数）
-- 状态：open
+- 状态：done `740c787`
 - 范围：`src/i18n/routing.ts`（加公开栏目清单）、`src/i18n/detect.ts`（`mapLanguageTag` 按主标签匹配）、`src/i18n/route-decision.ts`（新）· 覆盖 REQ §5.2 规则 1–4、7
 - 验收判据：`tests/acceptance-locale-route.test.ts` 七条与 `invariant 4` 去掉 `todo` 后全绿；严格 TDD，一次一条
+- 证据：八个 `todo` 转正（`npm test`：23 过、0 败、9 todo）；§5.2-d、§5.2-g 去掉标记即绿，已用变异补证——改回按前缀匹配则 d、e 红，去掉栏目清单则 b、g 红
 - 依赖：Batch 1
 
 ### Batch 3 — 中间件与根布局搬迁
