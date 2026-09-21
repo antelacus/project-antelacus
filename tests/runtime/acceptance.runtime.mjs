@@ -62,6 +62,13 @@ test('§5.2-d the 404 is the site\'s own page, complete without JavaScript', asy
   assert.match(html, /<meta name="robots" content="noindex"/);
 });
 
+test('no page preloads a file that does not exist', async () => {
+  const html = await (await get('/en/about')).text();
+  const preloads = [...html.matchAll(/<link\b[^>]*rel="preload"[^>]*>/gi)].map(([tag]) => /href="([^"]+)"/.exec(tag)?.[1]).filter(Boolean);
+  assert.ok(preloads.length >= 1, 'found no preloads at all — the extraction looks broken');
+  for (const href of preloads) assert.equal((await get(href)).status, 200, href);
+});
+
 test('the skip link speaks the page language', async () => {
   for (const [path, label] of [['/en/about', 'Skip to main content'], ['/zh-CN/about', '跳转到主要内容'], ['/fr/about', 'Aller au contenu principal']]) {
     assert.match(await (await get(path)).text(), new RegExp(`class="skip-link"[^>]*>${label}<`), path);
@@ -115,8 +122,9 @@ test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
 test('§6-a document metadata is unchanged by the root-layout move', async () => {
   const baseline = JSON.parse(readFileSync(new URL('./fixtures/head-baseline.json', import.meta.url), 'utf8')).pages;
   const needsDb = (path) => !['/en/about', '/admin/login'].includes(path);
-  // Ruled an allowed difference (REQ §6): which pages preload the nav image changed with the layout move.
-  const comparable = (item) => !item.startsWith('link:preload(image)=');
+  // Ruled allowed differences (REQ §6): which pages preload the nav image changed with the layout move,
+  // and the two hand-written font preloads pointed at files that never existed (next/font preloads its own).
+  const comparable = (item) => !item.startsWith('link:preload(image)=') && !item.startsWith('link:preload(font)=/fonts/');
   const paths = Object.keys(baseline).filter((path) => WITH_DB || !needsDb(path));
   assert.ok(paths.length >= 2, 'nothing to compare');
   for (const path of paths) {

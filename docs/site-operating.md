@@ -148,12 +148,6 @@
 7. 开通 ConvertKit 欢迎自动邮件
 8. A/B 测试广告密度与页面布局
 
-#### SEO 工具与脚本
-- **SEO 检查脚本** (`scripts/seo-check.cjs`)：验证 sitemap、robots.txt 和页面 metadata
-- **Sitemap 提交指南** (`scripts/submit-sitemap.cjs`)：Google Search Console 操作步骤
-- **Open Graph 图片生成器** (`scripts/generate-og-image.js`)：自动生成社交媒体分享图片
-- **Metadata 验证脚本** (`scripts/validate-metadata.cjs`)：检查 metadata 配置完整性
-
 ### （七）总结
 - 先打基础（技术 SEO + 高价值内容）→ 再扩引流（社媒矩阵）→ 后做变现（广告 + 数字产品 + 会员）
 - 数据驱动迭代，始终兼顾用户体验与收益
@@ -355,39 +349,6 @@
 - **性能分析**: 分析搜索词表现、点击率 (CTR) 和平均排名。
 - **关键词追踪**: 监控核心关键词的排名变化，并据此调整内容策略。
 
-### （五）SEO 工具脚本
+### （五）SEO 检查
 
-项目内置了一系列自动化脚本来辅助 SEO 检查与维护。
-
-#### 1. SEO 配置检查 (`scripts/seo-check.cjs`)
-- **用途**: 验证网站的基本 SEO 配置是否完整。
-- **运行**: `npm run seo:check`
-- **检查项**:
-  - 动态 Sitemap (`/sitemap.xml`) 与 robots.txt 引用
-  - `Robots.txt` 配置是否正确
-  - 关键页面的 Metadata 配置完整性
-
-#### 2. Metadata 验证 (`scripts/validate-metadata.cjs`)
-- **用途**: 深度验证每个页面的元数据配置。
-- **运行**: `npm run seo:validate`
-- **验证项**:
-  - Title 和 Description 是否按要求配置。
-  - Open Graph 和 Twitter Cards 标记是否齐全。
-  - 结构化数据 (JSON-LD) 是否正确实现。
-
-#### 3. Open Graph 图片生成 (`scripts/generate-og-image.js`)
-- **用途**: 自动为网站生成统一风格的社交媒体分享图。
-- **运行**: `npm run seo:og-image`
-- **功能**:
-  - 生成 1200x630 像素的 SVG 格式 OG 图片。
-  - 图片包含网站名称、Slogan 和品牌元素。
-  - 自动保存到 `public/images/og-image.svg`。
-
-#### 4. Sitemap 提交指南 (`scripts/submit-sitemap.cjs`)
-- **用途**: 提供在 Google Search Console 手动提交 Sitemap 的操作指引。
-- **运行**: `npm run seo:submit`
-- **内容**:
-  - 详细的 Search Console 操作步骤。
-
-#### 5. 帖子内容完整性验证 (`scripts/validate-content.ts`)
-- **运行**: `npm run validate:content`
+分享图由 `/og.png` 与各内容的 `og.png` 路由在请求时生成，无需手动制作。`<head>` 里的标题、描述、规范地址、Open Graph 与 Twitter 标签由运行时验收（`npm run test:runtime`）对运行中的服务逐项核对；Sitemap 在 Google Search Console 中提交 `/sitemap.xml`。

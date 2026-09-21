@@ -19,22 +19,6 @@ export default async function SiteDocument({ lang, children }: { lang: AppLocale
     >
       {/* eslint-disable-next-line @next/next/no-head-element -- this IS the root layouts' document; the rule only knows app/layout.tsx */}
       <head>
-        {/* Preload critical fonts for immediate rendering */}
-        <link
-          rel="preload"
-          href="/fonts/cormorant-garamond-v16-latin-500.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preload"
-          href="/fonts/source-serif-4-v8-latin-regular.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        
         {/* Critical CSS for immediate paint */}
         <style dangerouslySetInnerHTML={{
           __html: `

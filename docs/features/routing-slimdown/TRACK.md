@@ -32,6 +32,8 @@
   - 2026-09-21 · §6-a 多出的导航图片预加载（`link rel=preload as=image`）接受为允许的差异 · Jason · 级联：REQ §6、`tests/runtime/acceptance.runtime.mjs`
   - 2026-09-21 · 404 由 `route-decision` 判定（新增「不存在」结论），页面用 `global-not-found`：站点外壳、英文、无导航；文案采用默认稿 · Jason · 级联：DESIGN §2、§4、§6、§8，REQ §5.2 规则 4
   - 2026-09-21 · SkipLink 文案随页面语言（`utility.skip_to_content`）· Jason · 级联：`src/messages/*.json`
+  - 2026-09-21 · 删除两条指向不存在文件的字体预加载；REQ §6 增一条允许的差异 · Jason · 级联：REQ §6、`SiteDocument.tsx`、运行时验收
+  - 2026-09-21 · 重写发布文档：确定并记录四类内容现在如何发布 · Jason · 级联：`docs/content-publishing.md`
 
 **Phase 0 记录**
 
@@ -91,8 +93,8 @@
 - 证据：`npm test` 32 过、**todo 0**；运行时 12 过、todo 0；闸门运行 35572995773 为绿，计数一致。`/sw.js` 响应头 `public, max-age=0`，构建产物中无注册 Service Worker 的代码。`tests/claude-md.test.ts` 经变异证明能红（塞入假路径即红，按哈希原样复原）
 - 证据（浏览器）：预置缓存 `living-manuscript-v1` 后注册 `/sw.js` → 缓存清空、注册消失。这是全新安装的路径；**覆盖旧脚本的路径只能上线后验**（用一个装过旧 Service Worker 的浏览器）
 - README：数据流、标签、搜索、路由、分支五处按现状改写；图片目录一节核对属实
-- 候选，待 Jason 裁定：`SiteDocument` 里两条手写的字体预加载（`/fonts/*.woff2`）指向不存在的文件，线上同为 404；字体实际由 `next/font` 自托管并自带预加载。删除会改 `<head>`，需在 REQ §6 增一条允许的差异
-- 本版之外、待 Jason 定去向：`docs/content-publishing.md` 整篇仍是 MDX 时代的发布流程；`public/images/og-image.svg` 的生成脚本已删，仅 `docs/site-operating.md` 还提到它；各 `og.png` 以一年不可变缓存下发，上线后 `/og.png` 需在 Cloudflare 清一次缓存，修好的印章才看得到
+- 裁定后追加：删除两条死的字体预加载，运行时验收增「每条预加载都取得到」（13 过）；`docs/content-publishing.md` 一至四节按表结构与代码重写——**其中的 SQL 由推导得出，未曾执行，首次照此发布时即是验证**；`docs/site-operating.md` 去掉对已删脚本的介绍，孤儿文件 `public/images/og-image.svg` 删除
+- 待 Jason 裁定：图片与分享图的缓存时限（现为一年不可变；分享图的这一头由 `next/og` 自带，不是本仓库的配置所致）
 - 依赖：Batch 3
 
 ## 三、门与发布
