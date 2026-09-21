@@ -136,7 +136,11 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 
 - 修复后实测（本地构建）：`/apiary`、`/administrator`、`/authors`、`/auth`、`/favicon.ico`、`/en--US/about` 由 500 / 308 变为 404；清单内的路径照常到达。新增 `invariant 8`，经变异证明能红（拿掉 `images` 即报出）
 
-**Phase 4 证据**：尚无。
+**Phase 4 证据**（对象 = `779d196`）：
+- 验收测试：`npm test` 34 过、todo 0；运行时验收 15 过、todo 0（本地干净构建 + `next start`）；闸门运行 35584353597 为绿，计数一致
+- Codex 发布前评审：三条 MUST 均已处置（两条已修、一条驳回），无在途评审
+- 浏览器实测：语言记忆全流程（Batch 4）、自注销脚本的全新安装路径（Batch 5）
+- **本版没有「类生产环境上的留出输入」这一项**：`.env` 只在 VPS 上，本地与 CI 都没有数据库，读库的页面（首页、各列表、详情、`/sitemap.xml`、`/api/search-index`）在上线前无处可验。它们的验收只能对生产跑，已列为下面的发布方框——合并不等于验过
 
 **Phase 6 boxes**：
 - [ ] CHANGELOG 条目
@@ -145,6 +149,10 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 - [ ] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致）
 - [ ] tag
 - [ ] 生产部署 + 核对 served SHA
+- [ ] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿（§5.2-f 详情分享图、§5.3-a、§6-a 的读库页面首次得到验证）
+- [ ] 上线后：后台发布一篇测试笔记，随即访问其详情页与笔记列表，二者都已包含它（§5.3-b），再撤下
+- [ ] 上线后：用一个装过旧 Service Worker 的浏览器回访，确认旧脚本被注销、缓存被清空（§5.4-c 的覆盖路径）
+- [ ] 上线后：在 Cloudflare 清一次 `/og.png` 与 `/images/` 的缓存
 - [ ] 各门读数：运行次数 / 改变了输出的拦截次数
 - [ ] 文档预算为绿 · 记忆修剪
 - [ ] `development` 分支删除（本地与远端）
