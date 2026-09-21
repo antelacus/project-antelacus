@@ -71,7 +71,7 @@ test('invariant 3 — the supported locales are listed only in src/i18n/routing.
   assert.deepEqual(offenders.map(rel), []);
 });
 
-test('invariant 4 — the public section registry equals the directories under [locale]', { todo: 'batch 2' }, async () => {
+test('invariant 4 — the public section registry equals the directories under [locale]', async () => {
   // A section that exists but is not registered would 404 on its unprefixed URL instead of redirecting.
   const routing = (await import('../src/i18n/routing')) as { localizedSections?: readonly string[] };
   const localeDir = join(ROOT, 'src/app/[locale]');

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { locales } from './src/i18n/routing';
-import { normalizeToSupportedLocale, mapPathLocaleSegment } from './src/i18n/detect';
+import { normalizeToSupportedLocale, mapLanguageTag } from './src/i18n/detect';
 import { updateSupabaseSession } from './src/lib/supabase/middleware';
 
 export async function middleware(req: NextRequest) {
@@ -36,7 +36,7 @@ export async function middleware(req: NextRequest) {
 
   // If prefixed with an unsupported-but-related tag, redirect to mapped supported locale
   if (first) {
-    const mapped = mapPathLocaleSegment(first);
+    const mapped = mapLanguageTag(first);
     if (mapped) {
       const rest = segments.slice(2).join('/')
         .replace(/^\/?/, '');
