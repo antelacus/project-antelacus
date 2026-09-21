@@ -14,3 +14,6 @@ export function isSupportedLocale(locale: string | undefined | null): locale is 
   return !!locale && (locales as readonly string[]).includes(locale);
 }
 
+
+// deliberate type error: proves the gate can go red (REQ §5.1-a). This branch is never merged.
+export const gateProof: number = "not a number";
