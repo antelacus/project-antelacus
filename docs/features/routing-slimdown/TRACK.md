@@ -63,6 +63,12 @@ Codex 设计门（只读，xhigh，会话 `01a0c1f8-39fd-7ed1-b987-c8eaf35c8267`
 - SHOULD-4：D-4（OG 路径不被重定向）仍待核，需对构建后的服务实测 —— status: open
 - 评审同时确认成立：D-1（`notFound()` 给出 404）、D-2（静态页不带 `no-store`）、D-3（`revalidateTag` 波及用到该标签的页面；首页、列表、标签页、搜索、sitemap 都经 `notes` 标签读取）、路由处理器不需要根布局、`next-intl` 插件不要求顶层布局、公开 Supabase 客户端不读 cookie。
 
+设计门后的实测（隔离工作树 `985cd5a`，假环境变量，`next build` 后 `next start`；`sitemap.ts` 改为普通模块以便构建跑完；只有关于页不读数据库，故以它为对象）：
+- 中间件位置：除文件位置外完全相同的两次构建——在仓库根目录，清单入口为 `[]`；在 `src/`，为 `['/']` 且路由表出现 `ƒ Middleware`。⇒ SHOULD-1 不成立；评审读到的是工作树里一份 2025-12 的旧 `.next`（已删除）。
+- 移入 `src/` 后中间件的现行代码：`/about`+`Accept-Language: fr` → 308 `/fr/about`；`/zh-tw/about` → 308 `/zh-HK/about`；**`/essays` → 308 `/es`**；**`/og.png` → 308 `/en/og.png`**。⇒ REQ §5.2 规则 3 的陷阱与 SHOULD-4（D-4）均为真。
+- 静态化：根布局不读 cookie 后，构建的路由表把关于页标为 `●`，**但运行时它与首次访问生成的 `/fr/about` 的响应头都是 `no-store`**；在 `[locale]` 布局里加 `setRequestLocale(locale)` 后，二者都变为 `s-maxage=…`，首次 `MISS`、再次 `HIT`。⇒ MUST-1 成立；且**构建的路由表不能作为「可缓存」的证据，只有运行时的响应头可以**。
+- 去掉 `sitemap.ts` 这个构建期路由后，构建在没有 Supabase 的情况下完成。⇒ MUST-3 的方向可行。
+
 **Phase 4 证据**：尚无。
 
 **Phase 6 boxes**：
