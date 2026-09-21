@@ -7,33 +7,31 @@ import { updateSupabaseSession } from '@/lib/supabase/middleware';
 // makes Next answer with src/app/global-not-found.tsx and a 404, without rendering any page.
 const UNMATCHED_PATH = '/404/unmatched';
 
-// A thin shell: the locale rules live in src/i18n/route-decision.ts, none of them here.
+// These keep the admin signed in: their session is renewed on the way through.
+const SESSION_TREES = ['admin', 'auth'];
+
+// A thin shell: which paths exist and where they lead is decided in src/i18n/route-decision.ts, not here.
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  // Share images keep their unprefixed addresses; the matcher cannot express a suffix readably.
-  if (pathname.endsWith('/og.png')) return NextResponse.next();
-
-  if (pathname.startsWith('/admin') || pathname.startsWith('/auth')) {
-    return updateSupabaseSession(req);
-  }
 
   const decision = decideLocaleRoute({
     pathname,
     acceptLanguage: req.headers.get('accept-language'),
     preferredLocale: req.cookies.get(PREFERRED_LOCALE_COOKIE)?.value ?? null,
   });
-  if (decision.kind === 'pass') return NextResponse.next();
   if (decision.kind === 'not-found') return NextResponse.rewrite(new URL(UNMATCHED_PATH, req.url));
+  if (decision.kind === 'redirect') {
+    // Cloning keeps the query string.
+    const url = req.nextUrl.clone();
+    url.pathname = decision.pathname;
+    return NextResponse.redirect(url, 308);
+  }
 
-  // Cloning keeps the query string.
-  const url = req.nextUrl.clone();
-  url.pathname = decision.pathname;
-  return NextResponse.redirect(url, 308);
+  return SESSION_TREES.includes(pathname.split('/')[1]) ? updateSupabaseSession(req) : NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next|favicon|images|fonts|robots.txt|sitemap.xml|sw.js|ads.txt|api).*)',
-  ],
+  // Only the framework's own namespaces are skipped. Everything else goes through the decision above:
+  // a list of exclusions here would be matched by prefix and could not be unit-tested.
+  matcher: ['/((?!_next/|__nextjs).*)'],
 };

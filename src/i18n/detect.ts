@@ -6,6 +6,8 @@ const TRADITIONAL_CHINESE_SUBTAGS = new Set(['hant', 'tw', 'hk', 'mo']);
 // Never by string prefix: `essays` starts with "es" and is not Spanish.
 export function mapLanguageTag(tag: string): AppLocale | null {
   const [primary, ...subtags] = tag.trim().toLowerCase().split('-');
+  // `en--US`, `zh-`: every subtag of a language tag is a non-empty run of letters or digits.
+  if (!subtags.every((subtag) => /^[a-z0-9]+$/.test(subtag))) return null;
 
   if (primary === 'en' || primary === 'fr' || primary === 'es') return primary;
   if (primary === 'zh') {

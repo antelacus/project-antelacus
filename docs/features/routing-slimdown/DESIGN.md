@@ -13,10 +13,10 @@
 ### 2.1 模块关系
 | 模块 / 文件 | 单一职责 | 测试层级 |
 |-------------|---------|----------|
-| `src/i18n/routing.ts` | 支持的语言、默认语言、**公开栏目清单**（`/<语言>/` 之下的一级路径名）——三者的唯一来源 | infra |
+| `src/i18n/routing.ts` | 支持的语言、默认语言、**公开栏目清单**（`/<语言>/` 之下的一级路径名）、**不参与语言路由的顶级路径清单**（目录与单个文件）——唯一来源 | infra |
 | `src/i18n/detect.ts` | 把语言标签（路径段、`Accept-Language`）归到支持的语言；归不到则为空 | core |
 | `src/i18n/route-decision.ts`（新） | **语言路由的全部规则**：路径、`Accept-Language`、记住的选择 → 「放行」「308 到某地址」或「不存在」 | core |
-| `src/middleware.ts`（由根目录移入） | 薄壳：排除名单 → `/admin`、`/auth` 走会话续期 → 其余执行 `route-decision` 的结论。自身不含规则 | IO |
+| `src/middleware.ts`（由根目录移入） | 薄壳：执行 `route-decision` 的结论；放行的请求若在 `/admin`、`/auth` 之下则续期会话。自身不含规则，`matcher` 只排除框架自己的 `/_next/` | IO |
 | `src/app/global-not-found.tsx`（新） | 全站唯一的 404 页：英文、站点外壳（`SiteDocument`）、无导航；构建时生成一次 | infra |
 | `src/app/site-metadata.ts`（新） | 全站的 `metadata` 与 `viewport` 对象（由现根布局原样搬来） | infra |
 | `src/components/SiteDocument.tsx`（新） | `<html lang>`、`<head>`、`<body>` 的公共外壳：全局 CSS、KaTeX 样式、字体变量与预载都在这里引入；`lang` 由调用方传入 | infra |
@@ -40,9 +40,8 @@
 
 ### 2.2 数据流
 请求 → `middleware`：
-1. 路径在排除名单里（`/_next`、静态文件、`/api`、`/sitemap.xml`、`/robots.txt`、`/ads.txt`、`/sw.js`、**以 `/og.png` 结尾的任何路径**）→ 放行。
-2. `/admin`、`/auth` → 续期会话后放行。
-3. 其余 → `route-decision`，按第一段路径：
+1. `/_next/` 之下的请求不经中间件。其余一律交 `route-decision`，按第一段路径（**整段比较，不按前缀**——`/apiary` 不在 `/api` 之下，`/authors` 不在 `/auth` 之下）：
+   - 在「不参与语言路由」清单里（目录 `admin`、`api`、`auth`、`images`，文件 `robots.txt`、`sitemap.xml`、`sw.js`、`ads.txt`），或以 `/og.png` 结尾 → 放行；其中 `/admin`、`/auth` 之下的由中间件续期会话。只有 `/admin` 自身是页面，其余目录的裸名（`/auth`、`/api`）属「不存在」。
    - 是支持的语言 → 放行。
    - 为空，或在公开栏目清单里（`posts`、`about`…）→ 没有前缀：308 到 `/<语言>/<原路径>`，语言取 记住的选择 → `Accept-Language` → `en`。
    - 能归到支持的语言的变体（`zh-tw`、`en-US`）→ 308 到对应语言。
@@ -65,7 +64,7 @@
   - `preferredLocale` 不是支持的语言时当作 `null`。
   - 重定向只改路径，查询串由中间件原样带上。
   - 语言集合与栏目清单从 `routing.ts` 读，不作为参数——它们不随请求变化。
-- `mapLanguageTag(tag: string): AppLocale | null`（`detect.ts`，取代 `mapPathLocaleSegment`）：主标签不是 `en`、`fr`、`es`、`zh` 之一 → `null`。
+- `mapLanguageTag(tag: string): AppLocale | null`（`detect.ts`，取代 `mapPathLocaleSegment`）：主标签不是 `en`、`fr`、`es`、`zh` 之一，或任一子标签不是非空的字母数字串（`en--US`、`zh-`）→ `null`。
 - 记住的选择：cookie `preferred_locale`，值为支持的语言代码；`Path=/`、一年、`SameSite=Lax`、`Secure`。**只由语言切换控件写，只由中间件读**——页面与布局不得读它。
 - 缓存标签：`notes`、`posts`、`gallery`、`projects`。写入方在写成功后使对应标签失效。
 - 工作流：`deploy.yml` 顶层保持 `permissions: {}`；其 `check` 任务写 `uses: ./.github/workflows/check.yml` 并声明 `permissions: contents: read`（被调用的工作流只能降低、不能提升调用方给的权限）；`deploy` 任务写 `needs: check`，自身权限仍为空。
@@ -88,6 +87,7 @@ N/A —— 本版不改数据库结构。
 5. 中间件确实被注册 —— 闸门里构建之后断言 `.next/server/middleware-manifest.json` 含一个入口。
 6. 构建不依赖 Supabase 可达 —— 闸门用假环境变量完成构建即是证明。
 7. `CLAUDE.md` 提到的路径与脚本都存在 —— `tests/claude-md.test.ts`。
+8. `src/app` 与 `public/` 的每个顶级条目都已登记为栏目或「不参与语言路由」—— 新测试。中间件对不认识的第一段一律答 404，未登记的新路由或新文件不会被提供。
 
 ## 8 外部系统约束
 - **Next.js**：`middleware.ts` 必须与 `app` 目录同级；本项目的 `app` 在 `src/` 下，故为 `src/middleware.ts`。放在仓库根目录时构建不报错，只是不注册（实测：除位置外相同的两次构建，清单入口分别为空与 `/`）。

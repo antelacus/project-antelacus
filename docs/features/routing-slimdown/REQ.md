@@ -101,7 +101,7 @@
   - 验收判据 §6-a 同一组地址（`/en`、`/zh-CN/posts`、一篇文章、`/en/about`、`/admin/login`）在搬迁前后的 `<head>` 逐项比对，除 `lang` 与构建产物的哈希文件名外无差异。
 
 ## 7 对外接口
-- 输入：HTTP 请求的路径与 `Accept-Language` 头。`Accept-Language` 缺失、为空、畸形（非语言标签的任意字符串）时一律按「没有偏好」处理，不报错。
+- 输入：HTTP 请求的路径与 `Accept-Language` 头。`Accept-Language` 缺失、为空、畸形（非语言标签的任意字符串）时一律按「没有偏好」处理，不报错。只看每一项的语言标签；`;` 之后的参数（`q=0.8`，或任何别的内容）不参与判定，也不使该项作废。
 - 输出：HTTP 状态码（200 / 308 / 404）、`Location`、`Cache-Control`、页面的 `<html lang>`。读者是浏览器、Cloudflare 与搜索引擎。
 - `sitemap.xml` 里的地址必须全部是规范地址（现状如此，保持）。
 

@@ -36,12 +36,27 @@ test('acceptance §5.2-d unknown first segments are a direct 404, decided here a
   for (const pathname of ['/xx-anything/posts', '/essays', '/essays/about', '/friends', '/english-notes', '/unknown', '/de/posts']) {
     assert.deepEqual(decide({ pathname, acceptLanguage: 'es', preferredLocale: 'fr' }), notFound, pathname);
   }
+  for (const pathname of ['/en--US/about', '/zh-/posts']) assert.deepEqual(decide({ pathname }), notFound, pathname);
   // Under a supported locale the router decides: an unknown section there matches no route.
   assert.deepEqual(decide({ pathname: '/en/garbage' }), pass);
 });
 
+test('acceptance §5.2 rule 5 paths outside /<locale>/ are recognised by whole segment, look-alikes are 404', () => {
+  for (const pathname of ['/admin', '/admin/notes', '/auth/signout', '/api/search-index', '/images/common/logo-icon.svg',
+    '/robots.txt', '/sitemap.xml', '/sw.js', '/ads.txt', '/og.png', '/posts/some-slug/og.png']) {
+    assert.deepEqual(decide({ pathname, acceptLanguage: 'es' }), pass, pathname);
+  }
+  // A prefix is not a segment: `/apiary` is not under `/api`, `/authors` is not under `/auth`.
+  for (const pathname of ['/apiary', '/imagesfoo', '/administrator', '/authors', '/sw.jsx', '/sitemap.xmlx', '/ads.txtx',
+    '/robots.txt/x', '/favicon.ico', '/fonts/a.woff2', '/_nextfoo']) {
+    assert.deepEqual(decide({ pathname, acceptLanguage: 'es' }), notFound, pathname);
+  }
+  // A directory with no page of its own is not a page.
+  for (const pathname of ['/auth', '/api', '/images']) assert.deepEqual(decide({ pathname }), notFound, pathname);
+});
+
 test('acceptance §5.2-e language tags map by primary subtag, never by string prefix', () => {
-  for (const word of ['essays', 'friends', 'english-notes', 'esperanto', 'french', '', 'de', 'xx-anything']) {
+  for (const word of ['essays', 'friends', 'english-notes', 'esperanto', 'french', '', 'de', 'xx-anything', 'en--US', 'zh-', 'en-', 'fr-*', 'zh-t w']) {
     assert.equal(mapLanguageTag(word), null, `"${word}" is not a supported language`);
   }
   for (const tag of ['zh', 'zh-Hans', 'zh-SG', 'ZH-cn']) assert.equal(mapLanguageTag(tag), 'zh-CN', tag);

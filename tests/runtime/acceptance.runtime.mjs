@@ -47,7 +47,9 @@ test('§5.2-c a locale variant is redirected to the supported locale', async () 
 });
 
 test('§5.2-d an unknown first segment is a direct 404, not a redirect', async () => {
-  for (const path of ['/xx-anything/posts', '/essays', '/essays/about', '/unknown', '/en/no-such-section']) {
+  // The second row: look-alikes of paths that do exist. A prefix is not a segment.
+  for (const path of ['/xx-anything/posts', '/essays', '/essays/about', '/unknown', '/en/no-such-section',
+    '/apiary', '/imagesfoo', '/administrator', '/authors', '/auth', '/sw.jsx', '/favicon.ico', '/en--US/about']) {
     assert.equal((await get(path, { 'accept-language': 'es' })).status, 404, path);
   }
 });
@@ -86,6 +88,14 @@ test('no page preloads a file that does not exist', async () => {
 test('the skip link speaks the page language', async () => {
   for (const [path, label] of [['/en/about', 'Skip to main content'], ['/zh-CN/about', '跳转到主要内容'], ['/fr/about', 'Aller au contenu principal']]) {
     assert.match(await (await get(path)).text(), new RegExp(`class="skip-link"[^>]*>${label}<`), path);
+  }
+});
+
+test('§5.2 rule 5 what is served outside /<locale>/ still is', async () => {
+  for (const path of ['/robots.txt', '/sitemap.xml', '/sw.js', '/ads.txt', '/images/common/logo-icon.svg', '/api/search-index', '/admin/login']) {
+    const res = await get(path, { 'accept-language': 'es' });
+    // Without a database the two data routes may fail, but they must be reached, not redirected or 404ed.
+    assert.ok(![308, 404].includes(res.status), `${path} → ${res.status}`);
   }
 });
 

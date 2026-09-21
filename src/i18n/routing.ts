@@ -16,6 +16,12 @@ export const defaultLocale: AppLocale = 'en';
 // tests/invariants.test.ts keeps this equal to the directories under src/app/[locale].
 export const localizedSections = ['about', 'gallery', 'notes', 'posts', 'projects', 'tags'] as const;
 
+// What is served outside `/<locale>/`: directories (`src/app/<name>/…`, `public/<name>/…`) and single files.
+// The middleware answers 404 for every first segment that is neither here nor a section nor a language,
+// so a new top-level route or public file must be added here. tests/invariants.test.ts keeps this complete.
+export const unlocalizedTrees = ['admin', 'api', 'auth', 'images'] as const;
+export const unlocalizedFiles = ['robots.txt', 'sitemap.xml', 'sw.js', 'ads.txt'] as const;
+
 // Holds the language a visitor picked by hand. Written only by the language switch, read only by the
 // middleware: a page or layout that reads it stops being cacheable.
 export const PREFERRED_LOCALE_COOKIE = 'preferred_locale';

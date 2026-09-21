@@ -36,6 +36,7 @@
   - 2026-09-21 · 重写发布文档：确定并记录四类内容现在如何发布 · Jason · 级联：`docs/content-publishing.md`
   - 2026-09-21 · 图片与分享图的缓存时限由一年不可变改为一天 · Jason · 级联：DESIGN §9、`next.config.ts`、五个 `og.png` 路由
   - 2026-09-21 · 为专栏、实验室、视觉建立发布入口，列入 v2.3.0，与 TD-006 一并设计 · Jason · 级联：关版时写入 `docs/TECHNICAL_DEBT.md`
+  - 2026-09-21 · Codex 发布前评审五条发现：MUST-1、MUST-2、SHOULD-1 采纳，MUST-3 驳回（REQ §7 澄清），NICE-1 接受现状 · Jason · 级联：DESIGN §2、§4、§7，REQ §7
 
 **Phase 0 记录**
 
@@ -124,14 +125,16 @@ Codex 设计门（只读，xhigh，会话 `01a0c1f8-39fd-7ed1-b987-c8eaf35c8267`
 - 去掉 `sitemap.ts` 这个构建期路由后，构建在没有 Supabase 的情况下完成。⇒ MUST-3 的方向可行。
 
 Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 `01a0c2f6-46ea-7493-b335-12b0f131e32e`，用时 88 分钟；对象 = `6b112a5` 的 `src/i18n/route-decision.ts` 与 `src/middleware.ts`）。五条引文均已对过源码，一致；「实测」为评审之后对本地构建的服务所做：
-- MUST-1：`config.matcher` 按**前缀**排除（`api`、`images`、`fonts`、`favicon`、`_next`、`sitemap.xml`、`sw.js`、`ads.txt`），`/apiary`、`/imagesfoo`、`/sw.jsx` 等因此绕过 `decideLocaleRoute`，落进 `[locale]` —— status: open · 实测：上述地址本地均为 500（首页读库失败），`/api/nope` 为 404 站点页
-- MUST-2：`pathname.startsWith('/admin') || pathname.startsWith('/auth')` 吞掉 `/administrator`、`/authors`，它们不经 404 判定，还白做一次会话续期 —— status: open · 实测：`/administrator`、`/authors`、`/auth` 本地均为 500，`/admin/nope` 为 404 站点页
-- MUST-3：`Accept-Language: fr;bogus` 被当作法语（`;` 之后一律丢弃），而 REQ §7 要求畸形值按无偏好处理 —— status: open · 实测：`fr;bogus` → `/fr/posts`；`bogus`、`;;;` → `/en/posts`
-- SHOULD-1：畸形的语言样路径段（`/en--US/about`、`/zh-/posts`）被当作变体重定向，应为 404 —— status: open · 实测：均 308
-- NICE-1：`/posts//x` 先被 Next 规范化为 `/posts/x`（308），再被带到 `/en/posts/x`（308），两跳 —— status: open · 实测：第一跳属实
+- MUST-1：`config.matcher` 按**前缀**排除（`api`、`images`、`fonts`、`favicon`、`_next`、`sitemap.xml`、`sw.js`、`ads.txt`），`/apiary`、`/imagesfoo`、`/sw.jsx` 等因此绕过 `decideLocaleRoute`，落进 `[locale]` —— status: 采纳 → 已修（`matcher` 只留 `/_next/`，清单进 `routing.ts`、整段比较进 `route-decision.ts`）· 实测：上述地址本地均为 500（首页读库失败），`/api/nope` 为 404 站点页
+- MUST-2：`pathname.startsWith('/admin') || pathname.startsWith('/auth')` 吞掉 `/administrator`、`/authors`，它们不经 404 判定，还白做一次会话续期 —— status: 采纳 → 已修（先判定，放行后才按第一段续期会话）· 实测：`/administrator`、`/authors`、`/auth` 本地均为 500，`/admin/nope` 为 404 站点页
+- MUST-3：`Accept-Language: fr;bogus` 被当作法语（`;` 之后一律丢弃），而 REQ §7 要求畸形值按无偏好处理 —— status: 驳回——`fr` 是合法标签，坏的只是参数；浏览器正常发的 `fr;q=0.8` 走同一段代码。REQ §7 已写明参数不参与判定 · 实测：`fr;bogus` → `/fr/posts`；`bogus`、`;;;` → `/en/posts`
+- SHOULD-1：畸形的语言样路径段（`/en--US/about`、`/zh-/posts`）被当作变体重定向，应为 404 —— status: 采纳 → 已修（子标签须为非空字母数字串）· 实测：均 308
+- NICE-1：`/posts//x` 先被 Next 规范化为 `/posts/x`（308），再被带到 `/en/posts/x`（308），两跳 —— status: 接受——第一跳是框架行为 · 实测：第一跳属实
 - 覆盖表（17 条验收判据）：覆盖 7；部分 6（§5.2-a、-f、-h，§5.3-b，§5.4-a、-c）；无测试 2（§5.1-a、-b——证据是 Batch 1 记录的两次闸门运行）；只能上线后验 2（§5.3-a、§6-a）
 - 评审确认成立：查询串保留；重定向不出本源、无循环；`preferred_locale` 只认精确的支持语言（`EN` 不认）；各 `og.png` 不被重定向；`/404/unmatched` 不与现有路由相撞
 - 待核，已实测：`/anything/og.png` → 404 站点页；`/%65n/about` → 404 站点页；`/EN/about` → 308 `/en/about`。未测：超长路径、编码斜杠。评审另指出 DESIGN §2.2 的「以 `/og.png` 结尾的任何路径」比 REQ 规则 5 宽
+
+- 修复后实测（本地构建）：`/apiary`、`/administrator`、`/authors`、`/auth`、`/favicon.ico`、`/en--US/about` 由 500 / 308 变为 404；清单内的路径照常到达。新增 `invariant 8`，经变异证明能红（拿掉 `images` 即报出）
 
 **Phase 4 证据**：尚无。
 

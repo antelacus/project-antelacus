@@ -80,3 +80,14 @@ test('invariant 4 — the public section registry equals the directories under [
   assert.ok(directories.length >= 5, `found ${directories.length} sections — the scan looks broken`);
   assert.deepEqual([...(routing.localizedSections ?? [])].sort(), directories.sort());
 });
+
+test('invariant 8 — every top-level entry of src/app and public/ is registered as localized or unlocalized', async () => {
+  // The middleware answers 404 for any first segment it does not know, so an unregistered file or route is never served.
+  const routing = (await import('../src/i18n/routing')) as { localizedSections: readonly string[]; unlocalizedTrees: readonly string[]; unlocalizedFiles: readonly string[] };
+  const known = new Set<string>(['[locale]', 'og.png', ...routing.localizedSections, ...routing.unlocalizedTrees, ...routing.unlocalizedFiles]);
+  const isRouteEntry = (dir: string, name: string) => !name.startsWith('.') && (statSync(join(dir, name)).isDirectory() || dir.endsWith('public'));
+
+  const entries = ['src/app', 'public'].flatMap((dir) => readdirSync(join(ROOT, dir)).filter((name) => isRouteEntry(join(ROOT, dir), name)));
+  assert.ok(entries.length >= 8, `found ${entries.length} entries — the scan looks broken`);
+  assert.deepEqual(entries.filter((name) => !known.has(name)), []);
+});
