@@ -14,7 +14,7 @@ const scripts = (JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as
 const looksLikeRepoPath = (token: string) =>
   token.includes('/') && !/[\s*{}<>]/.test(token) && !token.startsWith('/') && !token.startsWith('@') && !/^https?:/.test(token) && !token.includes('…');
 
-test('acceptance §5.5-a CLAUDE.md names only paths and npm scripts that exist', { todo: 'batch 5' }, () => {
+test('acceptance §5.5-a CLAUDE.md names only paths and npm scripts that exist', () => {
   const tokens = [...claudeMd.matchAll(/`([^`\n]+)`/g)].map((match) => match[1]);
   const paths = [...new Set(tokens.filter(looksLikeRepoPath))];
   assert.ok(paths.length >= 5, `recognised only ${paths.length} paths — the extraction looks broken`);

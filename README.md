@@ -27,29 +27,19 @@
 
 ### （一）总体架构
 
-本站基于 **Next.js** 的 **App Router** 构建，并部署于 **VPS 自托管环境**，通过 Docker 容器运行应用、nginx 反向代理对外提供服务。其核心架构思想是 **“内容即代码” (Content as Code)**。
+本站基于 **Next.js** 的 **App Router** 构建，并部署于 **VPS 自托管环境**，通过 Docker 容器运行应用、nginx 反向代理对外提供服务，内容存放在 **Supabase（PostgreSQL）** 中。
 
 #### 数据与内容流
-- **内容源**: 所有内容（专栏、闪念、项目等）均以 **MDX 文件** 的形式存储在 `src/content/` 目录下。这种方式使得内容可以直接纳入 Git 版本控制，便于追踪修改、协作和批量处理。
-- **构建时处理**: 在 `next build` 过程中，自定义脚本 (`scripts/*.ts`) 会自动执行，扫描所有 MDX 内容，生成 **标签注册表** (`tag-registry.json`) 和 **静态搜索索引**，实现了元数据的自动化管理。
-- **渲染策略**: 网站主要采用 **静态站点生成 (SSG)**，为访客提供极致的加载速度和 SEO 友好性。部分交互功能（如搜索弹窗）则由客户端组件负责。
-
-  - 构建期脚本（`scripts/`）：
-    - `generate-tag-registry.ts`：汇总 `src/content/*/*.mdx` 中的 `tags`，生成 `src/content/tag-registry.json` 作为全站唯一标签来源，供运行时聚合与构建校验使用。
-    - `build-search-index.ts`：扫描 MDX 生成轻量搜索索引至 `public/search-index/`，产出带内容哈希的 `index.<locale>.<digest>.json` 与 `manifest.json`，供前端搜索模态加载与回退 API 使用。
-    - `validate-content.ts`：用 Zod 校验 Frontmatter（必填字段、标签是否存在于注册表并规范化、相册 `imageFolder` 等），失败时以非零码退出，阻断部署。
-    - `seo-check.cjs`：本地快速体检（sitemap/robots/核心页面 metadata 存在性）。
-    - `generate-og-image.js`：生成统一的 Open Graph 封面 `public/images/og-image.svg`，并输出接入指引。
-    - `validate-metadata.cjs`：校验主页 metadata 关键字段与 OG 图片存在性，给出摘要提示。
-    - `submit-sitemap.cjs`：Search Console 提交流程指引与可视化输出（历史逻辑会读取 `public/sitemap.xml`；现站点已采用 App Router 动态 `/sitemap.xml`）。
-
-  - 集成方式：以上已串联进 `package.json` 的 `postbuild` 流水线：`build:tags && build:search-index && validate:content`，确保每次部署生成最新标签与搜索索引并完成内容校验。
+- **内容源**: 专栏、闪念、视觉、实验室四类内容存放在 Supabase 的 `content_items` 及其关联表中，正文为 MDX 文本。闪念可在站内后台 `/admin` 撰写与发布；其余类型目前直接在数据库中维护。“关于”页是例外，仍以 MDX 文件存放在 `src/content/pages/about/`。
+- **读取路径**: `src/lib/server/*-repo.ts`（仅服务端的查询与类型映射）→ `src/lib/{posts,notes,gallery,projects}.ts`（带缓存标签、时限一小时的公开读取函数）→ `src/app/[locale]/` 下的页面。
+- **渲染策略**: 公开页面在首次被访问时生成，随后在一小时内复用；构建过程不访问数据库。后台发布闪念后相关页面立即更新，直接改库的内容最长一小时内生效。
+- **部署闸门**: 每次推送都经过 `.github/workflows/check.yml`（lint、类型检查、单元测试、构建、对运行中服务的验收、文档预算），通过后才部署。
 
 #### 技术栈亮点
 - **前端框架**: Next.js / React
 - **UI 与样式**: 通过 `src/app/globals.css` 中的 CSS 变量实现全局主题控制，遵循项目的美学设计规范。
 - **国际化**: 集成 `next-intl`，通过基于路径的路由 (`/{locale}/...`) 和完善的内容回退机制提供多语言支持。
-- **自动化**: 构建时脚本自动生成元数据和索引，结合 VPS 部署流程完成站点更新。
+- **自动化**: 推送到 `main` 即经闸门检查后自动部署到 VPS。
 
 ### （二）页面样式控制架构
 
@@ -186,12 +176,11 @@ public/images/                   # 统一的图片根目录
 - **视觉作品** (`PhotoMeta`)：`tags?: string[]`
 - **实验室项目** (`ProjectMeta`)：`tags?: string[]`
 
-**标签管理工具** (`src/lib/tags.ts` 及 `scripts/generate-tag-registry.ts`)：
+**标签管理工具** (`src/lib/tags.ts`)：
 - `getAllTags()`：获取全站所有标签
-- `getTagStats()`：标签使用统计与内容类型分析
+- `getTagSummaries()`：每个标签的使用次数与覆盖的内容类型
 - `getContentByTag(tag)`：根据标签筛选全类型内容
-- **标签注册表**：在构建时自动从所有内容中提取并生成 `src/content/tag-registry.json`，作为全站标签的唯一真实来源。
-- **标签校验**：在构建时自动校验所有 `tags` 字段，确保其存在于注册表中，避免拼写错误和不一致。
+- 标签存放在数据库的 `content_tags` 表中，随内容一同读取，没有单独的注册表文件。
 
 #### 标签系统特性
 
@@ -202,7 +191,6 @@ public/images/                   # 统一的图片根目录
 **📊 智能标签统计**：
 - 每个标签的使用频率分析
 - 标签覆盖的内容类型统计
-- 标签共现关系分析
 
 **🎨 统一UI展示**：
 - 所有卡片组件统一使用 `.tag` 样式类
@@ -210,18 +198,14 @@ public/images/                   # 统一的图片根目录
 - 与卡片设计风格完美融合
 
 **🔍 扩展性设计**：
-- 为未来搜索功能预留接口
-- 支持标签规范化与验证
-- 便于后续添加标签点击跳转功能
+- 标签页 `/{locale}/tags/{tag}` 聚合展示该标签下的全部内容
 
-### （八）静态搜索与筛选系统
+### （八）搜索与筛选系统
 
 #### 架构设计
 
-- **静态索引**：在网站构建（`next build`）期间，通过脚本 (`scripts/build-search-index.ts`) 自动扫描所有 MDX 内容，生成一个轻量级的 JSON 文件作为搜索索引。
-- **自动化构建**：索引生成、标签注册和内容校验已集成到 `postbuild` 脚本中，每次在 VPS 上执行部署构建时都会自动更新。
-- **前端搜索**：搜索功能完全在客户端执行，加载静态索引文件后进行实时过滤和排序，无需后端服务器或外部服务，性能高且成本为零。
-- **开发环境回退**：为解决本地开发环境（`next dev`）中静态索引不存在的问题，提供了一个 API 路由 (`/api/search-index`)，用于动态生成索引内容。
+- **索引**：由 API 路由 `/api/search-index` 从数据库内容生成一份轻量的 JSON 索引。
+- **前端搜索**：搜索弹窗打开时加载该索引，之后的过滤与排序完全在客户端内存中完成，无需外部搜索服务。
 
 #### 功能实现
 
@@ -246,23 +230,25 @@ public/images/                   # 统一的图片根目录
 
 - **支持语言**：`zh-CN` (简体中文), `zh-HK` (繁体中文), `en` (英文), `fr` (法文), `es` (西班牙文)。
 - **默认语言**：`en` 为默认语言及内容回退的最终防线。
-- **自动路由**：通过 `middleware.ts` 实现：
-  1. **新访客**：根据浏览器 `Accept-Language` 请求头自动重定向至最匹配的语言路径。
-  2. **智能重定向**：能将相似但非标准的语言代码（如 `zh-hans`, `zh-sg`, `zh-tw`）自动映射并重定向到标准路径（`zh-CN` 或 `zh-HK`），确保 URL 的唯一性和规范性。
-  3. **路径保留**：语言切换时，仅更改 URL 中的 `/{locale}/` 部分，完整保留页面路径和查询参数。
+- **自动路由**：规则全部写在纯函数 `src/i18n/route-decision.ts` 中，由 `src/middleware.ts` 执行：
+  1. **无语言前缀的地址**（`/`、`/posts/...`）：308 重定向到带前缀的规范地址。语言依次取：访客上次手动选择的语言 → 浏览器 `Accept-Language` → `en`。
+  2. **语言变体**（如 `zh-hans`、`zh-tw`、`en-US`）：按语言标签的主标签映射并重定向到 `zh-CN`、`zh-HK`、`en` 等规范路径。`/essays` 这类普通单词不会被误判为语言。
+  3. **不存在的地址**：直接返回 404 与站点风格的 404 页，不经重定向。
+  4. **记住手动选择**：仅当访客使用站内语言切换时记录；只是打开一条带语言前缀的链接不算选择，地址里写明的语言永远优先。
+  5. **路径保留**：语言切换时，仅更改 URL 中的 `/{locale}/` 部分，完整保留页面路径和查询参数。
 
 #### 内容翻译与策略
 
 为确保“多语言是探索的维度，而非内容复制”，本站采用如下策略：
 
-- **专栏文章**：每篇仅保留一份规范稿件 `src/content/posts/{slug}.mdx`，不再维护按语言的多份译文。不同语言访问网站时，均展示同一篇原文。
-- **UI 界面**：仍通过 `src/messages/[locale].json` 提供多语言界面与导航。
-- **“关于”页**：可选多语言版本（如 `about.[locale].mdx`）；若缺失则按站点默认语言或现有版本展示。
+- **专栏文章**：每篇仅保留一份规范稿件，不维护按语言的多份译文。不同语言访问网站时，均展示同一篇原文。
+- **UI 界面**：通过 `src/messages/` 下每种语言一份的 JSON 文件提供多语言界面与导航。
+- **“关于”页**：每种语言一份 MDX（`src/content/pages/about/`）；若缺失则回退到简体中文或英文版本。
 
 #### 作者指南
 
-- **添加 UI 文案**：优先在 `src/messages/zh-CN.json` 中定义新键值，然后同步至其他语言文件。未翻译的键名将自动回退显示英文内容。
-- **撰写文章**：仅创建规范文件 `{slug}.mdx`，无需再创建 `{slug}.[locale].mdx`。
+- **添加 UI 文案**：在 `src/messages/` 的每个语言文件中加入新键值。未翻译的键名将自动回退显示英文内容。
+- **撰写内容**：每篇只写一份，无需按语言复制。
 - **SEO 与站点地图**：通过动态 `/sitemap.xml` 输出多语言 `hreflang`；并在专栏详情等页面通过 metadata 的 `alternates.languages` 提供语言备选。
 - **测试与验证**：参考 `docs/site-operating.md` 的 i18n 清单，确认不同语言下可以正常访问同一篇文章。
 
@@ -270,7 +256,7 @@ public/images/                   # 统一的图片根目录
 
 ### （十一）部署流程
 
-- **分支**：`development` 用于日常开发；合并到 `main` 即发布。
+- **分支**：在功能分支上开发，经 PR 合入 `main` 即发布。
 - **流水线**：推送到 `main` 触发 `.github/workflows/deploy.yml`（细节以该文件为准）。它经 SSH 登录 VPS，以仅快进的方式更新服务器上的检出目录，执行 `docker compose up -d --build`，再做健康检查；任何一步失败整次部署即失败，构建失败时旧容器继续对外服务。
 - **只改文档不部署**：仅涉及 `*.md` 与 `docs/` 的提交不会触发线上重新构建。
 - **服务器上的检出目录只用于部署**，不在那里编辑代码。运行期配置在服务器的 `.env` 中，不入库；变量名清单以及 nginx、compose 的配置快照在私有仓库 `vps-infra`。

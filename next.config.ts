@@ -57,16 +57,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Cache CSS and JS with versioning
-        source: '/(.*\\.(?:css|js))',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
         // Enable font-display swap for all font files
         source: '/(.*\\.(?:woff|woff2|ttf|otf))',
         headers: [

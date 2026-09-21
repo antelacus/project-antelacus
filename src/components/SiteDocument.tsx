@@ -1,7 +1,6 @@
 import '@/app/globals.css';
 import 'katex/dist/katex.min.css';
 import React from 'react';
-import PerformanceMonitor from './PerformanceMonitor';
 import SkipLink from './SkipLink';
 import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from '@/app/fonts';
 import type { AppLocale } from '@/i18n/routing';
@@ -79,7 +78,6 @@ export default async function SiteDocument({ lang, children }: { lang: AppLocale
         />
       </head>
       <body>
-        <PerformanceMonitor enableDevLogs={process.env.NODE_ENV === 'development'} />
         <SkipLink label={skipLabel} />
         <main id="main-content" tabIndex={-1}>
           {children}

@@ -57,7 +57,7 @@ test('acceptance §5.3 detail data is cached for one hour, like the lists', () =
   }
 });
 
-test('acceptance §5.4-a every remaining npm script points at something that exists', { todo: 'batch 5' }, () => {
+test('acceptance §5.4-a every remaining npm script points at something that exists', () => {
   const { scripts, dependencies, devDependencies } = pkg();
   for (const gone of ['validate:dynamic-content', 'seo:check', 'seo:og-image', 'seo:validate', 'seo:submit']) {
     assert.equal(scripts[gone], undefined, `script "${gone}" proves nothing and must go`);
@@ -72,7 +72,7 @@ test('acceptance §5.4-a every remaining npm script points at something that exi
   }
 });
 
-test('acceptance §5.4-b removed files are gone and nothing imports them', { todo: 'batch 5' }, () => {
+test('acceptance §5.4-b removed files are gone and nothing imports them', () => {
   assert.deepEqual(REMOVED_FILES.filter((path) => existsSync(join(ROOT, path))), [], 'still present');
 
   const removedStems = REMOVED_FILES.map((path) => path.replace(/\.(ts|tsx|js|cjs)$/, '').split('/').pop() as string);
@@ -85,7 +85,7 @@ test('acceptance §5.4-b removed files are gone and nothing imports them', { tod
   assert.deepEqual(importers, []);
 });
 
-test('acceptance §5.4-c the service worker is a self-removing stub and nothing registers one', { todo: 'batch 5' }, () => {
+test('acceptance §5.4-c the service worker is a self-removing stub and nothing registers one', () => {
   const worker = read('public/sw.js');
   assert.match(worker, /skipWaiting\(\)/);
   assert.match(worker, /registration\.unregister\(\)/);

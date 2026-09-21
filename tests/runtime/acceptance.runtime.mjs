@@ -103,7 +103,7 @@ test('§5.3-a public pages are cacheable, the admin is not', async () => {
   assert.match((await get('/admin/login')).headers.get('cache-control') ?? '', /no-store/);
 });
 
-test('§5.4-c /sw.js is a short-lived, self-removing stub', { todo: 'batch 5' }, async () => {
+test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
   const res = await get('/sw.js');
   assert.equal(res.status, 200);
   const cacheControl = res.headers.get('cache-control') ?? '';
