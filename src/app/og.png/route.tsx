@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { SHARE_IMAGE_CACHE_CONTROL } from '@/lib/seo';
 
 export const runtime = 'nodejs';
 const OG_WIDTH = 1200;
@@ -35,7 +36,7 @@ export async function GET() {
         <div style={{ position: 'absolute', bottom: 50, fontSize: 24, opacity: 0.5 }}>antelacus.com</div>
       </div>
     ),
-    { width: OG_WIDTH, height: OG_HEIGHT }
+    { width: OG_WIDTH, height: OG_HEIGHT, headers: { 'Cache-Control': SHARE_IMAGE_CACHE_CONTROL } }
   );
 }
 

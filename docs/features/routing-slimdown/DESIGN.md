@@ -109,6 +109,7 @@ N/A —— 本版不改数据库结构。
 
 ## 9 其他设计
 - `next.config.ts` 里对所有 `.css`/`.js` 加一年不可变缓存的规则删除：带哈希的 `_next/static` 资源 Next 自己已这样处理；这条规则真正波及的只有 `public/` 下不带哈希的文件，`/sw.js` 正是受害者。
+- 缓存时限的原则：只有文件名带内容哈希的资源才可以 `immutable`。`public/images/` 下的文件与各 `og.png` 的地址不随内容变化，统一为一天（`public, max-age=86400`）。分享图的一年不可变是 `next/og` 自带的默认值，须在路由里显式覆盖；`next.config.ts` 的规则只作用于 `/images/`，不碰 `/_next/static`。
 - 自注销脚本：安装时 `skipWaiting()`；激活时 `clients.claim()`、删除全部缓存、`registration.unregister()`。约十行，长期保留。
 
 ## 10 开放设计问题

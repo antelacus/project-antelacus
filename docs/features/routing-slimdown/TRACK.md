@@ -34,6 +34,7 @@
   - 2026-09-21 · SkipLink 文案随页面语言（`utility.skip_to_content`）· Jason · 级联：`src/messages/*.json`
   - 2026-09-21 · 删除两条指向不存在文件的字体预加载；REQ §6 增一条允许的差异 · Jason · 级联：REQ §6、`SiteDocument.tsx`、运行时验收
   - 2026-09-21 · 重写发布文档：确定并记录四类内容现在如何发布 · Jason · 级联：`docs/content-publishing.md`
+  - 2026-09-21 · 图片与分享图的缓存时限由一年不可变改为一天 · Jason · 级联：DESIGN §9、`next.config.ts`、五个 `og.png` 路由
 
 **Phase 0 记录**
 
@@ -94,7 +95,7 @@
 - 证据（浏览器）：预置缓存 `living-manuscript-v1` 后注册 `/sw.js` → 缓存清空、注册消失。这是全新安装的路径；**覆盖旧脚本的路径只能上线后验**（用一个装过旧 Service Worker 的浏览器）
 - README：数据流、标签、搜索、路由、分支五处按现状改写；图片目录一节核对属实
 - 裁定后追加：删除两条死的字体预加载，运行时验收增「每条预加载都取得到」（13 过）；`docs/content-publishing.md` 一至四节按表结构与代码重写——**其中的 SQL 由推导得出，未曾执行，首次照此发布时即是验证**；`docs/site-operating.md` 去掉对已删脚本的介绍，孤儿文件 `public/images/og-image.svg` 删除
-- 待 Jason 裁定：图片与分享图的缓存时限（现为一年不可变；分享图的这一头由 `next/og` 自带，不是本仓库的配置所致）
+- 缓存时限裁定后：`/og.png`、`/images/…` 为 `public, max-age=86400`，带哈希的字体仍为一年不可变；运行时验收增一条（14 过）。上线后 Cloudflare 与老访客手里的旧分享图最长还会留一年——**部署后在 Cloudflare 清一次 `/og.png` 与 `/images/` 的缓存**
 - 依赖：Batch 3
 
 ## 三、门与发布

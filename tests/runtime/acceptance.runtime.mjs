@@ -62,6 +62,20 @@ test('§5.2-d the 404 is the site\'s own page, complete without JavaScript', asy
   assert.match(html, /<meta name="robots" content="noindex"/);
 });
 
+test('only content-hashed files are cached as immutable', async () => {
+  // A stable URL whose content can change must be allowed to refresh: one day at most.
+  for (const path of ['/og.png', '/images/common/logo-icon.svg', ...(WITH_DB ? [`/posts/${POST_SLUG}/og.png`] : [])]) {
+    const cacheControl = (await get(path)).headers.get('cache-control') ?? '';
+    assert.doesNotMatch(cacheControl, /immutable/, path);
+    assert.ok(Number(/max-age=(\d+)/.exec(cacheControl)?.[1] ?? Infinity) <= 86400, `${path}: ${cacheControl}`);
+  }
+  // …and the rule above must not have weakened the hashed assets.
+  const html = await (await get('/en/about')).text();
+  const hashed = /href="(\/_next\/static\/media\/[^"]+\.woff2)"/.exec(html)?.[1];
+  assert.ok(hashed, 'found no hashed font to check');
+  assert.match((await get(hashed)).headers.get('cache-control') ?? '', /immutable/, hashed);
+});
+
 test('no page preloads a file that does not exist', async () => {
   const html = await (await get('/en/about')).text();
   const preloads = [...html.matchAll(/<link\b[^>]*rel="preload"[^>]*>/gi)].map(([tag]) => /href="([^"]+)"/.exec(tag)?.[1]).filter(Boolean);

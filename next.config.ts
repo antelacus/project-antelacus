@@ -47,28 +47,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Cache static assets aggressively
-        source: '/(.*\\.(?:jpg|jpeg|png|webp|avif|gif|svg|ico|woff|woff2))',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        // Enable font-display swap for all font files
-        source: '/(.*\\.(?:woff|woff2|ttf|otf))',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-          {
-            key: 'font-display',
-            value: 'swap',
-          },
-        ],
+        // Files under public/images keep their names when their content changes, so they must not be
+        // `immutable`: a day bounds how long a replaced image stays stale. Hashed assets under
+        // /_next/static are Next's own business and are left alone.
+        source: '/images/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
       },
     ];
   },
