@@ -29,7 +29,7 @@
 
 - 反馈收件箱：N/A —— 本项目没有 `docs/FEEDBACK.md`，个人站点无外部使用者反馈渠道。
 - 债务册复读：TD-001…TD-016 已读；TD-001…TD-004 为既有条目，本版不涉及。
-- 工具包：已装（`scripts/check_doc_budget.py`、`.githooks/post-merge`），`core.hooksPath=.githooks`。非空转证明见下方；接入 CI 属于第 1 批。
+- 工具包：已装（`scripts/check_doc_budget.py`、`.githooks/post-merge`），`core.hooksPath=.githooks`。非空转证明（在 `6e96dbf` 上）：装好即绿 → 往本文件放入一条 11 行的批次条目，检查器退出码 1 并指出行号 → `git checkout` 复原后回绿；工具包自带 13 个测试通过；钩子报出本文件 9 个未勾方框。接入 CI 属于第 1 批。
 - 本版要碰的外部系统（其硬约束在 Phase 2 写入 DESIGN 的「外部系统约束」一节，此处只列清单）：
   - Next.js 对 `middleware.ts` 位置的要求（应用在 `src/app` 下时必须与之同级）
   - 访客浏览器里已安装的 Service Worker（`public/sw.js` 以一年不可变缓存下发；删除它需要一个会自我注销的版本）
