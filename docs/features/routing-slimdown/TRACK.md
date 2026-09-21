@@ -136,6 +136,14 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 
 - 修复后实测（本地构建）：`/apiary`、`/administrator`、`/authors`、`/auth`、`/favicon.ico`、`/en--US/about` 由 500 / 308 变为 404；清单内的路径照常到达。新增 `invariant 8`，经变异证明能红（拿掉 `images` 即报出）
 
+合并后的同模型评审（两轴，只读）——除已修的一条外，均 status: open，待 Jason 裁定去向：
+- 规格：页面缓存叠在数据缓存之上，直接改库的内容最坏约两小时才可见，REQ §5.3 写的是一小时
+- 规格：`revalidateTag` 抛错时后台只见框架的通用报错，看不到「已保存」，重试新建会重复插入（DESIGN §6 只满足一半）
+- 规格：`document.cookie` 写的 cookie 在 Safari 上最长保留 7 天，「一年」对 Safari 不成立
+- 规格：详情页对不存在的 slug 返回 200 的「未找到」，如今每个垃圾 slug 还会留下一条页面缓存（软 404 本属 TD-012）
+- 规格（无裁定的改动）：`locales` 里 `fr`、`es` 对调；`/og.png` 印章改为色块
+- 规范：`src/lib/sitemap-entries.ts` 把栏目又列了一遍；`getMetaMessage` 缺键时返回键名而非回退英文；`SiteDocument` 里对 Google Fonts 的两条 preconnect 已无用；`<main>` 嵌套且跳转链接落在导航之前；语言前缀的计算在五个组件里重复
+
 **Phase 4 证据**（对象 = `779d196`）：
 - 验收测试：`npm test` 34 过、todo 0；运行时验收 15 过、todo 0（本地干净构建 + `next start`）；闸门运行 35584353597 为绿，计数一致
 - Codex 发布前评审：三条 MUST 均已处置（两条已修、一条驳回），无在途评审
@@ -159,7 +167,7 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
   - 运行时验收（本地，推送前）约 15 / 6（根布局 404 变 200、`no-store`、导航 500、多出的预加载、死的字体预加载、`/og.png` 字体报错）
   - CI 闸门 21 / 0 真实拦截（两次红是 Batch 1 故意造的证明）——问题都在推送前被本地的运行时验收拦下；它是部署路径上唯一的强制点，不设退役
   - 文档预算检查 21 / 0 —— 退役触发：v2.3.0 整版仍为 0 次拦截，则改为只在关版时跑
-  - **同模型逐批评审（engine 的 `code-review`）0 / 0 —— Batch 3–5 漏做**，governor Phase 3 要求每批一次
+  - 同模型评审（engine 的 `code-review`）1 / 1 —— **Batch 3–5 逐批漏做，合并后补做一次**（`baa7ca8`…`7423388`，规范与规格两轴）。拦截：语言重定向被浏览器永久缓存，使「记住手动选择」对切换前访问过的地址失效——真实 Chrome 复现后修复（重定向加 `private, no-store`）。其余发现见下
 - [ ] 文档预算为绿 · 记忆修剪
 - [ ] `development` 分支删除（本地与远端）
 - [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.2.0.md`

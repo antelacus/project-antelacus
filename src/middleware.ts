@@ -24,7 +24,11 @@ export async function middleware(req: NextRequest) {
     // Cloning keeps the query string.
     const url = req.nextUrl.clone();
     url.pathname = decision.pathname;
-    return NextResponse.redirect(url, 308);
+    const res = NextResponse.redirect(url, 308);
+    // Where this leads depends on the visitor (remembered choice, browser language), so it must not be
+    // replayed from a cache: a browser that stored `/` → `/en` would never ask again after a manual switch.
+    res.headers.set('Cache-Control', 'private, no-store');
+    return res;
   }
 
   return SESSION_TREES.includes(pathname.split('/')[1]) ? updateSupabaseSession(req) : NextResponse.next();

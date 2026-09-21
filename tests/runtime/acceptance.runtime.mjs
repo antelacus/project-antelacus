@@ -35,6 +35,8 @@ test('§5.2-b an unprefixed URL is redirected by Accept-Language, en when absent
   assert.equal(locationPath(french), '/fr/posts');
   const none = await get('/posts');
   assert.equal(none.status, 308);
+  // The target depends on the visitor: a cached copy would defeat the remembered choice (§5.2-h).
+  assert.match(none.headers.get('cache-control') ?? '', /no-store/, 'a locale redirect must not be cacheable');
   assert.equal(locationPath(none), '/en/posts');
 });
 
