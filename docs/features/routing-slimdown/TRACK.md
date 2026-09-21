@@ -35,6 +35,7 @@
   - 2026-09-21 · 删除两条指向不存在文件的字体预加载；REQ §6 增一条允许的差异 · Jason · 级联：REQ §6、`SiteDocument.tsx`、运行时验收
   - 2026-09-21 · 重写发布文档：确定并记录四类内容现在如何发布 · Jason · 级联：`docs/content-publishing.md`
   - 2026-09-21 · 图片与分享图的缓存时限由一年不可变改为一天 · Jason · 级联：DESIGN §9、`next.config.ts`、五个 `og.png` 路由
+  - 2026-09-21 · 为专栏、实验室、视觉建立发布入口，列入 v2.3.0，与 TD-006 一并设计 · Jason · 级联：关版时写入 `docs/TECHNICAL_DEBT.md`
 
 **Phase 0 记录**
 
