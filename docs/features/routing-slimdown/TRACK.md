@@ -45,7 +45,38 @@
 
 ## 二、批次
 
-批次在 Phase 2（设计完成、验收测试写红之后）切分。
+验收测试已写红（`2ae10fb`）：`npm test` 里 17 个 `todo`，按批次转正——某批完成 = 去掉它名下测试的 `todo` 标记且全绿；`npm run test:runtime` 需要一个运行中的服务。关版条件之一：`todo 0`。
+
+### Batch 1 — 部署闸门
+- 状态：open
+- 范围：`.github/workflows/check.yml`（新，可被调用：lint、`tsc`、`npm test`、文档预算 + 工具包测试）、`.github/workflows/deploy.yml`（`check` 任务调用它并声明 `contents: read`，`deploy` 任务 `needs: check`）· 覆盖 REQ §5.1
+- 验收判据：§5.1-a 一个带类型错误的临时 PR，其闸门运行为红；§5.1-b `deploy.yml` 里 `deploy` 依赖 `check`，且本批的 PR 运行里闸门为绿
+- 依赖：none
+- 备注：构建、中间件清单断言、运行时验收这三步在 Batch 3 加入闸门——在那之前它们必然为红
+
+### Batch 2 — 路由规则（纯函数）
+- 状态：open
+- 范围：`src/i18n/routing.ts`（加公开栏目清单）、`src/i18n/detect.ts`（`mapLanguageTag` 按主标签匹配）、`src/i18n/route-decision.ts`（新）· 覆盖 REQ §5.2 规则 1–4、7
+- 验收判据：`tests/acceptance-locale-route.test.ts` 七条与 `invariant 4` 去掉 `todo` 后全绿；严格 TDD，一次一条
+- 依赖：Batch 1
+
+### Batch 3 — 中间件与根布局搬迁
+- 状态：open
+- 范围：`src/middleware.ts`（移入并改为薄壳，排除 `og.png` 后缀）；`src/app/site-metadata.ts`、`src/components/SiteDocument.tsx`（新）；`src/app/[locale]/layout.tsx`、`src/app/admin/layout.tsx` 成为根布局；详情页实现搬入 `[locale]`，全部页面 `setRequestLocale`，详情页 `generateStaticParams` 返回空；删除顶层布局、顶层 not-found、重定向空壳；`src/app/sitemap.ts` → `src/lib/sitemap-entries.ts`；八处写死的语言列表改读 `routing.ts`；闸门加入构建 + 清单断言 + 运行时验收（本地子集）· 覆盖 REQ §5.2、§5.3-a、§6-a
+- 验收判据：`invariant 2a / 2b / 3` 转正；对本地构建的服务 `npm run test:runtime` 全绿（不读数据库的子集）；闸门里构建在假环境变量下完成且清单含中间件入口
+- 依赖：Batch 2
+
+### Batch 4 — 新鲜度与语言记忆
+- 状态：open
+- 范围：`src/app/admin/(protected)/notes/actions.ts`（保存成功后 `revalidateTag('notes')`）、`src/lib/{posts,notes,gallery,projects}.ts`（详情缓存 7200 → 3600）、`src/components/UtilityDropdown.tsx`（手动切换时写 `preferred_locale`）· 覆盖 REQ §5.3-b、§5.2 规则 7
+- 验收判据：`acceptance §5.3-b`、`§5.3 detail data` 转正；浏览器里切换语言后出现该 cookie，再访问 `/` 被带到所选语言
+- 依赖：Batch 3
+
+### Batch 5 — 瘦身与文档对齐
+- 状态：open
+- 范围：删除 `tests/acceptance-slimdown.test.ts` 的 `REMOVED_FILES` 所列文件、五个 `npm` 脚本、依赖 `ts-node`/`image-size`/`next-tweet`、`src/lib/tags.ts` 的四个无人调用的导出；`public/sw.js` 换成自注销脚本；删 `next.config.ts` 的 `.css|.js` 缓存规则；重写 `CLAUDE.md`；核对 README · 覆盖 REQ §5.4、§5.5
+- 验收判据：`acceptance §5.4-a / -b / -c`、`§5.5-a` 转正；`npm test` 报 `todo 0`；运行时 `§5.4-c` 为绿
+- 依赖：Batch 3
 
 ## 三、门与发布
 
