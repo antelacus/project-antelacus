@@ -3,7 +3,7 @@ import 'server-only';
 import type { Note, NoteMeta, NoteRecordRow } from '@/lib/note-types';
 import { mapNoteRecordToNote, mapNoteRecordToNoteMeta } from '@/lib/note-types';
 import { createSupabasePublicServerClient } from '@/lib/supabase/public-server';
-import { createSupabaseServiceRoleClient } from '@/lib/supabase/service-role';
+import { getAdminServiceRoleClient } from './admin-auth';
 
 export type AdminNoteInput = {
   id?: string;
@@ -129,7 +129,7 @@ function buildExtraMetadata(input: AdminNoteInput): Record<string, string> {
 }
 
 export async function listAdminNotes(): Promise<NoteRecordRow[]> {
-  const supabase = createSupabaseServiceRoleClient();
+  const supabase = await getAdminServiceRoleClient('/admin/notes');
   const { data, error } = await supabase
     .from('content_items')
     .select(`
@@ -163,7 +163,7 @@ export async function listAdminNotes(): Promise<NoteRecordRow[]> {
 }
 
 export async function getAdminNoteBySlug(slug: string): Promise<Note | null> {
-  const supabase = createSupabaseServiceRoleClient();
+  const supabase = await getAdminServiceRoleClient('/admin/notes');
   const { data, error } = await supabase
     .from('content_items')
     .select(`
@@ -199,7 +199,7 @@ export async function getAdminNoteBySlug(slug: string): Promise<Note | null> {
 }
 
 async function upsertTagsForNote(contentItemId: string, tags: string[]) {
-  const supabase = createSupabaseServiceRoleClient();
+  const supabase = await getAdminServiceRoleClient('/admin/notes');
   const normalizedTags = parseTagInput(tags);
 
   const { error: deleteError } = await supabase
@@ -255,7 +255,7 @@ async function upsertTagsForNote(contentItemId: string, tags: string[]) {
 }
 
 export async function saveAdminNote(input: AdminNoteInput): Promise<{ slug: string; tags: string[] }> {
-  const supabase = createSupabaseServiceRoleClient();
+  const supabase = await getAdminServiceRoleClient('/admin/notes');
   const publishDate = input.status === 'published'
     ? (input.displayDate || new Date().toISOString())
     : null;

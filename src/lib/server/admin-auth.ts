@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServiceRoleClient } from '@/lib/supabase/service-role';
 import { getSupabaseAdminEmails, hasConfiguredAdminEmails } from './supabase-env';
 
 export type AdminSession = {
@@ -53,4 +54,12 @@ export async function requireAdminUser(nextPath: string = '/admin'): Promise<Adm
   const loginUrl = new URL('/admin/login', 'http://localhost');
   loginUrl.searchParams.set('next', nextPath);
   redirect(`${loginUrl.pathname}${loginUrl.search}`);
+}
+
+// The service-role client bypasses RLS, so it is handed out only here, after the
+// admin check. A check in a layout does not protect a page: Next renders both in
+// parallel and streams the page's data before the layout's redirect lands.
+export async function getAdminServiceRoleClient(nextPath: string = '/admin') {
+  await requireAdminUser(nextPath);
+  return createSupabaseServiceRoleClient();
 }
