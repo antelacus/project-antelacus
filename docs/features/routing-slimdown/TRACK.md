@@ -23,7 +23,10 @@
 - 裁定：
   - 2026-09-21 · 中间件选「启用」而非「删除」（保留按浏览器语言自动跳转）· Jason · 级联：TD-007
   - 2026-09-21 · 十二条扫描发现按上面「范围 / 明确不做」分入 v2.2.0、v2.3.0、接受三组 · Jason · 级联：TECHNICAL_DEBT
-  - 2026-09-21 · 分支沿用现状：`feat/routing-slimdown` 从 `development` 切出，版本 PR 合入 `main`（合入即部署），随后 `development` 快进对齐 · Claude 提议，待 Jason 追认
+  - 2026-09-21 · 记住访客手动选择的语言（仅手动切换时记）· Jason · 级联：REQ §5.2 规则 2、7
+  - 2026-09-21 · 后台发布立即可见；直接改库的仍最长一小时 · Jason · 级联：REQ §5.3
+  - 2026-09-21 · 离线支持整体移除，`/sw.js` 换成自注销脚本长期保留 · Jason · 级联：REQ §5.4
+  - 2026-09-21 · `development` 分支退役：本版的 PR 直接合入 `main`，关版时删除该分支并改 `CLAUDE.md` 的分支约定 · Jason · 级联：REQ §5.5、Phase 6 boxes
 
 **Phase 0 记录**
 
@@ -57,6 +60,7 @@
 - [ ] 生产部署 + 核对 served SHA
 - [ ] 各门读数：运行次数 / 改变了输出的拦截次数
 - [ ] 文档预算为绿 · 记忆修剪
+- [ ] `development` 分支删除（本地与远端）
 - [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.2.0.md`
 
 ## 四、Session-end pickup
