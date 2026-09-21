@@ -143,17 +143,23 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 - **本版没有「类生产环境上的留出输入」这一项**：`.env` 只在 VPS 上，本地与 CI 都没有数据库，读库的页面（首页、各列表、详情、`/sitemap.xml`、`/api/search-index`）在上线前无处可验。它们的验收只能对生产跑，已列为下面的发布方框——合并不等于验过
 
 **Phase 6 boxes**：
-- [ ] CHANGELOG 条目
-- [ ] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑）
-- [ ] README 仍然属实
-- [ ] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致）
+- [x] CHANGELOG 条目
+- [x] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑） —— TD-007、008、009、010、015 删除；TD-001 承接「发布入口进 v2.3.0」的裁定；TD-012、TD-016 按现状改写
+- [x] README 仍然属实
+- [x] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致）
 - [ ] tag
-- [ ] 生产部署 + 核对 served SHA
-- [ ] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿（§5.2-f 详情分享图、§5.3-a、§6-a 的读库页面首次得到验证）
+- [x] 生产部署 + 核对 served SHA —— 合并提交 `7423388`；部署日志回显同一 SHA，健康检查 6 秒通过；从外部确认新行为（`/essays`、`/apiary` → 404，`/en/about` 可缓存）
+- [ ] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿（§5.2-f 详情分享图、§5.3-a、§6-a 的读库页面首次得到验证） —— 首跑 15 条里 13 过：读库页面的 §5.3-a、§6-a、§5.2-f 首次得到验证并通过；失败的两条（§5.4-c、缓存时限）同因——Cloudflare 边缘仍在发一年不可变的旧 `/sw.js` 与 `/og.png`，源站已是新文件（加查询串绕过缓存实测）。清缓存后重跑
 - [ ] 上线后：后台发布一篇测试笔记，随即访问其详情页与笔记列表，二者都已包含它（§5.3-b），再撤下
 - [ ] 上线后：用一个装过旧 Service Worker 的浏览器回访，确认旧脚本被注销、缓存被清空（§5.4-c 的覆盖路径）
-- [ ] 上线后：在 Cloudflare 清一次 `/og.png` 与 `/images/` 的缓存
-- [ ] 各门读数：运行次数 / 改变了输出的拦截次数
+- [ ] 上线后：在 Cloudflare 清缓存——**`/sw.js`（最要紧：不清则老访客拿不到自注销脚本）**、`/og.png`、`/images/`；最省事是「清除全部」
+- [x] 各门读数（运行次数 / 改变了输出的拦截次数）：
+  - Codex 设计门 1 / 10（十一条发现采纳十条，DESIGN 全篇改写）
+  - Codex 发布前评审 1 / 3（两条 MUST、一条 SHOULD 改了代码）
+  - 运行时验收（本地，推送前）约 15 / 6（根布局 404 变 200、`no-store`、导航 500、多出的预加载、死的字体预加载、`/og.png` 字体报错）
+  - CI 闸门 21 / 0 真实拦截（两次红是 Batch 1 故意造的证明）——问题都在推送前被本地的运行时验收拦下；它是部署路径上唯一的强制点，不设退役
+  - 文档预算检查 21 / 0 —— 退役触发：v2.3.0 整版仍为 0 次拦截，则改为只在关版时跑
+  - **同模型逐批评审（engine 的 `code-review`）0 / 0 —— Batch 3–5 漏做**，governor Phase 3 要求每批一次
 - [ ] 文档预算为绿 · 记忆修剪
 - [ ] `development` 分支删除（本地与远端）
 - [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.2.0.md`

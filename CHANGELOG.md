@@ -4,6 +4,28 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.2.0 - 2026-09-21
+
+### Fixed
+- Language routing works. The middleware had never run in production (it sat where Next does not register it). As a result `<html lang>` was `en` on every page whatever its language, the admin's sign-in session was never renewed, and any first path segment rendered as if it were a language — `/xx-anything/posts` returned the posts page, an unbounded set of duplicate URLs. Now every page declares the language of its URL, language variants (`/zh-tw/…`, `/en-US/…`) redirect to the supported one, and old unprefixed links (`/posts/<slug>`) redirect to the visitor's language.
+- Unknown URLs get a real 404 with the site's own page. Ordinary words are not mistaken for languages (`/essays` is a 404, not Spanish).
+- The seal on the home share image (`/og.png`) was an empty missing-glyph box; it is now the red square it was meant to be.
+- Two font preloads on every page pointed at files that never existed.
+
+### Changed
+- Public pages are cached: a page is rendered on its first visit and reused for up to an hour. Notes published from the admin appear at once; a direct database edit shows within the hour (detail pages used to take up to two).
+- The site remembers a language picked from the language menu and uses it the next time you arrive without a language in the URL. Opening a link in another language is not a choice and is not remembered.
+- Images and share images are cached for a day, not "forever": a replaced image now reaches everyone within a day.
+- The skip link follows the page language (it was always Chinese).
+
+### Removed
+- Offline support. The service worker's only effect was caching; `/sw.js` remains as a stub that removes the old worker and its caches from returning visitors' browsers.
+- About 1,900 lines of unused code, five npm scripts that could not fail, three unused dependencies.
+
+### For the maintainer
+- Nothing deploys without passing the gate: lint, type check, unit tests, a build without a database, and acceptance checks against the running server.
+- `CLAUDE.md`, the README and `docs/content-publishing.md` describe the site as it is; the publishing guide now covers the Supabase-era procedure.
+
 ## v2.1.4 - 2026-09-21
 
 ### Security

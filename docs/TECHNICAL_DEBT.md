@@ -29,8 +29,9 @@ Update this file when:
 - Evidence:
   - `src/app/admin/(protected)/page.tsx`
   - `src/app/admin/(protected)/notes/page.tsx`
-- Recommended follow-up:
-  - Add admin CRUD/publish flows for posts, projects, and gallery in a future minor version.
+  - No new content has been published since the cutover (newest item on the site: 2025-08-31).
+- Ruled (Project Lead): build a publishing entry for posts, projects and gallery in v2.3.0, designed together with TD-006. Open question for its Phase 1: where the writing happens — an in-site editor (works anywhere, phone included), a local file plus a publish command (best for long-form), or both.
+- Until then the procedure is `docs/content-publishing.md` §三: SQL in the Supabase console. Its SQL was derived from the schema and the code and has not been executed; the first real use is its verification.
 
 ### TD-002 - Search now has a single runtime dependency with no fallback path
 
@@ -104,31 +105,6 @@ Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes e
 - Context: `MDXRemote` (next-mdx-remote 5.0.0, no JS blocking) renders note/post/project/gallery bodies in four `[slug]/page.tsx` files. Only the admin can author content, so it is not reachable anonymously — but an admin-password compromise becomes server code execution, and the container runs as root (`Dockerfile` has no `USER`).
 - Recommended follow-up: next-mdx-remote 6 with JS blocked, or plain Markdown for database-sourced content; add a non-root user to the image.
 
-### TD-007 - `middleware.ts` has never run in production
-
-- Status: `Open — ruled: activate it (Project Lead, 2026-09-21)` · Severity: `High` · Area: `routing`
-- Context: the file sits at the repo root while the app is under `src/app`; a fresh build registers zero middleware. Consequences, all confirmed live: no `Accept-Language` redirect, no `NEXT_LOCALE` cookie (so `<html lang>` is always `en`), no Supabase session refresh, and **any** locale prefix renders (`/xx-anything/posts` → 200), i.e. unbounded duplicate pages.
-- Constraint for the fix: moving it to `src/` as-is would 308 `/og.png` and `/<type>/<slug>/og.png` to `/en/...`, which do not exist — exclude the OG routes first. `[locale]/layout.tsx` should also `notFound()` on an unsupported locale regardless.
-- Recommended follow-up: part of the next minor; then delete the 8 redirect-shell pages under `src/app/{posts,notes,…}`.
-
-### TD-008 - Every public page is rendered on demand; nothing is cached
-
-- Status: `Open` · Severity: `Medium` · Area: `performance`
-- Context: all public responses carry `cache-control: private, no-cache, no-store` and `cf-cache-status: DYNAMIC`. Cause: `src/app/layout.tsx:79` reads `cookies()` to pick `<html lang>`, which makes the whole tree dynamic; `[locale]` has no `generateStaticParams`. Activating the middleware (TD-007) does not fix this — the `<html>` element has to move into the locale layout so `lang` comes from the route param.
-- Recommended follow-up: design it together with TD-007.
-
-### TD-009 - Nothing gates a deploy
-
-- Status: `Open` · Severity: `Medium` · Area: `ci`
-- Context: a push to `main` builds and ships on the VPS; lint, `tsc` and the tests run nowhere in CI, so the "minimum verification gate" in `CLAUDE.md` is honour-system. A build that succeeds but serves an unhealthy app leaves the broken container running (no rollback). The build also needs Supabase reachable (the sitemap is prerendered), so a paused project blocks every deploy.
-- Recommended follow-up: a CI job (lint, tsc, tests) that the deploy job depends on; keep the previous image tagged for rollback.
-
-### TD-010 - About 1,600 lines of dead code and checks that cannot fail
-
-- Status: `Open` · Severity: `Medium` · Area: `maintainability`
-- Context: zero-importer files (`src/styles/color-schemes.ts` 347, `src/lib/performance.ts` 187, `MasonryGrid.tsx`, `NavigationTracker.tsx`, `src/lib/supabase/client.ts`, four `Client*Card.tsx` pass-throughs, four unused exports of `src/lib/tags.ts`); `PerformanceMonitor.tsx` + `public/sw.js` (~420 lines — no analytics endpoint is ever passed, its only effect is registering a service worker; removal needs a self-unregistering worker for existing visitors); scripts that prove nothing (`validate:dynamic-content` validates hard-coded samples against its own schema, `seo-check.cjs` looks for a file that does not exist, `validate-metadata.cjs` greps a redirect shell, two stubs); unused dependencies `ts-node`, `image-size`, `next-tweet`.
-- Recommended follow-up: delete, in the next minor. `src/content/` and `gray-matter` are **live** (the about page) — not part of this.
-
 ### TD-011 - The four content types repeat one repo four times
 
 - Status: `Open` · Severity: `Low` · Area: `maintainability`
@@ -138,7 +114,7 @@ Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes e
 ### TD-012 - Failures reach visitors raw
 
 - Status: `Open` · Severity: `Low` · Area: `resilience`
-- Context: no `error.tsx` / `global-error.tsx` anywhere, so a Supabase error on a cold cache shows Next's bare 500. A missing slug returns 200 with a "not found" message instead of `notFound()` (`src/app/posts/[slug]/page.tsx:49` and siblings). `/api/search-index` returns raw Supabase error text to anonymous callers — and it is the production search path, not the "dev fallback" `CLAUDE.md` calls it.
+- Context: no `error.tsx` / `global-error.tsx` anywhere, so a Supabase error on a cold cache shows Next's bare 500. A missing slug returns 200 with a "not found" message instead of `notFound()` (the four detail pages under `src/app/[locale]/`); fixing that must keep the status a real 404, which `loading.tsx` defeats for anything that streams (`docs/features/routing-slimdown/DESIGN.md` §8). `/api/search-index` returns raw Supabase error text to anonymous callers, and it is the production search path. Unknown URLs are handled: they get the site's own 404 page (`src/app/global-not-found.tsx`).
 
 ### TD-013 - The keepalive alert has no reader
 
@@ -150,12 +126,7 @@ Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes e
 - Status: `Open` · Severity: `Low` · Area: `security`
 - Context: base image `node:20` is past end-of-life; no CSP or HSTS, `x-powered-by` exposed; Supabase session cookies are set without `secure`; three admin-authored XSS sinks (`PhotoViewer.tsx:190` `innerHTML`, JSON-LD written without escaping `<`, `projects/[slug]/page.tsx:105` `href` without a scheme check); "admin" is an email match only — **check in the Supabase dashboard that sign-ups are disabled or email confirmation is required**, otherwise a listed address with no account yet can be registered by anyone; canonical URLs use `antelacus.com`, which nginx redirects to `www`.
 
-### TD-015 - `CLAUDE.md` describes a project that no longer exists
-
-- Status: `Open` · Severity: `Low` · Area: `docs`
-- Context: it names a `postbuild` step and `scripts/build-search-index.ts` (neither exists), calls the search endpoint a dev fallback, places mappers in the repo files (they are in `*-types.ts`) and admin under `[locale]/admin` (it is `src/app/admin`), says `src/content/` is legacy (it is live), and prescribes the retired doc naming (`docs/versions/v*/…/PHASE1_PRD.md`). `package.json` says `0.1.0`; tags `v2.1.1` and `v2.1.2` have no changelog entry.
-
 ### TD-016 - The tests pin mappers only
 
 - Status: `Open` · Severity: `Low` · Area: `tests`
-- Context: 12 of 15 cases are mapper snapshots on a full fixture; no fallback path is covered (null `published_at`, null/array metadata, empty tags). Riskiest untested logic: `normalizeToSupportedLocale` and `mapPathLocaleSegment` in `src/i18n/detect.ts` (pure functions; the second matches any segment starting with `en`, `fr` or `es`), the sitemap's locale expansion and XML escaping, `getSafeNextPath`.
+- Context: 12 of 15 cases are mapper snapshots on a full fixture; no fallback path is covered (null `published_at`, null/array metadata, empty tags). Still untested: the sitemap's locale expansion and XML escaping, `getSafeNextPath`. (The locale routing functions are now covered by acceptance tests.)
