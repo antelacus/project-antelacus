@@ -85,10 +85,14 @@
 - 依赖：Batch 3
 
 ### Batch 5 — 瘦身与文档对齐
-- 状态：open
+- 状态：done `5d7a163`（27 个文件，+85 / −1859）
 - 范围：删除 `tests/acceptance-slimdown.test.ts` 的 `REMOVED_FILES` 所列文件、五个 `npm` 脚本、依赖 `ts-node`/`image-size`/`next-tweet`、`src/lib/tags.ts` 的四个无人调用的导出；`public/sw.js` 换成自注销脚本；删 `next.config.ts` 的 `.css|.js` 缓存规则；重写 `CLAUDE.md`；核对 README · 覆盖 REQ §5.4、§5.5
-- 验收判据：`acceptance §5.4-a / -b / -c`、`§5.5-a` 转正；`npm test` 报 `todo 0`；运行时 `§5.4-c` 为绿
+- 删前核对（按导入关系）：15 个文件里 10 个无人导入；`PerformanceMonitor` 由 `SiteDocument` 挂载（已摘除）；四个 `Client*Card` 由首页使用，是纯转手，首页改用原组件
+- 证据：`npm test` 32 过、**todo 0**；运行时 12 过、todo 0；闸门运行 35572995773 为绿，计数一致。`/sw.js` 响应头 `public, max-age=0`，构建产物中无注册 Service Worker 的代码。`tests/claude-md.test.ts` 经变异证明能红（塞入假路径即红，按哈希原样复原）
+- 证据（浏览器）：预置缓存 `living-manuscript-v1` 后注册 `/sw.js` → 缓存清空、注册消失。这是全新安装的路径；**覆盖旧脚本的路径只能上线后验**（用一个装过旧 Service Worker 的浏览器）
+- README：数据流、标签、搜索、路由、分支五处按现状改写；图片目录一节核对属实
 - 候选，待 Jason 裁定：`SiteDocument` 里两条手写的字体预加载（`/fonts/*.woff2`）指向不存在的文件，线上同为 404；字体实际由 `next/font` 自托管并自带预加载。删除会改 `<head>`，需在 REQ §6 增一条允许的差异
+- 本版之外、待 Jason 定去向：`docs/content-publishing.md` 整篇仍是 MDX 时代的发布流程；`public/images/og-image.svg` 的生成脚本已删，仅 `docs/site-operating.md` 还提到它；各 `og.png` 以一年不可变缓存下发，上线后 `/og.png` 需在 Cloudflare 清一次缓存，修好的印章才看得到
 - 依赖：Batch 3
 
 ## 三、门与发布
