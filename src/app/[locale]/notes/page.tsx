@@ -1,4 +1,5 @@
 import { getAllNotesMeta } from '@/lib/notes';
+import { setRequestLocale } from 'next-intl/server';
 import NoteCard from '@/components/NoteCard';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
@@ -14,7 +15,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function NotesPage() {
+export default async function NotesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const notes = await getAllNotesMeta();
   return (
     <div className="content-container content-container-standard">

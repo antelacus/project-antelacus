@@ -1,4 +1,5 @@
 import { getAllPostsMeta } from '@/lib/posts';
+import { setRequestLocale } from 'next-intl/server';
 import PostCard from '@/components/PostCard';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
@@ -15,7 +16,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function PostsPage({ params }: { params: Promise<{ locale: string }> }) {
-  await params;
+  const { locale } = await params;
+  setRequestLocale(locale);
   const posts = await getAllPostsMeta();
   return (
     <div className="content-container content-container-standard">

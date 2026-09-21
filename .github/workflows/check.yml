@@ -1,0 +1,55 @@
+name: Check
+
+# 闸门：任何分支的推送与 PR 都跑；deploy.yml 也调用它，过了才部署。
+on:
+  push:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: dummy
+      SUPABASE_SERVICE_ROLE_KEY: dummy
+      SUPABASE_ADMIN_EMAILS: owner@example.com
+    steps:
+      # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # 与 Dockerfile 的基础镜像一致
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+      # 构建用占位环境变量：能在这里跑完，即证明构建不依赖 Supabase 可达
+      - name: Build
+        run: |
+          # 站点验证码进 <head>，§6-a 要逐项比对；值取自基线文件，不另抄一份
+          echo "SITE_VERIFICATION_GOOGLE=$(node -p "JSON.parse(require('fs').readFileSync('tests/runtime/fixtures/head-baseline.json','utf8')).pages['/en/about'].head.find(i => i.startsWith('meta:google-site-verification=')).split('=')[1]")" >> "$GITHUB_ENV"
+          npm run build
+      # 中间件放错位置时构建不报错，只是不注册
+      - name: Middleware is registered
+        run: node -e "const m = require('./.next/server/middleware-manifest.json'); if (!Object.keys(m.middleware).length) { console.error('no middleware entry in the build manifest'); process.exit(1) }"
+      # 只有运行中的服务的响应头算数；这里跑不读数据库的子集，其余在部署后对生产跑
+      - name: Runtime acceptance (database-free subset)
+        run: |
+          npx next start -p 3917 &
+          curl --silent --fail --output /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://localhost:3917/og.png
+          BASE_URL=http://localhost:3917 npm run test:runtime
+      - name: Doc budgets
+        run: python3 scripts/check_doc_budget.py
+      - name: Doc-budget checker's own tests
+        run: pipx run pytest scripts/tests -q

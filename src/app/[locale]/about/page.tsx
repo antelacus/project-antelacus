@@ -1,4 +1,5 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import { setRequestLocale } from 'next-intl/server';
 import { getAboutMdx } from '@/lib/pages';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const mdx = await getAboutMdx(locale);
   if (!mdx) {
     return null;

@@ -1,10 +1,10 @@
 'use server';
 
+import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { requireAdminUser } from '@/lib/server/admin-auth';
-import { revalidateNoteArtifacts } from '@/lib/server/note-revalidation';
 import { saveAdminNote } from '@/lib/server/notes-repo';
 
 const noteFormSchema = z.object({
@@ -51,7 +51,9 @@ async function saveNoteAction(formData: FormData, intent: 'draft' | 'publish') {
     status: intent === 'publish' ? 'published' : 'draft',
   });
 
-  revalidateNoteArtifacts(result.slug, result.tags);
+  // Every page that shows notes (detail, list, home, tag pages, search index, sitemap) reads them through
+  // this tag, so nothing needs revalidating by path. If this throws the save has still happened.
+  revalidateTag('notes');
   redirect(`/admin/notes?slug=${encodeURIComponent(result.slug)}&saved=${intent}`);
 }
 

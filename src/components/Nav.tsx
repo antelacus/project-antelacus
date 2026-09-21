@@ -5,7 +5,7 @@ import SearchModal from './SearchModal';
 import UtilityDropdown from './UtilityDropdown';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { locales } from '@/i18n/routing';
+import { locales, isSupportedLocale } from '@/i18n/routing';
 
 export default function Nav() {
   const t = useTranslations();
@@ -15,7 +15,7 @@ export default function Nav() {
   const [mounted, setMounted] = useState(false);
 
   const currentLocale = (pathname.split('/')[1] || '');
-  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
   const stripLocale = (path: string) => {
     const seg = (path || '/').split('/')[1] || '';
     if ((locales as readonly string[]).includes(seg)) {

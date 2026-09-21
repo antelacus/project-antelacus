@@ -9,6 +9,7 @@ import { PostMeta } from '../lib/posts';
 import { NoteMeta } from '../lib/notes';
 import { PhotoMeta } from '../lib/gallery';
 import { ProjectMeta } from '../lib/projects';
+import { locales } from '@/i18n/routing';
 
 type ContentType = 'post' | 'note' | 'photo' | 'project';
 
@@ -53,7 +54,7 @@ export default function SearchModal({ open, onClose, preset }: Props) {
   const [selectedType, setSelectedType] = useState<'all' | ContentType>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('all');
-  const LANG_FILTERS = ['all','zh-CN','zh-HK','en','fr','es'] as const;
+  const LANG_FILTERS = ['all', ...locales] as const;
   type LangFilter = typeof LANG_FILTERS[number];
   const [selectedLang, setSelectedLang] = useState<LangFilter>('all');
   const isLangFilter = (v: string): v is LangFilter => (LANG_FILTERS as readonly string[]).includes(v);

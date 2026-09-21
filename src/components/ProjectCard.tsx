@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { ProjectMeta } from '../lib/projects';
 import { useState, useEffect } from 'react';
+import { isSupportedLocale } from '@/i18n/routing';
 
 interface ProjectCardProps {
   project: ProjectMeta;
@@ -16,7 +17,7 @@ export default function ProjectCard({ project, layout = 'vertical', compact = fa
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const currentPath = usePathname?.() || pathname || '/';
   const currentLocale = (currentPath.split('/')[1] || '');
-  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');

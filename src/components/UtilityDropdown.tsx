@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { locales, isSupportedLocale } from '@/i18n/routing';
+import { usePathname, useRouter } from 'next/navigation';
+import { locales, isSupportedLocale, PREFERRED_LOCALE_COOKIE } from '@/i18n/routing';
 
 interface TocItem {
   id: string;
@@ -24,7 +24,6 @@ export default function UtilityDropdown({
   const t = useTranslations();
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
@@ -36,16 +35,17 @@ export default function UtilityDropdown({
   }, [pathname]);
 
   const changeLocale = (nextLocale: string) => {
+    // Only a manual switch is a choice; opening a prefixed link must never write this.
+    document.cookie = `${PREFERRED_LOCALE_COOKIE}=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`;
     const segments = (pathname || '/').split('/');
     if (segments.length > 1 && isSupportedLocale(segments[1])) {
       segments[1] = nextLocale;
     } else {
       segments.splice(1, 0, nextLocale);
     }
-    let nextPath = segments.join('/');
-    const qs = searchParams?.toString();
-    if (qs) nextPath += `?${qs}`;
-    router.push(nextPath);
+    // Read at click time rather than with useSearchParams(): that hook would force a Suspense boundary
+    // around the nav on every statically rendered page.
+    router.push(segments.join('/') + window.location.search);
     onClose();
   };
 
@@ -224,11 +224,7 @@ export default function UtilityDropdown({
 
       {showLangMenu && (
         <div role="menu" aria-label={t('utility.language')} style={{ paddingTop: '4px' }}>
-          {(() => {
-            const ordered: readonly string[] = ['zh-CN','zh-HK','en','es','fr'];
-            const display = ordered.filter(l => (locales as readonly string[]).includes(l));
-            return display;
-          })().map(code => {
+          {locales.map(code => {
             const active = currentLocale ? currentLocale === code : false;
             return (
               <button

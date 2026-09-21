@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NoteMeta } from '../lib/notes';
 import { useState, useEffect } from 'react';
+import { isSupportedLocale } from '@/i18n/routing';
 
 interface NoteCardProps {
   note: NoteMeta;
@@ -15,7 +16,7 @@ export default function NoteCard({ note, layout = 'vertical', compact = false, s
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const currentPath = usePathname?.() || pathname || '/';
   const currentLocale = (currentPath.split('/')[1] || '');
-  const prefix = ['zh-CN','zh-HK','en','fr','es'].includes(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');

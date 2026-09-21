@@ -1,4 +1,5 @@
 import { getAllProjectsMeta } from '@/lib/projects';
+import { setRequestLocale } from 'next-intl/server';
 import ProjectCard from '@/components/ProjectCard';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
@@ -14,7 +15,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const projects = await getAllProjectsMeta();
   return (
     <div className="content-container content-container-standard">

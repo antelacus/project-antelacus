@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 import { getAllPostsMeta } from '@/lib/posts';
 import { getAllNotesMeta } from '@/lib/notes';
 import { getAllPhotosMeta } from '@/lib/gallery';
 import { getAllProjectsMeta } from '@/lib/projects';
-import ClientPostCard from '@/components/ClientPostCard';
-import ClientNoteCard from '@/components/ClientNoteCard';
-import ClientPhotoCard from '@/components/ClientPhotoCard';
-import ClientProjectCard from '@/components/ClientProjectCard';
+import PostCard from '@/components/PostCard';
+import NoteCard from '@/components/NoteCard';
+import PhotoCard from '@/components/PhotoCard';
+import ProjectCard from '@/components/ProjectCard';
 
 export const metadata: Metadata = {
   title: { absolute: 'Ante Lacus, Pax Mentis' },
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function LocalizedHome({ params }: { params: Promise<{ locale: string }> }) {
-  await params;
+  const { locale } = await params;
+  setRequestLocale(locale);
   const [posts, notes, photos, projects] = await Promise.all([
     getAllPostsMeta(),
     getAllNotesMeta(),
@@ -53,7 +55,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
               className="mountain-peak"
               style={{ '--peak-index': index } as React.CSSProperties}
             >
-              <ClientPostCard post={post} />
+              <PostCard post={post} />
             </div>
           ))}
         </section>
@@ -61,7 +63,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
         <section className="scholars-rocks">
           {featuredNotes.map((note) => (
             <div key={note.slug} className="scholar-rock">
-              <ClientNoteCard note={note} />
+              <NoteCard note={note} />
             </div>
           ))}
         </section>
@@ -69,13 +71,13 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
         <section className="secondary-features">
           {featuredPhoto && (
             <div className="koi-pond">
-              <ClientPhotoCard photo={featuredPhoto} />
+              <PhotoCard photo={featuredPhoto} />
             </div>
           )}
 
           {featuredProject && (
             <div className="pavilion">
-              <ClientProjectCard project={featuredProject} />
+              <ProjectCard project={featuredProject} />
             </div>
           )}
         </section>

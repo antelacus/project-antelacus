@@ -31,7 +31,7 @@ export const getPhotoBySlug = cache(
     getPhotoBySlugUncached,
     ['photo', 'dynamic-content-v3'],
     {
-      revalidate: 7200,
+      revalidate: 3600,
       tags: ['gallery'],
     },
   ),

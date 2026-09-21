@@ -1,6 +1,6 @@
 {
   "name": "project-antelacus",
-  "version": "0.1.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,12 +8,8 @@
     "build": "next build",
     "start": "next start",
     "test": "node --import tsx --test tests/*.test.ts",
-    "lint": "next lint",
-    "validate:dynamic-content": "tsx scripts/validate-dynamic-content-schema.ts",
-    "seo:check": "node scripts/seo-check.cjs",
-    "seo:og-image": "node scripts/generate-og-image.js",
-    "seo:validate": "node scripts/validate-metadata.cjs",
-    "seo:submit": "node scripts/submit-sitemap.cjs"
+    "test:runtime": "node --test tests/runtime/acceptance.runtime.mjs",
+    "lint": "next lint"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -21,12 +17,10 @@
     "@tailwindcss/postcss": "^4.1.11",
     "autoprefixer": "^10.4.21",
     "gray-matter": "^4.0.3",
-    "image-size": "^2.0.2",
     "katex": "^0.16.22",
     "next": "15.5.25",
     "next-intl": "4.3.8",
     "next-mdx-remote": "^5.0.0",
-    "next-tweet": "^0.8.1",
     "photoswipe": "^5.4.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -46,7 +40,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.25",
     "tailwindcss": "^4",
-    "ts-node": "^10",
     "tsx": "^4.21.0",
     "typescript": "^5"
   }
