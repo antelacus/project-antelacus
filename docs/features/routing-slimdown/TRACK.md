@@ -47,7 +47,21 @@
 
 ## 三、门与发布
 
-**评审发现登记**（Codex 设计门 · 部署前门）：尚无。
+**评审发现登记**（评审返回即原样登记，处置由 Jason 裁）
+
+Codex 设计门（只读，xhigh，会话 `01a0c1f8-39fd-7ed1-b987-c8eaf35c8267`；评审对象 = `c7c1c8c` 的 DESIGN 与 REQ）：
+- MUST-1：公开页面树仍因 `next-intl` 的 Provider 读请求头而保持动态，§5.3-a 不成立 —— status: open
+- MUST-2：`decideLocaleRoute` 把未知的普通路径 308 走，而 REQ 规则 4 要求对原请求直接 404 —— status: open
+- MUST-3：两份 `/sitemap.xml` 定义并存，`sitemap.ts` 才是生效的一份且在构建期访问 Supabase，「构建不依赖 Supabase」不成立 —— status: open
+- MUST-4：笔记详情的数据缓存是 7200 秒，违反「直接改库最长一小时生效」 —— status: open
+- MUST-5：删除顶层根布局后，metadata、viewport、全局 CSS、字体、公共外壳没有保全契约 —— status: open
+- MUST-6：可复用闸门没有真正接上（无 `needs`），且权限方案会让检出失败（被调用方不能提升调用方的空权限）—— status: open
+- MUST-7：§5.5-a 在设计里没有对应物，`CLAUDE.md` 现状必然不过 —— status: open
+- SHOULD-1：「根目录的 middleware 不被注册」这一前提对 Next 15.5 不成立 —— status: open
+- SHOULD-2：「形如语言标签」的判法预留掉了许多将来可能的栏目名（`/rss`、`/cv`、`/faq`）—— status: open
+- SHOULD-3：Service Worker 的 24 小时说法过强：那是更新检查的行为，不是 HTTP 缓存上限 —— status: open
+- SHOULD-4：D-4（OG 路径不被重定向）仍待核，需对构建后的服务实测 —— status: open
+- 评审同时确认成立：D-1（`notFound()` 给出 404）、D-2（静态页不带 `no-store`）、D-3（`revalidateTag` 波及用到该标签的页面；首页、列表、标签页、搜索、sitemap 都经 `notes` 标签读取）、路由处理器不需要根布局、`next-intl` 插件不要求顶层布局、公开 Supabase 客户端不读 cookie。
 
 **Phase 4 证据**：尚无。
 
