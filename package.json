@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node --import tsx --test tests/*.test.ts",
+    "test:runtime": "node --test tests/runtime/acceptance.runtime.mjs",
     "lint": "next lint",
     "validate:dynamic-content": "tsx scripts/validate-dynamic-content-schema.ts",
     "seo:check": "node scripts/seo-check.cjs",
