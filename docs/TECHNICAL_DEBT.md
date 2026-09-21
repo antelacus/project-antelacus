@@ -90,6 +90,8 @@ Update this file when:
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
 
+Who rules on what: TD-005 is a hotfix (v2.1.4). Every other item below goes to **Phase 0 of v2.2.0**, which takes each one into scope, accepts it, or declines it — none of them is parked.
+
 ### TD-005 - Next 15.4.8 and 12 other production dependencies carry known vulnerabilities
 
 - Status: `Open` · Severity: `Critical` · Area: `dependencies` · Identified: `2026-09-21`
