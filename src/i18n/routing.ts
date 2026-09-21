@@ -16,6 +16,10 @@ export const defaultLocale: AppLocale = 'en';
 // tests/invariants.test.ts keeps this equal to the directories under src/app/[locale].
 export const localizedSections = ['about', 'gallery', 'notes', 'posts', 'projects', 'tags'] as const;
 
+// Holds the language a visitor picked by hand. Written only by the language switch, read only by the
+// middleware: a page or layout that reads it stops being cacheable.
+export const PREFERRED_LOCALE_COOKIE = 'preferred_locale';
+
 export function isSupportedLocale(locale: string | undefined | null): locale is AppLocale {
   return !!locale && (locales as readonly string[]).includes(locale);
 }

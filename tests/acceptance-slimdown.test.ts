@@ -37,7 +37,7 @@ const REMOVED_FILES = [
   'scripts/submit-sitemap.cjs',
 ];
 
-test('acceptance §5.3-b saving a note invalidates the notes cache tag', { todo: 'batch 4' }, () => {
+test('acceptance §5.3-b saving a note invalidates the notes cache tag', () => {
   const path = 'src/app/admin/(protected)/notes/actions.ts';
   const source = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, true);
   const calls: string[] = [];
@@ -49,7 +49,7 @@ test('acceptance §5.3-b saving a note invalidates the notes cache tag', { todo:
   assert.ok(calls.some((argument) => /^['"]notes['"]$/.test(argument)), `revalidateTag('notes') not found; saw: ${calls.join(', ') || 'no revalidateTag call'}`);
 });
 
-test('acceptance §5.3 detail data is cached for one hour, like the lists', { todo: 'batch 4' }, () => {
+test('acceptance §5.3 detail data is cached for one hour, like the lists', () => {
   for (const name of ['posts', 'notes', 'gallery', 'projects']) {
     const lifetimes = [...read(`src/lib/${name}.ts`).matchAll(/revalidate:\s*(\d+)/g)].map((match) => Number(match[1]));
     assert.ok(lifetimes.length >= 2, `${name}.ts: expected a list and a detail cache, found ${lifetimes.length}`);

@@ -31,7 +31,7 @@ export const getProjectBySlug = cache(
     getProjectBySlugUncached,
     ['project', 'dynamic-content-v5'],
     {
-      revalidate: 7200,
+      revalidate: 3600,
       tags: ['projects'],
     },
   ),

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { decideLocaleRoute } from '@/i18n/route-decision';
+import { PREFERRED_LOCALE_COOKIE } from '@/i18n/routing';
 import { updateSupabaseSession } from '@/lib/supabase/middleware';
 
 // No route matches this: under `[locale]` only the sections listed in routing.ts exist. Rewriting to it
@@ -20,7 +21,7 @@ export async function middleware(req: NextRequest) {
   const decision = decideLocaleRoute({
     pathname,
     acceptLanguage: req.headers.get('accept-language'),
-    preferredLocale: req.cookies.get('preferred_locale')?.value ?? null,
+    preferredLocale: req.cookies.get(PREFERRED_LOCALE_COOKIE)?.value ?? null,
   });
   if (decision.kind === 'pass') return NextResponse.next();
   if (decision.kind === 'not-found') return NextResponse.rewrite(new URL(UNMATCHED_PATH, req.url));
