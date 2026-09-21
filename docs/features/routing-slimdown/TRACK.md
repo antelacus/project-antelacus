@@ -26,6 +26,8 @@
   - 2026-09-21 · 记住访客手动选择的语言（仅手动切换时记）· Jason · 级联：REQ §5.2 规则 2、7
   - 2026-09-21 · 后台发布立即可见；直接改库的仍最长一小时 · Jason · 级联：REQ §5.3
   - 2026-09-21 · 离线支持整体移除，`/sw.js` 换成自注销脚本长期保留 · Jason · 级联：REQ §5.4
+  - 2026-09-21 · Codex 设计门十一条发现：十条采纳、SHOULD-1 驳回 · Jason · 级联：DESIGN 全篇
+  - 2026-09-21 · REQ 增加「外观与 `<head>` 不变」一条要求（由 MUST-5 引出）· Jason · 级联：REQ §6
   - 2026-09-21 · `development` 分支退役：本版的 PR 直接合入 `main`，关版时删除该分支并改 `CLAUDE.md` 的分支约定 · Jason · 级联：REQ §5.5、Phase 6 boxes
 
 **Phase 0 记录**
@@ -50,17 +52,17 @@
 **评审发现登记**（评审返回即原样登记，处置由 Jason 裁）
 
 Codex 设计门（只读，xhigh，会话 `01a0c1f8-39fd-7ed1-b987-c8eaf35c8267`；评审对象 = `c7c1c8c` 的 DESIGN 与 REQ）：
-- MUST-1：公开页面树仍因 `next-intl` 的 Provider 读请求头而保持动态，§5.3-a 不成立 —— status: open
-- MUST-2：`decideLocaleRoute` 把未知的普通路径 308 走，而 REQ 规则 4 要求对原请求直接 404 —— status: open
-- MUST-3：两份 `/sitemap.xml` 定义并存，`sitemap.ts` 才是生效的一份且在构建期访问 Supabase，「构建不依赖 Supabase」不成立 —— status: open
-- MUST-4：笔记详情的数据缓存是 7200 秒，违反「直接改库最长一小时生效」 —— status: open
-- MUST-5：删除顶层根布局后，metadata、viewport、全局 CSS、字体、公共外壳没有保全契约 —— status: open
-- MUST-6：可复用闸门没有真正接上（无 `needs`），且权限方案会让检出失败（被调用方不能提升调用方的空权限）—— status: open
-- MUST-7：§5.5-a 在设计里没有对应物，`CLAUDE.md` 现状必然不过 —— status: open
-- SHOULD-1：「根目录的 middleware 不被注册」这一前提对 Next 15.5 不成立 —— status: open
-- SHOULD-2：「形如语言标签」的判法预留掉了许多将来可能的栏目名（`/rss`、`/cv`、`/faq`）—— status: open
-- SHOULD-3：Service Worker 的 24 小时说法过强：那是更新检查的行为，不是 HTTP 缓存上限 —— status: open
-- SHOULD-4：D-4（OG 路径不被重定向）仍待核，需对构建后的服务实测 —— status: open
+- MUST-1：公开页面树仍因 `next-intl` 的 Provider 读请求头而保持动态，§5.3-a 不成立 —— status: 采纳 → 已改 DESIGN
+- MUST-2：`decideLocaleRoute` 把未知的普通路径 308 走，而 REQ 规则 4 要求对原请求直接 404 —— status: 采纳 → 已改 DESIGN
+- MUST-3：两份 `/sitemap.xml` 定义并存，`sitemap.ts` 才是生效的一份且在构建期访问 Supabase，「构建不依赖 Supabase」不成立 —— status: 采纳 → 已改 DESIGN
+- MUST-4：笔记详情的数据缓存是 7200 秒，违反「直接改库最长一小时生效」 —— status: 采纳 → 已改 DESIGN
+- MUST-5：删除顶层根布局后，metadata、viewport、全局 CSS、字体、公共外壳没有保全契约 —— status: 采纳 → 已改 DESIGN
+- MUST-6：可复用闸门没有真正接上（无 `needs`），且权限方案会让检出失败（被调用方不能提升调用方的空权限）—— status: 采纳 → 已改 DESIGN
+- MUST-7：§5.5-a 在设计里没有对应物，`CLAUDE.md` 现状必然不过 —— status: 采纳 → 已改 DESIGN
+- SHOULD-1：「根目录的 middleware 不被注册」这一前提对 Next 15.5 不成立 —— status: 驳回——实测相反，评审读到的是过期的 `.next`（见下方实测）
+- SHOULD-2：「形如语言标签」的判法预留掉了许多将来可能的栏目名（`/rss`、`/cv`、`/faq`）—— status: 采纳 → 由 MUST-2 的栏目清单一并解决
+- SHOULD-3：Service Worker 的 24 小时说法过强：那是更新检查的行为，不是 HTTP 缓存上限 —— status: 采纳 → 已改 DESIGN
+- SHOULD-4：D-4（OG 路径不被重定向）仍待核，需对构建后的服务实测 —— status: 采纳 → 已改 DESIGN
 - 评审同时确认成立：D-1（`notFound()` 给出 404）、D-2（静态页不带 `no-store`）、D-3（`revalidateTag` 波及用到该标签的页面；首页、列表、标签页、搜索、sitemap 都经 `notes` 标签读取）、路由处理器不需要根布局、`next-intl` 插件不要求顶层布局、公开 Supabase 客户端不读 cookie。
 
 设计门后的实测（隔离工作树 `985cd5a`，假环境变量，`next build` 后 `next start`；`sitemap.ts` 改为普通模块以便构建跑完；只有关于页不读数据库，故以它为对象）：
