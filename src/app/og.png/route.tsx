@@ -29,7 +29,9 @@ export async function GET() {
         />
         <div style={{ fontSize: 72, fontWeight: 700 }}>AnteLacus</div>
         <div style={{ marginTop: 12, fontSize: 32, opacity: 0.8 }}>Ante Lacus, Pax Mentis</div>
-        <div style={{ marginTop: 40, fontSize: 28, color: '#B42A1E' }}>■</div>
+        {/* The seal is drawn, not typed: the bundled font has no ■ glyph, and a missing glyph makes every
+            render try to download a font. */}
+        <div style={{ marginTop: 48, width: 24, height: 24, backgroundColor: '#B42A1E' }} />
         <div style={{ position: 'absolute', bottom: 50, fontSize: 24, opacity: 0.5 }}>antelacus.com</div>
       </div>
     ),
