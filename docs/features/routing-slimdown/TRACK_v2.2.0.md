@@ -157,7 +157,7 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 - [x] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑） —— TD-007、008、009、010、015 删除；TD-001 承接「发布入口进 v2.3.0」的裁定；TD-012、TD-016 按现状改写
 - [x] README 仍然属实
 - [x] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致）
-- [ ] tag
+- [x] tag `v2.2.0` = `198e654`（PR #5 的合并提交，第二次部署；线上 SHA 与之一致，对生产的验收 15 条全绿）
 - [x] 生产部署 + 核对 served SHA —— 合并提交 `7423388`；部署日志回显同一 SHA，健康检查 6 秒通过；从外部确认新行为（`/essays`、`/apiary` → 404，`/en/about` 可缓存）
 - [x] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿（§5.2-f 详情分享图、§5.3-a、§6-a 的读库页面首次得到验证） —— 首跑 15 条里 13 过：读库页面的 §5.3-a、§6-a、§5.2-f 首次得到验证并通过；失败的两条（§5.4-c、缓存时限）同因——Cloudflare 边缘仍在发一年不可变的旧 `/sw.js` 与 `/og.png`，源站已是新文件（加查询串绕过缓存实测）。清缓存后重跑
 - [x] 上线后：后台发布一篇测试笔记，随即访问其详情页与笔记列表，二者都已包含它（§5.3-b），再撤下 —— 通过：发布后立即出现在详情页、两种语言的列表、首页与搜索索引；改回草稿后立即从列表、首页、索引消失，详情页变为「未找到」。附带发现：线上此前**从未有过登录账号**（Supabase Auth 无用户），后台今天首次真正使用；发布按钮被点两次时第二次因 slug 重复报出框架通用错误页——登记为发现，归 TD-001 的发布入口设计（表单防重复提交；新建时同 slug 视为更新）
@@ -170,37 +170,6 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
   - CI 闸门 21 / 0 真实拦截（两次红是 Batch 1 故意造的证明）——问题都在推送前被本地的运行时验收拦下；它是部署路径上唯一的强制点，不设退役
   - 文档预算检查 21 / 0 —— 退役触发：v2.3.0 整版仍为 0 次拦截，则改为只在关版时跑
   - 同模型评审（engine 的 `code-review`）1 / 1 —— **Batch 3–5 逐批漏做，合并后补做一次**（`baa7ca8`…`7423388`，规范与规格两轴）。拦截：语言重定向被浏览器永久缓存，使「记住手动选择」对切换前访问过的地址失效——真实 Chrome 复现后修复（重定向加 `private, no-store`）。其余发现见下
-- [ ] 文档预算为绿 · 记忆修剪
-- [ ] `development` 分支删除（本地与远端）
-- [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.2.0.md`
-
-## 四、Session-end pickup
-
-### Session-end pickup (2026-09-21)
-
-**Working tree state at session close**:
-- Branch: `feat/routing-slimdown`. HEAD (parent of the `/pause` commit landing this pickup): `075b047`（本 pickup 的初稿；其前 `94e0be5` 补了运行时验收的头注，`ef4f146` 把 Batch 2 记入 TRACK；代码侧最后一笔是 `740c787`）
-- Working tree: clean；分支与 `origin` 一致
-
-**Where work stands**:
-- Phase 0–2 ✅；Phase 3 🔲 in-progress —— Batch 1、2 done，**当前批次：Batch 3**（尚未动手）。范围、裁定见第一区，批次与证据见第二区，不在此复述。
-- Batch 3 是本版风险最大的一批（动每个页面的最外层）。动手前必读：第三区「设计门后的实测」四条——尤其「构建的路由表不是可缓存的证据」与「现行中间件代码移入 `src/` 后会把 `/essays`、`/og.png` 重定向」——以及 DESIGN §2、§4、§7、§8。
-- 本地验证 Batch 3 的办法写在 `tests/runtime/acceptance.runtime.mjs` 头注里（假环境变量构建 → `next start` → `npm run test:runtime`）。不读数据库的页面只有关于页与后台登录页；其余页面的运行时验收只能在部署后对生产跑（`RUNTIME_DB=1`）。
-
-**Test / lint state**: green —— `npm test` 32 个：23 过、0 败、9 `todo`（Batch 3–5 名下）；`tsc` 干净；lint 0 错误（8 个既有警告）；文档预算 4 份全绿；CI 闸门最近一次运行 35565842412 为绿。
-
-**Reconciliation (对账)**: 本 TRACK 的第一份 pickup，无前一份可对。本会话散落的事项去向：
-- 运行时验收的假环境变量配方 — ⌂ rehomed（`tests/runtime/acceptance.runtime.mjs` 头注）
-- 工具包安装说明缺 `__pycache__/` 忽略项与非 Python 项目的 CI 写法 — ⌂ rehomed（dotfiles `templates/kit/INSTALL.md`，`fb46e44`）
-- Codex：`task --help` 会被当成任务执行；xhigh 设计评审实耗 45 分钟；评审期间不得动工作树 — ⌂ rehomed（记忆 `reference_codex_plugin_usage`、`feedback_codex_rescue_is_thin_forwarder`）
-- 「用 `todo` 标记让验收测试先红而闸门保持可用」这一做法是否写进 governor 的 Phase 2 — → carried（关版的记忆修剪/晋升时提请裁定）
-
-**First action for next session**: 在 `feat/routing-slimdown` 上开始 Batch 3，第一步：`git mv middleware.ts src/middleware.ts`，把它改写成 DESIGN §2.2 的薄壳——排除名单含「以 `/og.png` 结尾的任何路径」；`/admin`、`/auth` → `updateSupabaseSession`；其余读 cookie `preferred_locale` 后执行 `decideLocaleRoute`，`redirect` 用 308 且保留查询串。随后按第二区 Batch 3 的范围继续；每一步后跑 `npm test && npx tsc --noEmit`，整批收尾时去掉 `invariant 2a / 2b / 3` 的 `todo`，并把构建 + 清单断言 + 运行时验收加进 `.github/workflows/check.yml`。
-
-**Decisions awaiting Project Lead**: 无阻塞首个动作的事项。一件不属于本版、需要 Jason 本人去做的核查：在 Supabase 控制台确认已关闭开放注册或要求邮箱确认（`docs/TECHNICAL_DEBT.md` TD-014）。
-
-**Reference state** (verify before relying on):
-- Relevant memory items: `lesson-evidence-scope.md`、`lesson-checks-and-gates.md`（本版多次用到）；`shell-command-gotchas.md`（本机 zsh：通配、分词、`grep` 是 ugrep）
-- Suite size at the last green run: 23 passed · 9 todo
-- 线上为 `v2.1.4`（`a36453b`）；本分支尚未开版本 PR；`development` 分支按裁定在关版时删除，现与 `main` 一致
-
+- [x] 文档预算为绿 · 记忆修剪 —— 预算 4 份全绿；本项目记忆目录为空，无需修剪。通用记忆本版更新两条（Codex 评审耗时 88 分钟；zsh 里 `${var:+-H "…"}` 只展开成一个词）。**提请晋升**：「按字符串前缀匹配代替按路径段匹配」在同一版里犯了两次（语言判定、中间件排除名单），值得一条 `lesson-*`
+- [x] `development` 分支删除（本地与远端）
+- [x] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.2.0.md` —— 未了事项已各归其位：TD-001/011/012/017/018、REQ §6/§7、DESIGN §2/§4/§7/§8
