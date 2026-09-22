@@ -40,7 +40,7 @@ test('acceptance §5.1-a the gate audits production dependencies', () => {
 
 // ---------- §5.2 body rendering ----------
 
-test('acceptance §5.2-a script, expression, import and JSX in a body are shown as text, never run', { todo: 'Batch 2' }, async () => {
+test('acceptance §5.2-a script, expression, import and JSX in a body are shown as text, never run', async () => {
   const html = await renderToHtml("<script>alert(1)</script>\n\n{1+1}\n\nimport x from 'y'\n\n<Component />");
   assert.doesNotMatch(html, /<script/i);
   assert.doesNotMatch(html, /\b2\b/);
@@ -49,7 +49,7 @@ test('acceptance §5.2-a script, expression, import and JSX in a body are shown 
   }
 });
 
-test('acceptance §5.2-b GFM, math and the image-row rule render', { todo: 'Batch 2' }, async () => {
+test('acceptance §5.2-b GFM, math and the image-row rule render', async () => {
   const html = await renderToHtml([
     '| a | b |', '|---|---|', '| 1 | 2 |', '',
     '~~gone~~ and https://example.com and', '', '- [ ] task', '',
@@ -61,12 +61,13 @@ test('acceptance §5.2-b GFM, math and the image-row rule render', { todo: 'Batc
   assert.match(html, /<a [^>]*href="https:\/\/example\.com"/);
   assert.match(html, /<input [^>]*type="checkbox"/);
   assert.match(html, /class="katex/);
-  assert.equal((html.match(/<figure/g) ?? []).length, 1, 'one figure for the image paragraph');
+  assert.equal((html.match(/class="image-row"/g) ?? []).length, 1, 'one row for the image paragraph');
+  assert.equal((html.match(/<figure>/g) ?? []).length, 3, 'a figure per image');
   assert.equal((html.match(/<figcaption>/g) ?? []).length, 3, 'a caption per image');
   assert.match(html, /<figcaption>Second<\/figcaption>/);
 });
 
-test('acceptance §5.2-b links and images with a javascript:, data: or protocol-relative address lose it; KaTeX survives', { todo: 'Batch 2' }, async () => {
+test('acceptance §5.2-b links and images with a javascript:, data: or protocol-relative address lose it; KaTeX survives', async () => {
   const html = await renderToHtml('[x](javascript:alert(1)) ![y](javascript:alert(2)) [d](data:text/html,hi) ![p](//evil.example/a.png) [ok](https://example.com) $\\frac{a}{b}$');
   assert.doesNotMatch(html, /javascript:|data:text|evil\.example/i);
   assert.match(html, /href="https:\/\/example\.com"/);
@@ -74,7 +75,7 @@ test('acceptance §5.2-b links and images with a javascript:, data: or protocol-
   assert.match(html, /aria-hidden="true"/, 'KaTeX aria attributes survive the sanitizer');
 });
 
-test('acceptance §5.2-d the container runs as a non-root user', { todo: 'Batch 2' }, () => {
+test('acceptance §5.2-d the container runs as a non-root user', () => {
   const dockerfile = read('Dockerfile');
   const runner = dockerfile.slice(dockerfile.indexOf('AS runner'));
   assert.match(runner, /^USER node$/m, 'the runner stage has no USER node');
@@ -158,7 +159,7 @@ test('acceptance §5.5-c the canonical origin is one constant with www', { todo:
   assert.match(read('src/lib/seo.ts'), /https:\/\/www\.antelacus\.com/);
 });
 
-test('acceptance §5.5-d the image Node major equals the gate\'s and is still maintained', { todo: 'Batch 2' }, () => {
+test('acceptance §5.5-d the image Node major equals the gate\'s and is still maintained', () => {
   const image = /^FROM node:(\d+)/m.exec(read('Dockerfile'))?.[1];
   const gate = /node-version:\s*(\d+)/.exec(read('.github/workflows/check.yml'))?.[1];
   assert.equal(image, gate, 'Dockerfile and check.yml disagree on Node');

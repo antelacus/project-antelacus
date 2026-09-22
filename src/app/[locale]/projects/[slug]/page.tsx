@@ -4,8 +4,7 @@ import { languageAlternates } from '@/lib/seo';
 import { softwareProjectJsonLd } from '@/lib/structured-data';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import remarkGfm from 'remark-gfm';
+import { renderMarkdown } from '@/lib/markdown';
 import TagList from '@/components/TagList';
 
 // Nothing is built ahead of time (the build must not need the database); an empty list is what lets
@@ -131,14 +130,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ locale
         </div>
         
         <div className="prose">
-          <MDXRemote 
-            source={project.content}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm],
-              }
-            }}
-          />
+          {renderMarkdown(project.content)}
         </div>
       </article>
     </div>

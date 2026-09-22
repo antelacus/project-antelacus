@@ -20,7 +20,7 @@
 | `src/lib/content-row.ts`（新） | 四个 `*-types.ts` 共用的基础行类型与三个辅助函数（元数据解析、日期择取、标签名提取） | core |
 | `src/lib/{post,note,photo,project}-types.ts` | 四个映射函数，各自差异保留 | core |
 | `src/lib/{posts,notes,gallery,projects}.ts` | 公开加载器，接口不变；每种类型一个缓存标签。专栏加载器的 `cache()` 包装移到模块顶层（现状每次调用新建一个，去重失效）。各加一个**已发布 slug 集合**的缓存读取（单条缓存、同标签） | IO |
-| `src/lib/markdown/`（新） | `renderMarkdown(source)`：unified 管道——解析 → GFM → 数学 → 转 HTML 树（原始 HTML 节点转为文本节点，不丢不执行）→ KaTeX → **图片段落规则**（段落里只有图片时转为并排的 `figure`，`title` 作图注）→ **白名单净化**（`rehype-sanitize`，schema = 默认 GitHub schema + `figure`、`figcaption`、`input[type=checkbox][checked][disabled]`、KaTeX 与 MathML 的全部元素及其 `class`、`style`、`aria-hidden`、`mathvariant` 等属性；`href`/`src` 协议只允许 `http`、`https`、`mailto` 与相对路径，协议相对地址视为外部协议剥除）→ React 节点。不引 `server-only`，浏览器与服务端同一份 | core |
+| `src/lib/markdown/`（新） | `renderMarkdown(source)`：unified 管道——解析 → GFM → 数学 → 原始 HTML 节点转为文本节点（不丢不执行）→ 转 HTML 树 → 协议相对地址剥除 → **白名单净化**（`rehype-sanitize` 的默认 GitHub schema，它已含表格、任务列表与 remark-math 的 `math-inline`/`math-display`；`href` 协议只允许 `http`、`https`、`mailto`，`src` 只允许 `http`、`https`，相对路径放行）→ **图片段落规则**（段落里只有图片时转为 `div.image-row` 下的若干 `figure`，`title` 作 `figcaption`）→ KaTeX → React 节点。净化排在 KaTeX 与图片规则**之前**：净化器只看到 Markdown 自己生成的树，KaTeX 的输出与我们自己造的 figure 不必进白名单。不引 `server-only`，浏览器与服务端同一份 | core |
 | `src/app/[locale]/{posts,notes,gallery,projects}/[slug]/page.tsx` | 用 `renderMarkdown`；`generateMetadata` 与页面都先查已发布 slug 集合，不在 → `notFound()`，不按 slug 读库；不再有自带 `<main>` 的「未找到」分支 | IO |
 | `src/app/[locale]/about/page.tsx` | 不变：仓库里的 MDX 文件，`next-mdx-remote` 升到 6（安全通告）且不执行 JS；本版唯一的 MDX 使用者 | IO |
 | `src/app/[locale]/error.tsx`、`src/app/admin/error.tsx`（新） | 站点风格 / 后台风格的错误页，不显示错误原文 | infra |

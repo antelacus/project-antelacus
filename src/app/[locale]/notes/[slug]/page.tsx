@@ -3,9 +3,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { languageAlternates } from '@/lib/seo';
 import { noteJsonLd } from '@/lib/structured-data';
 import Link from 'next/link';
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { renderMarkdown } from '@/lib/markdown';
 import TagList from '@/components/TagList';
-import remarkGfm from 'remark-gfm';
 
 // Nothing is built ahead of time (the build must not need the database); an empty list is what lets
 // Next cache each page after its first visit instead of rendering it on every request.
@@ -80,14 +79,7 @@ export default async function NotePage({ params }: { params: Promise<{ locale: s
         </header>
         
         <div className="prose mt-8">
-          <MDXRemote 
-            source={note.content}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm],
-              }
-            }}
-          />
+          {renderMarkdown(note.content)}
         </div>
         
       </article>

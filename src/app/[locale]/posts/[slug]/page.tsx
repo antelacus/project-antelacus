@@ -1,11 +1,7 @@
 import { getPostBySlug } from '@/lib/posts';
 import { setRequestLocale } from 'next-intl/server';
 // import { notFound } from 'next/navigation';
-import { MDXRemote } from 'next-mdx-remote/rsc';
-// Enable LaTeX: remark-math parses $...$ and $$...$$; rehype-katex renders to HTML
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import remarkGfm from 'remark-gfm';
+import { renderMarkdown } from '@/lib/markdown';
 import Link from 'next/link';
 import Image from 'next/image';
 import TagList from '@/components/TagList';
@@ -103,15 +99,7 @@ export default async function PostPage({ params }: { params: Promise<{ locale: s
         )}
 
         <div className="prose">
-          <MDXRemote 
-            source={post.content} 
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkMath, remarkGfm],
-                rehypePlugins: [rehypeKatex],
-              }
-            }}
-          />
+          {renderMarkdown(post.content)}
         </div>
 
       </article>

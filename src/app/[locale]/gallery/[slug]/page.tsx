@@ -3,7 +3,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { languageAlternates } from '@/lib/seo';
 import { imageGalleryJsonLd } from '@/lib/structured-data';
 // import { notFound } from 'next/navigation';
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { renderMarkdown } from '@/lib/markdown';
 import Link from 'next/link';
 import PhotoViewer from '@/components/PhotoViewer';
 import TagList from '@/components/TagList';
@@ -93,7 +93,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
       {photo.content && (
         <div className="content-container content-container-standard">
           <article className="prose" data-title={photo.title}>
-            <MDXRemote source={photo.content} />
+            {renderMarkdown(photo.content)}
           </article>
         </div>
       )}
