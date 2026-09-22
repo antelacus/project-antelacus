@@ -10,7 +10,7 @@ The scripts are in `package.json`. What the names do not tell you:
 - `npm run test:runtime` — acceptance checks against a **running** server; needs `BASE_URL`. How to build and start a local server without a database is in the header of `tests/runtime/acceptance.runtime.mjs`.
 - `npm run build` must succeed without reaching Supabase; the gate builds with placeholder env vars to prove it.
 
-**The gate** is `.github/workflows/check.yml`: every push and PR runs it, and `.github/workflows/deploy.yml` deploys only after it passes. Before pushing, run what it runs first: `npm run lint && npx tsc --noEmit && npm run test`.
+**The gate** is `.github/workflows/check.yml`: every push and PR runs it, and `.github/workflows/deploy.yml` deploys only after it passes. Before pushing, run what it runs first: `npm run lint && npx tsc --noEmit && npm run test`. At a version close, also `python3 scripts/check_doc_budget.py` (retired from the gate, still the budget).
 
 ## Architecture
 

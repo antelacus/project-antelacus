@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
+import { updateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
@@ -113,11 +113,14 @@ export async function saveContentAction(_previous: SaveState, formData: FormData
     return { errors: {}, message: error instanceof Error ? error.message : 'Could not save' };
   }
 
-  // Every page showing this type reads it through this tag. If invalidation throws, the save has
-  // still happened — the editor says so and the pages refresh within the cache lifetime.
+  // Every page showing this type reads it through this tag. updateTag, not revalidateTag('max'): the
+  // latter serves the stale page once and refreshes behind it, so the author's own change would show
+  // on the second visit; updateTag expires the tag so the very next request is fresh (REQ §5.3 rule 6).
+  // If it throws, the save has still happened — the editor says so and the pages refresh within the
+  // cache lifetime.
   let stale = '';
   try {
-    revalidateTag(CONTENT_TYPES[input.type].tag, 'max');
+    updateTag(CONTENT_TYPES[input.type].tag);
   } catch {
     stale = '&stale=1';
   }

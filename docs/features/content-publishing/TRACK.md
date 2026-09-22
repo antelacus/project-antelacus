@@ -156,19 +156,30 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 **Phase 5**：版本 PR #7（`feat/content-publishing` → `main`），同模型评审与三份登记均已结清；Jason 审结构与范围后合并。
 
 **Phase 6 boxes**（请求 PR 之前写好——合并 ≠ 发布）：
-- [ ] CHANGELOG 条目
-- [ ] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑；TD-002、TD-004 留）
-- [ ] 用户文档（`docs/content-publishing.md` 改为按后台发布，SQL 一节退役；关于页一节说明仍是仓库文件）· README 仍然属实
-- [ ] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致；`CLAUDE.md` 的架构节按 TD-011 后的形状改写）
+- [x] CHANGELOG 条目
+- [x] TECHNICAL_DEBT 定稿 —— TD-002、004 已在 Phase 1 删除（非债务）；TD-001、005、006、011、012、014、016、017、018 随生产验证删除；TD-003、013 待 VPS 三步后删除；TD-019、020 留
+- [x] 用户文档（`docs/content-publishing.md` 改为按后台发布，SQL 一节退役；关于页一节说明仍是仓库文件）· README 仍然属实
+- [x] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致；`CLAUDE.md` 的架构节按 TD-011 后的形状改写）
 - [ ] tag
-- [ ] 生产部署 + 核对 served SHA
-- [ ] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿
-- [ ] 部署前：在 Supabase SQL Editor 依次执行三个新迁移（桶、唯一索引、保存函数）；唯一索引若报错说明生产已有跨语言重复的 slug，先处理再重跑
-- [ ] 上线后：后台发布一篇测试 post / project / gallery 项，随即可见，再撤下（TD-001 的真实输入；同时验证经 PostgREST 以 `service_role` 调用保存函数的权限与回滚——Codex 待核）；在 iPhone 上完成一次上传（§5.3-d、HEIC）
-- [ ] 上线后：在新后台打开 `2025-07-13-llm-note`，把三图并排的 JSX 段改写为一段三张带 `title` 的 Markdown 图片（§5.2-c）
-- [ ] 上线后：`node tests/runtime/list-digest.mjs https://www.antelacus.com` 与 `tests/runtime/fixtures/list-pages-baseline.json` 对比（§5.10-b）
+- [x] 生产部署 + 核对 served SHA —— PR #7 合并提交 `ad96693`；部署运行 35703014555 的日志回显同一 SHA，健康检查 6 秒通过
+- [x] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿 —— 23 过、todo 0；§5.4-a、§5.8-a、§5.9-a 的读库地址首次得到验证；响应头实测含 CSP 与 HSTS、无 `x-powered-by`
+- [x] 三个新迁移在 Supabase SQL Editor 执行完成（合并后、首次发布前）；唯一索引无冲突；保存函数第一版被编辑器拒绝（FOR 查询含字面量），改后通过——约束记入 DESIGN §3
+- [x] 上线后的真实输入（TD-001）—— 四种类型都在生产上走过；四个只有真实输入才暴露的缺陷（先旧后新、链接默认类型、正文原图未压缩、后台缺返回链接）均已修在关版分支：
+  - [x] 闪念 `v230-test`：发布 → 详情 200 且公式渲染、sitemap 与列表出现；改标题 → 详情与列表更新；撤回 → 详情 404、列表 / 搜索 / sitemap 消失。经 PostgREST 以 `service_role` 调用保存函数正常（Codex 待核关闭）。**发现**：`revalidateTag(tag, 'max')` 是先旧后新，第二次访问才新——改为 `updateTag`（`d95064b`，随关版 PR 部署）
+  - [x] 相册 `v230-album`：两张图进 `media` 桶、图注、顺序与封面均与编辑器一致；撤回后 404。实验室 `v230-project`：链接面板默认类型 `other` 让卡片与详情页都没有链接（`332ac2f` 改默认为 `repository`、空地址不渲染按钮）；改类型后「查看源码」指向 GitHub。两层缓存各「先旧后新」一次，第三次访问才收敛——`updateTag` 一并解决
+  - [x] iPhone 上传（§5.3-d）：相册原图经 Safari 上传时已由系统转为 JPEG（`image/jpeg`，3.8 MB），HEIC 没有到达服务端；但正文图片是普通 `<img>`、不经 Next 图片优化，3.8 MB 原图会原样送到访客——照片类上传时改为 sharp 转 ≤ 2400px JPEG（`31987ad`，随关版 PR 部署）
+- [x] 上线后：`2025-07-13-llm-note` 的三图 JSX 段在新后台改写为一段三张带 `title` 的 Markdown 图片；页面上一个 `image-row`、三张图各带图注、无 JSX 残留、11 处公式仍在（§5.2-c）
+- [x] 上线后：列表页摘要与基线对比（§5.10-b）—— 差异两类，均可解释：每页少四个导航链接（导航移出 `<main>`，§5.9 的设计）；相册列表多出四个相册链接与标题（相册卡片现在在服务端 HTML 里，基线里没有）。内容条目本身无增减
 - [ ] 上线后：备份实际跑一次，把导出恢复进一个空的测试项目、站点能读出内容（TD-003）；让 keepalive 停跑一个周期，死人开关的告警到达（TD-013）
-- [ ] 各门读数：运行次数 / 改变了输出的拦截次数——含文档预算检查：v2.2.0 定下的退役触发是「v2.3.0 整版仍为 0 次拦截则改为只在关版时跑」
+- [x] 各门读数（运行次数 / 改变了输出的拦截次数）：
+  - Codex 设计门 1 / 16（18 条，16 条改了 REQ 或 DESIGN，含关于页推迟一版）
+  - 同模型 `/code-review` 1 / 9（10 条，9 条改了代码，1 条按惯例归关版）
+  - Codex 部署前评审 1 / 7（9 条，7 条改了代码；其中「块级公式退化为行内」实测比评审标的更重）
+  - CI 闸门 13 / 1（Batch 2 的六个包只在本机、没进 `package.json`）；§5.1-c 红灯实验第一次没红（未使用变量只是警告），第二次红在 lint 步骤
+  - 本地运行时验收 约 20 / 3（`generateMetadata` 在错误边界外的裸 500、两处页面自带的 `<main>`、proxy 在 Next 16 的清单落点）
+  - 生产运行时验收 3 / 0；生产上的真实输入 1 / 4（先旧后新、链接默认类型、正文原图、后台返回链接）
+  - `db-function-check.sh` 4 / 0 对函数本身（函数的三处缺陷由 Codex 找到，脚本随后加了回归用例）——它是函数的回归护栏，不是闸门，不设退役
+  - 文档预算检查 13 / 0 —— 触发 v2.2.0 定下的退役：从闸门移除，改为关版时手工跑（脚本与其测试保留）
 - [ ] 文档预算为绿 · 记忆修剪（v2.2.0 提请晋升的「按前缀匹配代替按段匹配」教训：核实是否已写入通用记忆）
 - [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.3.0.md`
 

@@ -205,19 +205,20 @@ test('acceptance §5.10-c every loader\'s request-level cache() wrapper is creat
   }
 });
 
-test('acceptance §5.3 every admin action invalidates the tag the type registry names, with the Next 16 profile', () => {
+test('acceptance §5.3 rule 6 every admin save expires the type registry\'s tag so the next visit is fresh', () => {
   const path = 'src/app/admin/(protected)/content/actions.ts';
   const source = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, true);
   const calls: string[] = [];
   const visit = (node: ts.Node) => {
-    if (ts.isCallExpression(node) && node.expression.getText() === 'revalidateTag') calls.push(node.arguments.map((a) => a.getText()).join(', '));
+    if (ts.isCallExpression(node) && ['updateTag', 'revalidateTag'].includes(node.expression.getText())) calls.push(`${node.expression.getText()}(${node.arguments.map((a) => a.getText()).join(', ')})`);
     node.forEachChild(visit);
   };
   visit(source);
-  assert.ok(calls.length > 0, 'no revalidateTag call in the content actions');
+  assert.ok(calls.length > 0, 'no cache invalidation in the content actions');
   for (const call of calls) {
-    assert.match(call, /tag/, `the tag must come from the type registry, saw revalidateTag(${call})`);
-    assert.match(call, /'max'/, `Next 16 needs the second argument, saw revalidateTag(${call})`);
+    // revalidateTag(tag, 'max') serves the stale page once; updateTag expires it (read-your-own-writes).
+    assert.match(call, /^updateTag\(/, `a save must use updateTag, saw ${call}`);
+    assert.match(call, /CONTENT_TYPES\[[^\]]+\]\.tag/, `the tag must come from the type registry, saw ${call}`);
   }
 });
 

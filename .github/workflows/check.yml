@@ -51,7 +51,5 @@ jobs:
           npx next start -p 3917 &
           curl --silent --fail --output /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://localhost:3917/og.png
           BASE_URL=http://localhost:3917 npm run test:runtime
-      - name: Doc budgets
-        run: python3 scripts/check_doc_budget.py
-      - name: Doc-budget checker's own tests
-        run: pipx run pytest scripts/tests -q
+      # The doc-budget checker was retired from the gate at the close of v2.3.0 (two versions, zero catches:
+      # it was always run locally before a commit). It stays as a script, run by hand at each version close.

@@ -6,9 +6,9 @@ The budgets' home is `custom-conventions` §7 (Budgets and the repo-infra kit):
   one TRACK batch entry ≤ 10 lines · REQ and DESIGN carry no ISO dates.
 Over budget, the only legal moves are move-to-home or delete — this script never edits.
 
-Why a mechanism rather than a rule: a rule plus a one-time cleanup regrows. A budget that CI
-reads is a standing constraint. Retirement trigger: if this never fires red across a version,
-write its retirement into the TRACK and delete it.
+Why a mechanism rather than a rule: a rule plus a one-time cleanup regrows. Retired from CI at the
+close of v2.3.0 after two versions with zero catches (it was always run locally before a commit); it is
+run by hand at each version close and stays a budget the docs are held to.
 
 Scope (each one is a line the checker does NOT cross):
 - Files: `CLAUDE.md` at the repo root; `docs/features/*/{REQ,DESIGN,TRACK}.md`. Frozen

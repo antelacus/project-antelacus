@@ -10,7 +10,7 @@
 2. 在 `/admin` 选内容类型，或直接打开 `/admin/content/post`、`/admin/content/note`、`/admin/content/gallery`、`/admin/content/project`；点「New」，或点已有条目进入编辑。
 3. 填写标题与 slug（只能是小写字母、数字、连字符；它就是地址，发布后改 slug 等于换地址）、摘要、写作语言、展示日期、标签（逗号分隔）。
 4. 正文是 Markdown：支持 GFM（表格、任务列表、删除线、自动链接）与公式（`$…$`、`$$…$$`）。原始 HTML 与 JSX 不会被执行，只会原样显示为文字。「Preview」用的是公开页面同一套渲染。
-5. 图片：正文里粘贴、拖入，或点「Insert image from device」从相册选，图片会上传到存储桶并以 `![](地址)` 插到光标处；专栏、闪念、实验室的封面用「Upload cover」；相册在「Photos」里一次选多张，可排序、写说明、勾选封面。上传前先填好 slug，它决定图片存放的文件夹。接受 JPEG、PNG、WebP、GIF、AVIF、HEIC，单张 20 MB 以内。
+5. 图片：正文里粘贴、拖入，或点「Insert image from device」从相册选，图片会上传到存储桶并以 `![](地址)` 插到光标处；专栏、闪念、实验室的封面用「Upload cover」；相册在「Photos」里一次选多张，可排序、写说明、勾选封面。上传前先填好 slug，它决定图片存放的文件夹。接受 JPEG、PNG、WebP、GIF、AVIF、HEIC，单张 20 MB 以内；照片（HEIC、JPEG）会被转成长边 2400px 以内的 JPEG 再存，截图类（PNG、WebP、GIF）原样保存。
 6. 「Save draft」只存不公开；「Publish」后详情页、列表、首页、标签页、搜索与 sitemap 立即更新。已发布的条目按「Retract to draft」撤下，其详情地址即为 404。
 7. 同一条目连续提交两次不会重复创建；保存中按钮会禁用。校验不过时错误显示在对应字段旁，已填内容不丢。
 
@@ -28,6 +28,7 @@
 
 * **样式 / 布局** → 只改 `src/components/` 下对应的 Card 组件，一改全站生效。
 * **新增字段** → 放进 `extra_metadata`（无需改表），在该类型的映射函数（`src/lib/*-types.ts`）里读出并给默认值，再在 Card 组件里决定如何展示。旧内容保持兼容。
+* **实验室的链接** → 卡片与详情页只展示 `repository`（查看源码）与 `demo`（查看演示）两种类型；`reference`、`other` 会保存但暂不展示。新增第一条链接时默认就是 `repository`。
 * **发布时间** → 首次发布时写入（展示日期可覆盖），之后编辑不改它，撤回再发布保留原值；列表按它排序。
 
 ---

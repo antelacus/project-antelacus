@@ -27,7 +27,7 @@
 | `src/app/[locale]/loading.tsx` | 删除（§3：它使 `notFound()` 只能给 200） | — |
 | `src/app/admin/(protected)/content/[type]/page.tsx`（新） | 某类型的条目列表 + 「新建」 | IO |
 | `src/app/admin/(protected)/content/[type]/[slug]/page.tsx`（新） | 编辑器页（`slug` 为 `new` 时新建）；取代 `notes/page.tsx` | IO |
-| `src/app/admin/(protected)/content/actions.ts`（新） | 服务端动作：保存（zod 校验 → 管理员校验 → repo → `revalidateTag(tag, 'max')` → 回编辑器）、改状态；取代 `notes/actions.ts` | IO |
+| `src/app/admin/(protected)/content/actions.ts`（新） | 服务端动作：保存（zod 校验 → 管理员校验 → repo → `updateTag(tag)` → 回编辑器）、改状态；取代 `notes/actions.ts` | IO |
 | `src/app/api/admin/upload/route.ts`（新） | `POST` 上传图片的路由处理器（服务端动作的请求体上限 1 MB，路由处理器没有）：管理员校验 → `media.ts` → `{ url }` | IO |
 | `src/components/admin/ContentEditor.tsx`（新，客户端） | 表单：核心字段 + 按类型描述表挂的附加面板；提交中禁用按钮；校验错误原位显示 | IO（浏览器实测） |
 | `src/components/admin/MarkdownEditor.tsx`（新，客户端） | **窄接口**：`{ value, onChange, onUpload }`；内部是 CodeMirror 6 + Markdown 语言包，粘贴 / 拖入图片调 `onUpload` 并在光标处插入 `![](url)` | IO |
@@ -54,7 +54,7 @@
 删除的文件：四个 `src/lib/server/*-repo.ts`、`src/app/admin/(protected)/notes/`、`src/app/[locale]/loading.tsx`、`src/lib/supabase/middleware.ts` 若随 `proxy` 改名合并。
 
 ### 2.2 数据流
-发布：编辑器表单 → 服务端动作（zod 按类型校验）→ `requireAdminUser` → `content-repo.save` → 一次 RPC `save_content_item`：有 `id` 按 `id` 更新，否则按 `(content_type, locale, slug)` upsert；同一事务里标签、相册图（按 `sort_order` 重排）、链接整体替换；封面若不在提交的图片集合里则置空（映射函数已回落到第一张）；`published_at` 首次发布时写、之后不动 → `revalidateTag(<类型标签>, 'max')` → 303 回编辑器带 `saved=`。新建的第二次提交没有 `id`，走自然键，是更新。
+发布：编辑器表单 → 服务端动作（zod 按类型校验）→ `requireAdminUser` → `content-repo.save` → 一次 RPC `save_content_item`：有 `id` 按 `id` 更新，否则按 `(content_type, locale, slug)` upsert；同一事务里标签、相册图（按 `sort_order` 重排）、链接整体替换；封面若不在提交的图片集合里则置空（映射函数已回落到第一张）；`published_at` 首次发布时写、之后不动 → `updateTag(<类型标签>)` → 303 回编辑器带 `saved=`。新建的第二次提交没有 `id`，走自然键，是更新。
 
 图片：编辑器收到粘贴 / 拖入 / 选择 → `POST /api/admin/upload`（`FormData` 含文件与类型、slug）→ `media.ts` 校验并写桶 → 返回公开 URL → 编辑器在光标处插入 `![](url)`；封面与相册图同一接口，返回值写进各自字段。图片在页面上经 Next 图片优化（Supabase 域名已在 `remotePatterns`）。
 
@@ -74,7 +74,7 @@
 ## 3 外部系统约束
 上一版 §8 全部仍然成立，以下为本版新学到的（Phase 0 与 Phase 2 的实测，对象 Next 16.3.5）：
 - **Next 16**：`next lint` 已删除；`eslint-config-next` 16 只提供 flat config，`FlatCompat` 包装它报循环引用错误。`lint` 脚本与闸门直接跑 `eslint`。
-- **Next 16**：`revalidateTag` 必须带第二个参数（缓存配置名）。
+- **Next 16**：`revalidateTag` 必须带第二个参数；`'max'` 是 stale-while-revalidate——发布后第一次访问仍是旧页、第二次才新（生产实测）。服务端动作里要「下一次访问即反映」用 `updateTag(tag)`，它让标签立即过期。
 - **Next 16**：`middleware` 文件约定弃用，文件与导出函数都改名 `proxy`，运行时固定为 Node；行为不变。改名后 `middleware-manifest.json` 的两个键都为空，登记在 `functions-config-manifest.json` 的 `functions['/_middleware']`（带 matcher），闸门断言读这里。
 - **Next 16**：`viewport` 的属性序列化顺序变了（`user-scalable` 移到 `viewport-fit` 之前）；`<head>` 基线随之更新，routing-slimdown REQ §6 增列这一允许的差异。
 - **Next 16**：`globalNotFound` 仍是实验标志，行为同 15.5。
@@ -83,12 +83,13 @@
 - **Next**：`error.tsx` 是客户端组件，只在客户端导航或水合后接管；一个「首访生成、之后缓存」的页面在**生成阶段**出错（读库失败），框架直接回 21 字节的纯文本 500，不经任何边界，`global-error.tsx` 也不经。`generateMetadata` 更在边界之外（本版让它读库失败时退回布局默认值）。在保持页面可缓存的前提下，服务端渲染失败时访客只能拿到状态码正确、不带原文的裸 500；站点风格的错误页只在站内导航时出现。REQ §5.4-b 据此只要求状态码与不泄露原文。
 - **hast-util-sanitize**：默认 schema 在 `<code>` 上只放行 `language-*` 类，remark-math 的 `math-display` 会被剥掉、块级公式退化为行内；协议比较大小写敏感。渲染器为此扩白名单、并在净化前把协议小写化。
 - **remark-rehype**：默认不传递原始 HTML 节点（直接丢弃）。REQ 要求「原样作为文字显示」，故管道里加一个把 `html` 节点改为 `text` 节点的小插件。
+- **Supabase SQL Editor**：PL/pgSQL 的 `for … in <查询> loop` 若查询里含字符串字面量（`where x <> ''`），编辑器报「missing LOOP at end of SQL expression」，psql 则正常。迁移里的循环查询不放字面量，过滤写在循环体。
 - **Supabase Storage**：桶的公开读取是桶级设置；写入只经服务端密钥，不开匿名写策略。
 - **Supabase**：免费档项目一周无请求即暂停；`pg_dump` 的主版本须是服务端的或更新（用官方 postgres 镜像跑）。直连地址只有 IPv6，VPS 用 Supavisor 会话模式的连接串（`DATABASE_URL`，运维文档写明取法）；对生产的首次备份是它的验证（Phase 6 方框）。
 - **Safari**：脚本写的 cookie 最长 7 天；服务端 `Set-Cookie` 不受此限。
 - **healthchecks.io**：每个检查一个 ping 地址；`/fail` 后缀立即告警；周期与宽限期在服务端设置。免费档 20 个检查。
 - **Cloudflare**：原样转发源站响应头；它自己也能加 HSTS，本版在应用层加，Cloudflare 侧保持不动以免两处不一致。
-- **iOS Safari / sharp**：文件选择框可从相册取图，HEIC 原样上传即可——Next 图片优化用的 sharp 带 libheif，能解码 HEIC 并以 WebP 送出；不做浏览器端转码或压缩，原图存桶。
+- **正文图片不经 Next 图片优化**：渲染器输出的是普通 `<img>`，桶里是什么浏览器就拿到什么；只有封面走 `<Image>`。iPhone 的 HEIC 只有 Safari 能显示（生产首次手机上传时发现）。因此照片类（HEIC / HEIF / JPEG）在上传时由 sharp 转为长边 ≤ 2400px 的 JPEG 再入桶；PNG / WebP / GIF / AVIF 原样存。
 
 ## 4 模块间契约
 - `renderMarkdown(source: string): ReactNode` —— 纯函数，不抛错（解析失败的片段按文字显示）；同一输入在浏览器与服务端产出同一树。
@@ -97,7 +98,7 @@
 - `save_content_item(payload jsonb) returns content_items`：`payload` = 父行字段 + `tags: text[]` + `images: {storage_path, public_url, alt_text, sort_order}[]` + `links: {label, url, link_type}[]`；只对服务端角色授权，匿名角色不可调用。
 - `POST /api/admin/upload`（`multipart/form-data`：`file`、`type`、`slug`）→ `200 { url }` 或 `4xx { error }`（用户可读文案）；未登录 401。
 - `MarkdownEditor` props：`{ value: string; onChange(next: string): void; onUpload(file: File): Promise<string> }`。
-- 缓存标签：`posts`、`notes`、`gallery`、`projects`；写入方在写成功后 `revalidateTag(tag, 'max')`。测试：每个动作使失效的标签 = 类型描述表里该类型的标签；首页、搜索索引、sitemap 只经四个加载器读。
+- 缓存标签：`posts`、`notes`、`gallery`、`projects`；写入方在写成功后 `updateTag(tag)`。测试：每个动作使失效的标签 = 类型描述表里该类型的标签；首页、搜索索引、sitemap 只经四个加载器读。
 - cookie `preferred_locale`：只由 `/api/locale` 写、只由 `proxy` 读（上一版契约不变，写方换了）。
 - 环境变量（VPS `.env` 新增）：`DATABASE_URL`（备份用）、`ANTELACUS_DATA_DIR`、`HC_PING_KEEPALIVE`、`HC_PING_BACKUP`、`HC_PING_SITE`。
 
@@ -130,7 +131,7 @@
 
 ## 8 其他设计
 - CSP 字符串：`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://<supabase 域名>; font-src 'self'; connect-src 'self' https://<supabase 域名>; frame-ancestors 'self'; base-uri 'self'; form-action 'self'`。Supabase 域名从环境变量取。
-- 图片上限：单张 20 MB，类型 JPEG / PNG / WebP / GIF / AVIF / HEIC / HEIF（`src/lib/server/media.ts`）。
+- 图片上限：单张 20 MB，类型 JPEG / PNG / WebP / GIF / AVIF / HEIC / HEIF；照片类入桶前转为 ≤ 2400px 的 JPEG（`src/lib/server/media.ts`）。
 - 备份保留 14 天；cron：keepalive 每 6 小时、备份每日 03:00、站点检查每 10 分钟。
 - 后台旧路由 `/admin/notes` 删除，不留重定向（后台无外部链接）。
 - `docs/content-publishing.md` 第五至七节（Markdown 写作规范）保留，前四节重写。

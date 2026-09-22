@@ -110,14 +110,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ locale
         <p className="text-lg" style={{ color: 'rgba(29, 29, 27, 0.8)'}}>{project.description}</p>
         
         <div className="flex flex-wrap gap-3 my-6">
-          <a href={project.repo} target="_blank" rel="noopener noreferrer" className="action-button" aria-label="查看源码">
-            <span className="icon" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5l-3 3-3-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2v10h6.586L12 17.414 13.414 16H20V6H4z"/>
-              </svg>
-            </span>
-            源码
-          </a>
+          {project.repo && (
+            <a href={project.repo} target="_blank" rel="noopener noreferrer" className="action-button" aria-label="查看源码">
+              <span className="icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5l-3 3-3-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2v10h6.586L12 17.414 13.414 16H20V6H4z"/>
+                </svg>
+              </span>
+              源码
+            </a>
+          )}
           {project.demo && (
             <a href={project.demo} target="_blank" rel="noopener noreferrer" className="action-button" aria-label="查看演示">
               <span className="icon" aria-hidden="true">
