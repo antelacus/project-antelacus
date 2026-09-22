@@ -75,7 +75,7 @@
 上一版 §8 全部仍然成立，以下为本版新学到的（Phase 0 与 Phase 2 的实测，对象 Next 16.3.5）：
 - **Next 16**：`next lint` 已删除；`eslint-config-next` 16 只提供 flat config，`FlatCompat` 包装它报循环引用错误。`lint` 脚本与闸门直接跑 `eslint`。
 - **Next 16**：`revalidateTag` 必须带第二个参数（缓存配置名）。
-- **Next 16**：`middleware` 文件约定弃用，改名 `proxy`；行为不变。构建清单同时有 `middleware` 与 `proxy` 两个键，闸门的清单断言在改名后按实际的键写。
+- **Next 16**：`middleware` 文件约定弃用，文件与导出函数都改名 `proxy`，运行时固定为 Node；行为不变。改名后 `middleware-manifest.json` 的两个键都为空，登记在 `functions-config-manifest.json` 的 `functions['/_middleware']`（带 matcher），闸门断言读这里。
 - **Next 16**：`viewport` 的属性序列化顺序变了（`user-scalable` 移到 `viewport-fit` 之前）；`<head>` 基线随之更新，routing-slimdown REQ §6 增列这一允许的差异。
 - **Next 16**：`globalNotFound` 仍是实验标志，行为同 15.5。
 - **Next**：`[locale]/loading.tsx` 存在时，详情页里的 `notFound()` 返回 **200**（占位已先流出）；删除它后返回 404。故本版删除该文件；将来要加载动画，放在页面内部、slug 判定之后的 Suspense 边界里。
@@ -136,4 +136,3 @@
 ## 9 开放设计问题
 - D-1 iOS Safari 的 HEIC 与大图：在 iPhone 上对一个原型上传页实测后定是否接受 HEIC、是否浏览器端压缩（REQ D-Q6）。
 - D-3 `save_content_item` 的集成测试跑在哪：对一个测试用 Supabase 项目，还是本地 postgres 容器加迁移——Batch 4 开工前定。
-- D-2 改名 `proxy.ts` 后构建清单里的键名，Batch 1 实测后写进闸门断言。

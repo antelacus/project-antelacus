@@ -21,15 +21,19 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
+// Modules a later batch creates are imported by a runtime path so the type check stays green until then.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- the module's types do not exist yet
+const load = (path: string): Promise<any> => import(path);
+
 const renderToHtml = async (markdown: string): Promise<string> => {
-  const { renderMarkdown } = await import('../src/lib/markdown/index.js');
+  const { renderMarkdown } = await load('../src/lib/markdown/index.js');
   const { renderToStaticMarkup } = await import('react-dom/server');
   return renderToStaticMarkup(renderMarkdown(markdown));
 };
 
 // ---------- §5.1 dependency upgrade ----------
 
-test('acceptance §5.1-a the gate audits production dependencies', { todo: 'Batch 1' }, () => {
+test('acceptance §5.1-a the gate audits production dependencies', () => {
   const gate = read('.github/workflows/check.yml');
   assert.match(gate, /npm audit --omit=dev/, 'check.yml has no production audit step');
 });
@@ -80,8 +84,8 @@ test('acceptance §5.2-d the container runs as a non-root user', { todo: 'Batch 
 // ---------- §5.3 publishing entry ----------
 
 test('acceptance §5.3-b saving the same natural key twice is one insert then an update', { todo: 'Batch 4' }, async () => {
-  const { saveContent } = await import('../src/lib/server/content-repo.js');
-  const { fakeSupabase } = await import('./fakes/supabase.js');
+  const { saveContent } = await load('../src/lib/server/content-repo.js');
+  const { fakeSupabase } = await load('./fakes/supabase.js');
   const db = fakeSupabase();
   const input = { slug: 'twice', title: 'Twice', content: 'body', lang: 'en', status: 'draft' as const, tags: [], summary: '', cover: '' };
   await saveContent(db.client, 'note', input);
@@ -97,7 +101,7 @@ test('acceptance §5.3-b the editor form cannot be submitted twice while a submi
 });
 
 test('acceptance §5.3 rule 4 a slug is lowercase letters, digits and hyphens', { todo: 'Batch 4' }, async () => {
-  const { isValidSlug } = await import('../src/lib/content-slug.js');
+  const { isValidSlug } = await load('../src/lib/content-slug.js');
   for (const ok of ['a', '2025-07-13-llm-note', 'project-white']) assert.equal(isValidSlug(ok), true, ok);
   for (const bad of ['', 'A', 'a_b', 'a b', 'a/b', '..', 'x'.repeat(81), 'é']) assert.equal(isValidSlug(bad), false, JSON.stringify(bad));
 });
@@ -132,11 +136,11 @@ test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone'
 // ---------- §5.5 hardening ----------
 
 test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links must be http(s)', { todo: 'Batch 6' }, async () => {
-  const { jsonLdScript } = await import('../src/lib/structured-data.js');
+  const { jsonLdScript } = await load('../src/lib/structured-data.js');
   const out = jsonLdScript({ name: 'x</script><script>alert(1)</script>' });
   assert.doesNotMatch(out, /<\/script/);
   assert.match(out, /\\u003c\/script/, 'the angle bracket is written as the JSON escape');
-  const { isSafeExternalUrl } = await import('../src/lib/content-slug.js');
+  const { isSafeExternalUrl } = await load('../src/lib/content-slug.js');
   assert.equal(isSafeExternalUrl('javascript:alert(1)'), false);
   assert.equal(isSafeExternalUrl('https://example.com/x'), true);
   assert.equal(isSafeExternalUrl('http://example.com'), true);

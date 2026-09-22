@@ -30,11 +30,11 @@ Each content type keeps three layers — domain type (`src/lib/post-types.ts`), 
 ### Routing and languages
 
 - Supported locales, the default, and the public sections are listed in `src/i18n/routing.ts` and nowhere else (a test enforces it).
-- Every locale rule lives in `src/i18n/route-decision.ts`, a pure function; `src/middleware.ts` only carries out its decision. The middleware must stay in `src/` — at the repo root Next builds without error and silently does not register it.
+- Every locale rule lives in `src/i18n/route-decision.ts`, a pure function; `src/proxy.ts` (Next 16's name for the middleware) only carries out its decision. The proxy must stay in `src/` — at the repo root Next builds without error and silently does not register it.
 - There is no top-level layout. `src/app/[locale]/layout.tsx` and `src/app/admin/layout.tsx` are the root layouts and share `src/components/SiteDocument.tsx`, so `<html lang>` comes from the URL.
 - **Public pages stay cacheable**: nothing rendered under `src/app/[locale]/` reads cookies or headers, and every layout and page there calls `setRequestLocale`. Evidence of cacheability is a running server's response headers — the build's route table is not.
 - A new public section = a directory under `src/app/[locale]/` **and** an entry in `localizedSections`; without the entry its unprefixed URL is a 404 instead of a redirect.
-- A new top-level route or file in `public/` must be registered in `src/i18n/routing.ts` too: the middleware answers 404 for any first segment it does not know, compared by whole segment, never by prefix (a test enforces the registry).
+- A new top-level route or file in `public/` must be registered in `src/i18n/routing.ts` too: the proxy answers 404 for any first segment it does not know, compared by whole segment, never by prefix (a test enforces the registry).
 - The 404 page is `src/app/global-not-found.tsx` (an experimental Next flag in `next.config.ts`). Do not build behaviour on `notFound()` in a root layout.
 - Share images (`og.png` routes) keep their unprefixed URLs — external platforms have cached them.
 - UI strings: `src/messages/<locale>.json`; a key missing from a locale falls back to `en`. Content is single-source — every locale shows the same article.

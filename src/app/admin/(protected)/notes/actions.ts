@@ -53,7 +53,7 @@ async function saveNoteAction(formData: FormData, intent: 'draft' | 'publish') {
 
   // Every page that shows notes (detail, list, home, tag pages, search index, sitemap) reads them through
   // this tag, so nothing needs revalidating by path. If this throws the save has still happened.
-  revalidateTag('notes');
+  revalidateTag('notes', 'max');
   redirect(`/admin/notes?slug=${encodeURIComponent(result.slug)}&saved=${intent}`);
 }
 

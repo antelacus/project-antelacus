@@ -33,7 +33,7 @@
         "meta:twitter:description=Ante Lacus, Pax Mentis",
         "meta:twitter:image=https://antelacus.com/og.png",
         "meta:twitter:title=AnteLacus",
-        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, user-scalable=yes",
+        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover",
         "title=Ante Lacus, Pax Mentis"
       ]
     },
@@ -74,7 +74,7 @@
         "meta:twitter:description=Ante Lacus, Pax Mentis",
         "meta:twitter:image=https://antelacus.com/og.png",
         "meta:twitter:title=AnteLacus",
-        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, user-scalable=yes",
+        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover",
         "title=专栏 | AnteLacus"
       ]
     },
@@ -113,7 +113,7 @@
         "meta:twitter:description=学习 LLM 原理的过程中记了一些笔记。",
         "meta:twitter:image=https://antelacus.com/posts/2025-07-13-llm-note/og.png",
         "meta:twitter:title=LLM 学习笔记",
-        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, user-scalable=yes",
+        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover",
         "title=LLM 学习笔记 | AnteLacus"
       ]
     },
@@ -154,7 +154,7 @@
         "meta:twitter:description=Ante Lacus, Pax Mentis",
         "meta:twitter:image=https://antelacus.com/og.png",
         "meta:twitter:title=AnteLacus",
-        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, user-scalable=yes",
+        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover",
         "title=About | AnteLacus"
       ]
     },
@@ -188,7 +188,7 @@
         "meta:twitter:description=Ante Lacus, Pax Mentis",
         "meta:twitter:image=https://antelacus.com/og.png",
         "meta:twitter:title=AnteLacus",
-        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, user-scalable=yes",
+        "meta:viewport=width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover",
         "title=Admin | AnteLacus"
       ]
     }
