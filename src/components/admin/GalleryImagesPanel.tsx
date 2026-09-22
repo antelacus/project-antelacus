@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export type EditorImage = { storage_path: string; public_url: string; alt_text: string };
+export type EditorImage = { storage_path: string; public_url: string; alt_text: string; captured_at?: string | null };
 
 type Props = {
   images: EditorImage[];

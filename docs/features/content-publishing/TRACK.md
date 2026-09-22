@@ -133,6 +133,19 @@ Codex 设计门（只读，xhigh，任务 `task-muc4c5ws-s6ei46`，会话 `01a0c
 - 10：slug `new` 与新建路由撞车，条目变得不可编辑 —— status: 采纳 → 已修（`new` 为保留字；测试）
 - 评审附注：`/api/locale` 的绝对 `Location` 在 nginx 之后可能是容器的源 —— status: 采纳 → 已修（改为相对 `Location`）
 
+Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 `01a0c7e6-fe1b-7113-b4c3-a91b050446e6`，约 40 分钟；对象 = `5705f37` 的 `src/lib/markdown/index.tsx` 与 `supabase/migrations/20260922100200_save_content_item.sql`）。引文均已对过源码：
+- MUST-1：相册保存不带 `captured_at`，编辑一次就把拍摄时间清空 —— status: 采纳 → 已修（编辑器与动作贯通该字段）
+- MUST-2：新建走「先查后插」，同一自然键的两次并发首提会有一次撞唯一约束 —— status: 采纳 → 已修（改为单条 `insert … on conflict do update`）
+- MUST-3：草稿带展示日期时就写了 `published_at`，之后无法清除，首次发布用了过期日期 —— status: 采纳 → 已修（草稿永不写 `published_at`；检查脚本新增用例）
+- SHOULD-4：默认白名单在 `<code>` 上只留 `language-*` 类，`math-display` 被剥掉 —— status: 采纳 → 已修。**实测比评审标的更重**：块级公式实际已退化为行内（`katex-display` 缺失），补类名后转正；测试用真正的块级写法断言
+- SHOULD-5：更新时省略 `extra_metadata` 会清空 —— status: 采纳 → 已修（省略则保留原值；检查脚本用例）
+- SHOULD-6：大写协议（`HTTPS://`）被净化器按大小写敏感丢弃 —— status: 采纳 → 已修（协议小写化；测试）
+- NICE-7：标签大小写冲突时共享同一 slug、名字后写者胜 —— status: 接受（切库前即如此，单作者）
+- NICE-8：`sort_order` 部分省略时排序反直觉 —— status: 接受（动作对每张图都给序号）
+- NICE-9：显式 `null` 数组使保存失败 —— status: 采纳 → 已修（`jsonb_typeof` 守卫；检查脚本用例）
+- 评审确认成立：原始 HTML/JSX 在建树前已成文字；`iframe`/`object`/`embed` 不可达；`javascript:`/`data:`/`blob:` 与协议相对地址被拒；表格、任务列表、图片 `title` 放行；图片行插件不引入正文可控的属性；KaTeX 无 `trust`；按 id 与按自然键两条路径；封面规则；载荷字段名与函数一致；无效 `link_type` 报错而非静默；`revoke … from public` 正确，函数只授 `service_role`；关联写入与父行同一调用、无异常吞没
+- 待核（上线后）：经 PostgREST 以 `service_role` 调函数的表权限与整体回滚；唯一索引迁移若生产已有跨语言重复 slug 会失败（应用迁移时看报错）；同构渲染的水合树一致性；数据库时区与 `datetime-local` 无时区值的关系
+
 **Phase 4 证据**：尚未到达。
 
 **Phase 6 boxes**（请求 PR 之前写好——合并 ≠ 发布）：

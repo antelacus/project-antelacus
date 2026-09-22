@@ -40,7 +40,7 @@ export default async function AdminContentEditorPage({ params, searchParams }: P
       images: ((row as PhotoRecordRow).gallery_images ?? [])
         .slice()
         .sort((a, b) => a.sort_order - b.sort_order)
-        .map((image) => ({ storage_path: image.storage_path, public_url: image.public_url, alt_text: image.alt_text ?? '' })),
+        .map((image) => ({ storage_path: image.storage_path, public_url: image.public_url, alt_text: image.alt_text ?? '', captured_at: image.captured_at })),
       links: ((row as ProjectRecordRow).project_links ?? []).map((link) => ({ label: link.label, url: link.url, link_type: link.link_type })),
     };
   }

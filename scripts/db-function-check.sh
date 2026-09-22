@@ -38,6 +38,10 @@ check "one row" "1" "$(psql -c "select count(*) from public.content_items where 
 check "title updated" "Twice, edited" "$(psql -c "select title from public.content_items where id='$id1'")"
 check "tags replaced" "b,c" "$(psql -c "select string_agg(t.name, ',' order by t.name) from public.content_item_tags it join public.content_tags t on t.id=it.tag_id where it.content_item_id='$id1'")"
 check "a draft has no publication date" "" "$(psql -c "select published_at from public.content_items where id='$id1'")"
+save "{$base,\"id\":\"$id1\",\"published_at\":\"2024-05-01T00:00:00Z\",\"status\":\"draft\"}" >/dev/null
+check "a draft with an explicit date still has no publication date" "" "$(psql -c "select published_at from public.content_items where id='$id1'")"
+check "omitted metadata keeps the row's own" "kept" "$(psql -c "update public.content_items set extra_metadata='{\"location\":\"kept\"}' where id='$id1'; select public.save_content_item('{$base,\"id\":\"$id1\"}'::jsonb) is not null; select extra_metadata->>'location' from public.content_items where id='$id1'" | tail -1)"
+check "an explicit null array is an empty array" "0" "$(psql -c "select count(*) from public.gallery_images where content_item_id = (select id from public.save_content_item('{$base,\"id\":\"$id1\",\"images\":null,\"tags\":null,\"links\":null}'::jsonb))")"
 
 save "{$base,\"id\":\"$id1\",\"status\":\"published\",\"tags\":[]}" >/dev/null
 first=$(psql -c "select published_at from public.content_items where id='$id1'")

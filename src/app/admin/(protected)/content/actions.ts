@@ -53,6 +53,7 @@ const formSchema = z.object({
     public_url: z.string().url(),
     alt_text: z.string().nullable().optional(),
     sort_order: z.number().int().nonnegative().optional(),
+    captured_at: z.string().nullable().optional(),
   })),
   links: jsonArray(z.object({
     label: z.string().trim().min(1, 'a link needs a label'),

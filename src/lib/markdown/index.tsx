@@ -25,10 +25,12 @@ const processor = unified()
   .use(rawHtmlAsText)
   .use(remarkRehype)
   .use(dropProtocolRelativeUrls)
-  // The default schema already admits GFM tables and task lists and remark-math's
-  // `math-inline`/`math-display` classes; href/src protocols are limited to http, https and mailto.
+  // The default schema admits GFM tables and task lists, but on <code> only `language-*` classes:
+  // remark-math's `math-display` would be stripped and every block formula would render inline, so the
+  // two math classes are added. href/src protocols are limited to http, https and mailto.
   .use(rehypeSanitize, {
     ...defaultSchema,
+    attributes: { ...defaultSchema.attributes, code: [['className', /^language-./, 'math-inline', 'math-display']] },
     protocols: { ...defaultSchema.protocols, href: ['http', 'https', 'mailto'], src: ['http', 'https'] },
   })
   .use(imageRows)

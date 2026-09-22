@@ -53,7 +53,7 @@ test('acceptance §5.2-b GFM, math and the image-row rule render', async () => {
   const html = await renderToHtml([
     '| a | b |', '|---|---|', '| 1 | 2 |', '',
     '~~gone~~ and https://example.com and', '', '- [ ] task', '',
-    'inline $x^2$ and', '', '$$\\int_0^1 f$$', '',
+    'inline $x^2$ and', '', '$$', '\\int_0^1 f', '$$', '',
     '![one](/a.png "First") ![two](/b.png "Second") ![three](/c.png "Third")',
   ].join('\n'));
   assert.match(html, /<table/);
@@ -61,6 +61,7 @@ test('acceptance §5.2-b GFM, math and the image-row rule render', async () => {
   assert.match(html, /<a [^>]*href="https:\/\/example\.com"/);
   assert.match(html, /<input [^>]*type="checkbox"/);
   assert.match(html, /class="katex/);
+  assert.match(html, /katex-display/, 'a $$ block renders in display mode (the sanitizer must keep math-display)');
   assert.equal((html.match(/class="image-row"/g) ?? []).length, 1, 'one row for the image paragraph');
   assert.equal((html.match(/<figure>/g) ?? []).length, 3, 'a figure per image');
   assert.equal((html.match(/<figcaption>/g) ?? []).length, 3, 'a caption per image');
@@ -71,6 +72,7 @@ test('acceptance §5.2-b links and images with a javascript:, data: or protocol-
   const html = await renderToHtml('[x](javascript:alert(1)) ![y](javascript:alert(2)) [d](data:text/html,hi) ![p](//evil.example/a.png) [ok](https://example.com) $\\frac{a}{b}$');
   assert.doesNotMatch(html, /javascript:|data:text|evil\.example/i);
   assert.match(html, /href="https:\/\/example\.com"/);
+  assert.match(await renderToHtml('[u](HTTPS://Example.com/P)'), /href="https:\/\/Example\.com\/P"/, 'schemes are case-insensitive');
   assert.match(html, /class="katex/);
   assert.match(html, /aria-hidden="true"/, 'KaTeX aria attributes survive the sanitizer');
 });
