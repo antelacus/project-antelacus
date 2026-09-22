@@ -86,7 +86,7 @@
 - **Safari**：脚本写的 cookie 最长 7 天；服务端 `Set-Cookie` 不受此限。
 - **healthchecks.io**：每个检查一个 ping 地址；`/fail` 后缀立即告警；周期与宽限期在服务端设置。免费档 20 个检查。
 - **Cloudflare**：原样转发源站响应头；它自己也能加 HSTS，本版在应用层加，Cloudflare 侧保持不动以免两处不一致。
-- **iOS Safari**：文件选择框可从相册取图；HEIC 是否被自动转为 JPEG，以及大图是否要在浏览器压缩后再传——§5 待实测。
+- **iOS Safari / sharp**：文件选择框可从相册取图，HEIC 原样上传即可——Next 图片优化用的 sharp 带 libheif，能解码 HEIC 并以 WebP 送出；不做浏览器端转码或压缩，原图存桶。
 
 ## 4 模块间契约
 - `renderMarkdown(source: string): ReactNode` —— 纯函数，不抛错（解析失败的片段按文字显示）；同一输入在浏览器与服务端产出同一树。
@@ -128,11 +128,11 @@
 
 ## 8 其他设计
 - CSP 字符串：`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://<supabase 域名>; font-src 'self'; connect-src 'self' https://<supabase 域名>; frame-ancestors 'self'; base-uri 'self'; form-action 'self'`。Supabase 域名从环境变量取。
-- 图片上限：单张 20 MB，类型 JPEG / PNG / WebP / GIF（HEIC 待 §5）。
+- 图片上限：单张 20 MB，类型 JPEG / PNG / WebP / GIF / AVIF / HEIC / HEIF（`src/lib/server/media.ts`）。
 - 备份保留 14 天；cron：keepalive 每 6 小时、备份每日 03:00、站点检查每 10 分钟。
 - 后台旧路由 `/admin/notes` 删除，不留重定向（后台无外部链接）。
 - `docs/content-publishing.md` 第五至七节（Markdown 写作规范）保留，前四节重写。
 
 ## 9 开放设计问题
-- D-1 iOS Safari 的 HEIC 与大图：在 iPhone 上对一个原型上传页实测后定是否接受 HEIC、是否浏览器端压缩（REQ D-Q6）。
-- D-3 `save_content_item` 的集成测试跑在哪：对一个测试用 Supabase 项目，还是本地 postgres 容器加迁移——Batch 4 开工前定。
+- D-1 关闭：HEIC 直接接受（§3）；iPhone 上的实际上传在 Phase 4 对生产做。
+- D-3 关闭：`scripts/db-function-check.sh` 在本机的 postgres 17 容器里应用全部迁移并做 18 项检查（Docker 经 colima）。

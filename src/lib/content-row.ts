@@ -20,6 +20,8 @@ export type ContentRow = {
   updated_at: string;
   locale: string;
   cover_image_url: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
   extra_metadata: Json | null;
   content_item_tags?: TagJoinRow[] | null;
 };

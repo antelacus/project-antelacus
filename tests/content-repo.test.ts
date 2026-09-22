@@ -47,11 +47,15 @@ test('getPublished maps a hit and returns null for a miss or a draft', async () 
   assert.equal(await getPublished(asClient(db), 'note', 'hello'), null, 'a slug of another type is not found');
 });
 
-test('saveContent writes the type it is given and replaces the tags', async () => {
+test('saveContent is one call to the transactional function, carrying the type, the normalised tags and the relations', async () => {
   const db = seed();
   const result = await saveContent(asClient(db), 'note', { slug: 'n', title: 'N', content: 'c', tags: [' a ', 'b', 'a'], lang: 'en', status: 'draft' });
   assert.deepEqual(result.tags, ['a', 'b']);
-  const row = db.rows('content_items').find((r) => r.slug === 'n');
-  assert.equal(row?.content_type, 'note');
-  assert.equal(row?.published_at, null, 'a draft has no publication date');
+  const [call] = db.rpcCalls('save_content_item');
+  const payload = (call.args as { payload: Record<string, unknown> }).payload;
+  assert.equal(payload.content_type, 'note');
+  assert.deepEqual(payload.tags, ['a', 'b']);
+  assert.deepEqual(payload.images, []);
+  assert.equal(payload.published_at, null, 'no display date, so the function decides the publication date');
+  assert.equal(db.rows('content_items').find((r) => r.slug === 'n')?.content_type, 'note');
 });

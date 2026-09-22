@@ -139,7 +139,12 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      save_content_item: {
+        Args: { payload: Json };
+        Returns: Database['public']['Tables']['content_items']['Row'];
+      };
+    };
     Enums: {
       content_type: ContentType;
       content_status: ContentStatus;

@@ -22,6 +22,8 @@ const SHARED_COLUMNS = `
   updated_at,
   locale,
   cover_image_url,
+  seo_title,
+  seo_description,
   extra_metadata,
   content_item_tags (
     content_tags (
@@ -118,58 +120,55 @@ export type SaveContentInput = {
   cover?: string;
   displayDate?: string;
   status: ContentStatus;
+  seoTitle?: string;
+  seoDescription?: string;
+  images?: { storage_path: string; public_url: string; alt_text?: string | null; sort_order?: number; captured_at?: string | null }[];
+  links?: { label: string; url: string; link_type: 'repository' | 'demo' | 'reference' | 'other' }[];
 };
 
-function normalizeTags(tags: string[]): string[] {
-  return Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
-}
+const normalizeTags = (tags: string[]) => Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
 
-async function replaceTags(client: ContentClient, contentItemId: string, tags: string[]): Promise<string[]> {
-  const names = normalizeTags(tags);
-
-  const { error: deleteError } = await client.from('content_item_tags').delete().eq('content_item_id', contentItemId);
-  if (deleteError) fail('replace tags', deleteError);
-  if (names.length === 0) return names;
-
-  const { error: upsertError } = await client
-    .from('content_tags')
-    .upsert(names.map((name) => ({ name, slug: name.toLowerCase() })), { onConflict: 'slug' });
-  if (upsertError) fail('upsert tags', upsertError);
-
-  const { data: tagRows, error: fetchError } = await client.from('content_tags').select('id, name').in('name', names);
-  if (fetchError) fail('load tag ids', fetchError);
-
-  const { error: linkError } = await client
-    .from('content_item_tags')
-    .insert((tagRows ?? []).map((tag) => ({ content_item_id: contentItemId, tag_id: tag.id })));
-  if (linkError) fail('attach tags', linkError);
-
-  return names;
-}
-
+// One transaction on the database side (supabase/migrations/…_save_content_item.sql): the row and all
+// of its relations land together or not at all. What the function does with ids, natural keys,
+// publication dates and covers is documented there, once.
 export async function saveContent(client: ContentClient, type: ContentType, input: SaveContentInput): Promise<{ id: string; slug: string; tags: string[] }> {
-  const publishDate = input.status === 'published' ? (input.displayDate || new Date().toISOString()) : null;
+  const tags = normalizeTags(input.tags);
+  const payload = {
+    id: input.id || null,
+    content_type: type,
+    slug: input.slug,
+    title: input.title,
+    summary: input.summary || null,
+    body_markdown: input.content,
+    status: input.status,
+    published_at: input.displayDate || null,
+    locale: input.lang,
+    cover_image_url: input.cover || null,
+    seo_title: input.seoTitle || null,
+    seo_description: input.seoDescription || null,
+    extra_metadata: input.displayDate ? { displayDate: input.displayDate } : {},
+    tags,
+    images: input.images ?? [],
+    links: input.links ?? [],
+  };
 
-  const { data, error } = await client
-    .from('content_items')
-    .upsert({
-      id: input.id,
-      content_type: type,
-      slug: input.slug,
-      title: input.title,
-      summary: input.summary || null,
-      body_markdown: input.content,
-      status: input.status,
-      published_at: publishDate,
-      locale: input.lang,
-      cover_image_url: input.cover || null,
-      extra_metadata: input.displayDate ? { displayDate: input.displayDate } : {},
-    }, { onConflict: 'id' })
-    .select('id, slug')
-    .single();
-
+  const { data, error } = await client.rpc('save_content_item', { payload });
   if (error || !data) fail(`save ${type}`, error);
 
-  const tags = await replaceTags(client, data.id, input.tags);
-  return { id: data.id, slug: data.slug, tags };
+  const row = data as unknown as { id: string; slug: string };
+  return { id: row.id, slug: row.slug, tags };
+}
+
+// The raw row (with its relation) for the editor, which needs ids and storage paths the mappers drop.
+export async function getAdminRow<K extends ContentType>(client: ContentClient, type: K, slug: string): Promise<RowOf<K> | null> {
+  const { data, error } = await client
+    .from('content_items')
+    .select(selectFor(type))
+    .eq('content_type', type)
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error) fail(`load admin ${type} row "${slug}"`, error);
+
+  return (data ?? null) as unknown as RowOf<K> | null;
 }

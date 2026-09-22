@@ -1,94 +1,34 @@
 ## 一、内容在哪里
 
-四类内容（专栏、闪念、视觉、实验室）都存放在 Supabase：正文与元数据在 `content_items` 表，标签在 `content_tags` 与 `content_item_tags`，相册图片在 `gallery_images` 表与名为 `gallery` 的公开存储桶，项目链接在 `project_links`。表结构以 `supabase/migrations/` 为准。只有「关于」页仍是仓库里的文件（`src/content/pages/about/`）。
+四类内容（专栏、闪念、视觉、实验室）都存放在 Supabase：正文与元数据在 `content_items` 表，标签在 `content_tags` 与 `content_item_tags`，相册图片在 `gallery_images` 表，项目链接在 `project_links`。表结构以 `supabase/migrations/` 为准。图片本体在两个公开存储桶：相册照片历史上在 `gallery`，v2.3.0 起所有新上传（封面、插图、相册）在 `media`。只有「关于」页仍是仓库里的文件（`src/content/pages/about/`，以 MDX 渲染，改它要提交代码）。
 
-发布不需要重新部署。经站内后台发布的内容立即可见；直接改数据库的内容最长一小时后可见（页面与数据各缓存半小时，叠加）。
+发布不需要重新部署：经后台保存或发布的内容，保存完成后的下一次访问即可见。
 
-| 类型 | `content_type` | 发布方式 |
-| ---- | -------------- | -------- |
-| 闪念 | `note` | 站内后台 `/admin/notes` |
-| 专栏 | `post` | Supabase 控制台（尚无后台编辑器） |
-| 实验室 | `project` | Supabase 控制台（尚无后台编辑器） |
-| 视觉 | `gallery` | Supabase 控制台 + 存储桶（尚无后台编辑器） |
+## 二、发布内容（站内后台）
 
----
+1. 打开 `/admin/login`，用管理员邮箱登录。后台在手机浏览器上同样可用。
+2. 在 `/admin` 选内容类型，或直接打开 `/admin/content/post`、`/admin/content/note`、`/admin/content/gallery`、`/admin/content/project`；点「New」，或点已有条目进入编辑。
+3. 填写标题与 slug（只能是小写字母、数字、连字符；它就是地址，发布后改 slug 等于换地址）、摘要、写作语言、展示日期、标签（逗号分隔）。
+4. 正文是 Markdown：支持 GFM（表格、任务列表、删除线、自动链接）与公式（`$…$`、`$$…$$`）。原始 HTML 与 JSX 不会被执行，只会原样显示为文字。「Preview」用的是公开页面同一套渲染。
+5. 图片：正文里粘贴、拖入，或点「Insert image from device」从相册选，图片会上传到存储桶并以 `![](地址)` 插到光标处；专栏、闪念、实验室的封面用「Upload cover」；相册在「Photos」里一次选多张，可排序、写说明、勾选封面。上传前先填好 slug，它决定图片存放的文件夹。接受 JPEG、PNG、WebP、GIF、AVIF、HEIC，单张 20 MB 以内。
+6. 「Save draft」只存不公开；「Publish」后详情页、列表、首页、标签页、搜索与 sitemap 立即更新。已发布的条目按「Retract to draft」撤下，其详情地址即为 404。
+7. 同一条目连续提交两次不会重复创建；保存中按钮会禁用。校验不过时错误显示在对应字段旁，已填内容不丢。
 
-## 二、发布闪念（站内后台）
+## 三、图片排版
 
-1. 打开 `/admin/login`，用管理员邮箱登录。
-2. 进入 `/admin/notes`，填写标题、slug、正文（MDX），可选：摘要、标签（逗号分隔）、展示日期、封面地址。
-3. 「保存草稿」只存不公开；「发布」后详情页、闪念列表、首页、标签页与搜索立即更新。
+一个段落里只放图片（一张或多张），它们会并排显示；图片的 `title` 会成为图注：
 
----
-
-## 三、发布专栏、实验室、视觉（Supabase 控制台）
-
-在 Supabase 控制台的 SQL Editor 中执行。一条内容要在站上出现，必须满足：`status = 'published'`，且 `slug` 在同类型同 `locale` 内唯一。`published_at` 决定排序；页面上显示的日期依次取 `extra_metadata.displayDate` → `published_at` → `updated_at`。
-
-### （一）专栏
-
-```sql
-with item as (
-  insert into public.content_items
-    (content_type, slug, title, summary, body_markdown, status, published_at, locale, cover_image_url, extra_metadata)
-  values
-    ('post', 'my-post-slug', '标题', '一句话摘要', $md$
-正文写在这里，MDX 语法，从二级标题开始。
-$md$,
-     'published', now(), 'zh-CN', null, '{"displayDate": "2026-01-31"}')
-  returning id
-), tag as (
-  insert into public.content_tags (name, slug) values ('随笔', '随笔')
-  on conflict (slug) do update set name = excluded.name
-  returning id
-)
-insert into public.content_item_tags (content_item_id, tag_id)
-select item.id, tag.id from item, tag;
+```markdown
+![注意力](https://…/1.png "注意力机制") ![单头](https://…/2.png "单头注意力")
 ```
 
-- `locale` 是文章的写作语言（页面上显示为语言标记），不影响它出现在哪些语言的站点上——每种语言都展示同一篇。
-- 封面 `cover_image_url` 两种来源都可以：Supabase 存储桶里的公开地址（无需部署）；或仓库 `public/images/posts/` 下的文件，写成 `/images/posts/…`（需要提交并部署）。
-- 标签的 `slug` 是其名称的小写形式（后台保存闪念时也是这样写的），同名标签全站共用一行。
-- 多个标签：对每个标签重复 `tag` 与最后一条 `insert`，或先发布、再单独补标签。
-
-### （二）实验室
-
-与专栏相同，`content_type` 改为 `'project'`，`title` 即项目名，`summary` 即项目描述。仓库与演示地址写进 `project_links`：
-
-```sql
-insert into public.project_links (content_item_id, label, url, link_type)
-select id, 'GitHub', 'https://github.com/owner/repo', 'repository'
-from public.content_items where content_type = 'project' and slug = 'my-project-slug';
-```
-
-`link_type` 可取 `repository`、`demo`、`reference`、`other`。`extra_metadata` 可带 `status`（项目状态文字）与 `star`（数字）。
-
-### （三）视觉
-
-1. 在存储桶 `gallery` 中新建与 slug 同名的文件夹，上传照片，建议按 `01.jpg`、`02.jpg` 命名。
-2. 新建相册条目：同专栏的 `insert`，`content_type` 为 `'gallery'`，`summary` 即相册说明，`extra_metadata` 可带 `location`、`displayDate`。
-3. 为每张照片登记一行，`sort_order` 决定顺序；未设 `cover_image_url` 时第一张即封面：
-
-```sql
-insert into public.gallery_images (content_item_id, storage_path, public_url, alt_text, sort_order)
-select id, 'my-album-slug/01.jpg',
-       'https://<项目>.supabase.co/storage/v1/object/public/gallery/my-album-slug/01.jpg',
-       '照片说明', 1
-from public.content_items where content_type = 'gallery' and slug = 'my-album-slug';
-```
-
-### （四）修改与撤下
-
-- 修改：`update public.content_items set … where content_type = … and slug = …;`
-- 撤下：把 `status` 改回 `'draft'`。删除条目会连带删除它的标签关联、图片登记与链接；存储桶里的文件需另行删除。
-- 两者都在一小时内生效。
-
----
+正文里不写布局，排版是渲染器的事。
 
 ## 四、展示与字段
 
 * **样式 / 布局** → 只改 `src/components/` 下对应的 Card 组件，一改全站生效。
-* **新增字段** → 放进 `extra_metadata`（无需改表），在该类型的映射函数（`src/lib/` 下的 `*-types.ts`）里读出并给默认值，再在 Card 组件里决定如何展示。旧内容保持兼容。
+* **新增字段** → 放进 `extra_metadata`（无需改表），在该类型的映射函数（`src/lib/*-types.ts`）里读出并给默认值，再在 Card 组件里决定如何展示。旧内容保持兼容。
+* **发布时间** → 首次发布时写入（展示日期可覆盖），之后编辑不改它，撤回再发布保留原值；列表按它排序。
 
 ---
 

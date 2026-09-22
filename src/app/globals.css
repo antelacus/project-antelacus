@@ -1320,4 +1320,36 @@ body.suppress-content-entrance .about-content {
   height: 16px;
 }
 
-
+/* Admin workspace: plain, dense, usable on a phone. Public pages never use these. */
+.admin-card {
+  border: 1px solid rgba(29, 29, 27, 0.14);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(249, 248, 246, 0.96);
+}
+.admin-button {
+  display: inline-block;
+  border: 1px solid rgba(29, 29, 27, 0.18);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.2;
+}
+.admin-button:disabled { opacity: 0.5; cursor: default; }
+.admin-button-primary { background: var(--color-ink); color: var(--color-paper); border-color: var(--color-ink); }
+.admin-notice { margin: 0; padding: 0.875rem 1rem; border-radius: 10px; background: rgba(239, 241, 237, 0.95); }
+.admin-notice-error { background: rgba(180, 42, 30, 0.08); color: var(--color-seal); }
+.admin-preview { border: 1px solid rgba(29, 29, 27, 0.14); border-radius: 8px; padding: 0.5rem 1rem; min-height: 24rem; overflow-wrap: anywhere; }
+form input:not([type]), form input[type="text"], form input[type="datetime-local"], form textarea, form select {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(29, 29, 27, 0.18);
+  border-radius: 8px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}

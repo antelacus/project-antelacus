@@ -84,7 +84,7 @@ test('acceptance §5.2-d the container runs as a non-root user', () => {
 
 // ---------- §5.3 publishing entry ----------
 
-test('acceptance §5.3-b saving the same natural key twice is one insert then an update', { todo: 'Batch 4' }, async () => {
+test('acceptance §5.3-b saving the same natural key twice is one insert then an update', async () => {
   const { saveContent } = await load('../src/lib/server/content-repo.js');
   const { fakeSupabase } = await load('./fakes/supabase.js');
   const db = fakeSupabase();
@@ -96,22 +96,22 @@ test('acceptance §5.3-b saving the same natural key twice is one insert then an
   assert.equal(db.rows('content_items')[0].title, 'Twice, edited');
 });
 
-test('acceptance §5.3-b the editor form cannot be submitted twice while a submit is in flight', { todo: 'Batch 4' }, () => {
+test('acceptance §5.3-b the editor form cannot be submitted twice while a submit is in flight', () => {
   const editor = read('src/components/admin/ContentEditor.tsx');
   assert.match(editor, /useFormStatus|pending/, 'no in-flight state on the submit buttons');
 });
 
-test('acceptance §5.3 rule 4 a slug is lowercase letters, digits and hyphens', { todo: 'Batch 4' }, async () => {
+test('acceptance §5.3 rule 4 a slug is lowercase letters, digits and hyphens', async () => {
   const { isValidSlug } = await load('../src/lib/content-slug.js');
   for (const ok of ['a', '2025-07-13-llm-note', 'project-white']) assert.equal(isValidSlug(ok), true, ok);
   for (const bad of ['', 'A', 'a_b', 'a b', 'a/b', '..', 'x'.repeat(81), 'é']) assert.equal(isValidSlug(bad), false, JSON.stringify(bad));
 });
 
-test('acceptance §5.3-g every admin action and the upload path check the admin before touching data', { todo: 'Batch 4' }, () => {
+test('acceptance §5.3-g every admin action and the upload path check the admin before touching data', () => {
   for (const path of ['src/app/admin/(protected)/content/actions.ts', 'src/app/api/admin/upload/route.ts', 'src/lib/server/media.ts']) {
     assert.ok(existsSync(join(ROOT, path)), `${path} missing`);
     const source = read(path);
-    assert.match(source, /requireAdminUser|getAdminServiceRoleClient/, `${path} never checks the admin`);
+    assert.match(source, /requireAdminUser|getAdminServiceRoleClient|getAdminSession/, `${path} never checks the admin`);
     assert.doesNotMatch(source, /createSupabaseServiceRoleClient/, `${path} creates the service-role client itself`);
   }
 });
@@ -191,7 +191,7 @@ test('acceptance §5.10-c every loader\'s request-level cache() wrapper is creat
   }
 });
 
-test('acceptance §5.3 every admin action invalidates the tag the type registry names, with the Next 16 profile', { todo: 'Batch 4' }, () => {
+test('acceptance §5.3 every admin action invalidates the tag the type registry names, with the Next 16 profile', () => {
   const path = 'src/app/admin/(protected)/content/actions.ts';
   const source = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, true);
   const calls: string[] = [];
