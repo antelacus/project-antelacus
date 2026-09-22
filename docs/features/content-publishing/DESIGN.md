@@ -83,7 +83,7 @@
 - **Next**：`error.tsx` 是客户端组件，只在客户端导航或水合后接管；一个「首访生成、之后缓存」的页面在**生成阶段**出错（读库失败），框架直接回 21 字节的纯文本 500，不经任何边界，`global-error.tsx` 也不经。`generateMetadata` 更在边界之外（本版让它读库失败时退回布局默认值）。在保持页面可缓存的前提下，服务端渲染失败时访客只能拿到状态码正确、不带原文的裸 500；站点风格的错误页只在站内导航时出现。REQ §5.4-b 的「正文是站点的错误页」因此收窄（DESIGN §9 D-4）。
 - **remark-rehype**：默认不传递原始 HTML 节点（直接丢弃）。REQ 要求「原样作为文字显示」，故管道里加一个把 `html` 节点改为 `text` 节点的小插件。
 - **Supabase Storage**：桶的公开读取是桶级设置；写入只经服务端密钥，不开匿名写策略。
-- **Supabase**：免费档项目一周无请求即暂停；`pg_dump` 客户端主版本须与服务端一致（用官方 postgres 镜像跑）。直连地址只有 IPv6，VPS 若无 IPv6 须走 Supavisor 连接池的会话模式端口——`DATABASE_URL` 的取法在 Batch 开工时对 VPS 实测后写进运维文档（待核）。
+- **Supabase**：免费档项目一周无请求即暂停；`pg_dump` 的主版本须是服务端的或更新（用官方 postgres 镜像跑）。直连地址只有 IPv6，VPS 用 Supavisor 会话模式的连接串（`DATABASE_URL`，运维文档写明取法）；对生产的首次备份是它的验证（Phase 6 方框）。
 - **Safari**：脚本写的 cookie 最长 7 天；服务端 `Set-Cookie` 不受此限。
 - **healthchecks.io**：每个检查一个 ping 地址；`/fail` 后缀立即告警；周期与宽限期在服务端设置。免费档 20 个检查。
 - **Cloudflare**：原样转发源站响应头；它自己也能加 HSTS，本版在应用层加，Cloudflare 侧保持不动以免两处不一致。
