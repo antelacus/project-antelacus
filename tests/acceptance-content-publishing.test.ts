@@ -62,9 +62,12 @@ test('acceptance §5.2-b GFM, math and the image-row rule render', { todo: 'Batc
   assert.match(html, /<figcaption>Second<\/figcaption>/);
 });
 
-test('acceptance §5.2-b links and images with a javascript: scheme lose it', { todo: 'Batch 2' }, async () => {
-  const html = await renderToHtml('[x](javascript:alert(1)) ![y](javascript:alert(2))');
-  assert.doesNotMatch(html, /javascript:/i);
+test('acceptance §5.2-b links and images with a javascript:, data: or protocol-relative address lose it; KaTeX survives', { todo: 'Batch 2' }, async () => {
+  const html = await renderToHtml('[x](javascript:alert(1)) ![y](javascript:alert(2)) [d](data:text/html,hi) ![p](//evil.example/a.png) [ok](https://example.com) $\\frac{a}{b}$');
+  assert.doesNotMatch(html, /javascript:|data:text|evil\.example/i);
+  assert.match(html, /href="https:\/\/example\.com"/);
+  assert.match(html, /class="katex/);
+  assert.match(html, /aria-hidden="true"/, 'KaTeX aria attributes survive the sanitizer');
 });
 
 test('acceptance §5.2-d the container runs as a non-root user', { todo: 'Batch 2' }, () => {
@@ -83,9 +86,9 @@ test('acceptance §5.3-b saving the same natural key twice is one insert then an
   const input = { slug: 'twice', title: 'Twice', content: 'body', lang: 'en', status: 'draft' as const, tags: [], summary: '', cover: '' };
   await saveContent(db.client, 'note', input);
   await saveContent(db.client, 'note', { ...input, title: 'Twice, edited' });
+  assert.equal(db.rpcCalls('save_content_item').length, 2, 'every save is the one transactional RPC');
   assert.equal(db.rows('content_items').length, 1);
   assert.equal(db.rows('content_items')[0].title, 'Twice, edited');
-  assert.deepEqual(db.upsertConflicts('content_items'), ['content_type,locale,slug', 'content_type,locale,slug']);
 });
 
 test('acceptance §5.3-b the editor form cannot be submitted twice while a submit is in flight', { todo: 'Batch 4' }, () => {
@@ -100,7 +103,7 @@ test('acceptance §5.3 rule 4 a slug is lowercase letters, digits and hyphens', 
 });
 
 test('acceptance §5.3-g every admin action and the upload path check the admin before touching data', { todo: 'Batch 4' }, () => {
-  for (const path of ['src/app/admin/(protected)/content/actions.ts', 'src/lib/server/media.ts']) {
+  for (const path of ['src/app/admin/(protected)/content/actions.ts', 'src/app/api/admin/upload/route.ts', 'src/lib/server/media.ts']) {
     assert.ok(existsSync(join(ROOT, path)), `${path} missing`);
     const source = read(path);
     assert.match(source, /requireAdminUser|getAdminServiceRoleClient/, `${path} never checks the admin`);
@@ -108,18 +111,9 @@ test('acceptance §5.3-g every admin action and the upload path check the admin 
   }
 });
 
-test('acceptance §5.3-f the about page falls back requested locale → en → any', { todo: 'Batch 5' }, async () => {
-  const { pickPageForLocale } = await import('../src/lib/pages.js');
-  const rows = [{ locale: 'zh-CN', body: 'zh' }, { locale: 'en', body: 'en' }];
-  assert.equal(pickPageForLocale(rows, 'zh-CN')?.body, 'zh');
-  assert.equal(pickPageForLocale(rows, 'fr')?.body, 'en');
-  assert.equal(pickPageForLocale([{ locale: 'zh-HK', body: 'hk' }], 'fr')?.body, 'hk');
-  assert.equal(pickPageForLocale([], 'fr'), null);
-});
-
 // ---------- §5.4 failure handling ----------
 
-test('acceptance §5.4-d a malformed detail slug is decided "not found" before any page runs', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.4-d a malformed detail slug is decided "not found" before any page runs', { todo: 'Batch 5' }, async () => {
   const { decideLocaleRoute } = await import('../src/i18n/route-decision.js');
   const decide = (pathname: string) => decideLocaleRoute({ pathname, acceptLanguage: null, preferredLocale: null });
   for (const bad of ['/en/posts/Bad', '/en/notes/a_b', '/fr/projects/' + 'x'.repeat(81), '/zh-CN/gallery/a.b']) {
@@ -129,7 +123,7 @@ test('acceptance §5.4-d a malformed detail slug is decided "not found" before a
   assert.deepEqual(decide('/en/posts'), { kind: 'pass' });
 });
 
-test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone', { todo: 'Batch 6' }, () => {
+test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone', { todo: 'Batch 5' }, () => {
   assert.equal(existsSync(join(ROOT, 'src/app/[locale]/loading.tsx')), false);
   assert.ok(existsSync(join(ROOT, 'src/app/[locale]/error.tsx')));
   assert.ok(existsSync(join(ROOT, 'src/app/admin/error.tsx')));
@@ -137,9 +131,11 @@ test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone'
 
 // ---------- §5.5 hardening ----------
 
-test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links must be http(s)', { todo: 'Batch 7' }, async () => {
+test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links must be http(s)', { todo: 'Batch 6' }, async () => {
   const { jsonLdScript } = await import('../src/lib/structured-data.js');
-  assert.doesNotMatch(jsonLdScript({ name: 'x</script><script>alert(1)</script>' }), /<\/script/);
+  const out = jsonLdScript({ name: 'x</script><script>alert(1)</script>' });
+  assert.doesNotMatch(out, /<\/script/);
+  assert.match(out, /\\u003c\/script/, 'the angle bracket is written as the JSON escape');
   const { isSafeExternalUrl } = await import('../src/lib/content-slug.js');
   assert.equal(isSafeExternalUrl('javascript:alert(1)'), false);
   assert.equal(isSafeExternalUrl('https://example.com/x'), true);
@@ -147,11 +143,11 @@ test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links 
   assert.equal(isSafeExternalUrl('data:text/html,hi'), false);
 });
 
-test('acceptance §5.5-b the photo viewer builds its details from text, not HTML strings', { todo: 'Batch 7' }, () => {
+test('acceptance §5.5-b the photo viewer builds its details from text, not HTML strings', { todo: 'Batch 6' }, () => {
   assert.doesNotMatch(read('src/components/PhotoViewer.tsx'), /innerHTML/);
 });
 
-test('acceptance §5.5-c the canonical origin is one constant with www', { todo: 'Batch 7' }, () => {
+test('acceptance §5.5-c the canonical origin is one constant with www', { todo: 'Batch 6' }, () => {
   const offenders = sourceFiles(join(ROOT, 'src'))
     .filter((file) => !file.endsWith('/seo.ts') && readFileSync(file, 'utf8').includes('https://antelacus.com'));
   assert.deepEqual(offenders, [], 'the bare domain appears outside src/lib/seo.ts');
@@ -168,7 +164,7 @@ test('acceptance §5.5-d the image Node major equals the gate\'s and is still ma
 
 // ---------- §5.8 language memory ----------
 
-test('acceptance §5.8-a no page script writes document.cookie', { todo: 'Batch 7' }, () => {
+test('acceptance §5.8-a no page script writes document.cookie', { todo: 'Batch 6' }, () => {
   const offenders = sourceFiles(join(ROOT, 'src')).filter((file) => readFileSync(file, 'utf8').includes('document.cookie'));
   assert.deepEqual(offenders, []);
 });
@@ -187,6 +183,22 @@ test('acceptance §5.10-c every loader\'s request-level cache() wrapper is creat
     };
     visit(source, 0);
     assert.deepEqual(nested, [], `${path}: cache() is called inside a function, so each call gets a fresh memo`);
+  }
+});
+
+test('acceptance §5.3 every admin action invalidates the tag the type registry names, with the Next 16 profile', { todo: 'Batch 4' }, () => {
+  const path = 'src/app/admin/(protected)/content/actions.ts';
+  const source = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, true);
+  const calls: string[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isCallExpression(node) && node.expression.getText() === 'revalidateTag') calls.push(node.arguments.map((a) => a.getText()).join(', '));
+    node.forEachChild(visit);
+  };
+  visit(source);
+  assert.ok(calls.length > 0, 'no revalidateTag call in the content actions');
+  for (const call of calls) {
+    assert.match(call, /tag/, `the tag must come from the type registry, saw revalidateTag(${call})`);
+    assert.match(call, /'max'/, `Next 16 needs the second argument, saw revalidateTag(${call})`);
   }
 });
 

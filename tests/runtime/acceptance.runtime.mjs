@@ -162,14 +162,14 @@ test('§6-a document metadata is unchanged by the root-layout move', async () =>
 
 // ---------- v2.3.0 (docs/features/content-publishing/REQ.md); todo until the named batch lands ----------
 
-test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', { todo: 'Batch 6; needs the database' }, async () => {
+test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', { todo: 'Batch 5; needs the database' }, async () => {
   if (!WITH_DB) return;
   const res = await get('/en/posts/this-slug-does-not-exist');
   assert.equal(res.status, 404);
   assert.match(await res.text(), /<html/);
 });
 
-test('§5.4-b with the database unreachable, a page is the site\'s error page with status 500', { todo: 'Batch 6' }, async () => {
+test('§5.4-b with the database unreachable, a page is the site\'s error page with status 500', { todo: 'Batch 5' }, async () => {
   if (WITH_DB) return;
   const res = await get('/en/posts/anything');
   assert.equal(res.status, 500);
@@ -178,7 +178,7 @@ test('§5.4-b with the database unreachable, a page is the site\'s error page wi
   assert.match(html, /Ante Lacus|antelacus/i, 'not the site\'s own shell');
 });
 
-test('§5.4-c the search index never echoes a database error', { todo: 'Batch 6' }, async () => {
+test('§5.4-c the search index never echoes a database error', { todo: 'Batch 5' }, async () => {
   if (WITH_DB) return;
   const res = await get('/api/search-index');
   assert.equal(res.status, 500);
@@ -186,7 +186,7 @@ test('§5.4-c the search index never echoes a database error', { todo: 'Batch 6'
   assert.doesNotMatch(body, /supabase|fetch failed|ECONN/i);
 });
 
-test('§5.4-d a malformed slug is a 404 without the database', { todo: 'Batch 6' }, async () => {
+test('§5.4-d a malformed slug is a 404 without the database', { todo: 'Batch 5' }, async () => {
   for (const path of ['/en/posts/Bad_Slug', '/en/notes/a.b', '/fr/projects/' + 'x'.repeat(81)]) {
     const res = await get(path);
     assert.equal(res.status, 404, path);
@@ -194,7 +194,7 @@ test('§5.4-d a malformed slug is a 404 without the database', { todo: 'Batch 6'
   }
 });
 
-test('§5.5-a security headers are present and x-powered-by is not', { todo: 'Batch 7' }, async () => {
+test('§5.5-a security headers are present and x-powered-by is not', { todo: 'Batch 6' }, async () => {
   for (const path of ['/en/about', '/admin/login']) {
     const res = await get(path);
     assert.match(res.headers.get('content-security-policy') ?? '', /default-src 'self'/, path);
@@ -203,14 +203,14 @@ test('§5.5-a security headers are present and x-powered-by is not', { todo: 'Ba
   }
 });
 
-test('§5.5-c canonical and alternate links use the www origin', { todo: 'Batch 7' }, async () => {
+test('§5.5-c canonical and alternate links use the www origin', { todo: 'Batch 6' }, async () => {
   const html = await (await get('/en/about')).text();
   const hrefs = [...html.matchAll(/<link[^>]+rel="(?:canonical|alternate)"[^>]+href="([^"]+)"/g)].map((m) => m[1]).filter((h) => h.startsWith('http'));
   assert.ok(hrefs.length > 0);
   for (const href of hrefs) assert.ok(href.startsWith('https://www.antelacus.com/'), href);
 });
 
-test('§5.8-a the language choice is remembered by a server-set cookie for a year', { todo: 'Batch 7' }, async () => {
+test('§5.8-a the language choice is remembered by a server-set cookie for a year', { todo: 'Batch 6' }, async () => {
   const res = await get('/api/locale?to=zh-CN&next=/zh-CN/about');
   assert.equal(res.status, 303);
   assert.equal(locationPath(res), '/zh-CN/about');
@@ -223,8 +223,9 @@ test('§5.8-a the language choice is remembered by a server-set cookie for a yea
   assert.equal(locationPath(evil), '/zh-CN', 'an external next must not be followed');
 });
 
-test('§5.9-a one <main>, and the navigation sits before it', { todo: 'Batch 7' }, async () => {
-  for (const path of ['/en/about', '/admin/login']) {
+test('§5.9-a one <main>, and the navigation sits before it', { todo: 'Batch 6' }, async () => {
+  const paths = ['/en/about', '/admin/login', ...(WITH_DB ? ['/en', '/en/posts', `/en/posts/${POST_SLUG}`] : [])];
+  for (const path of paths) {
     const html = await (await get(path)).text();
     assert.equal((html.match(/<main\b/g) ?? []).length, 1, path);
     const nav = html.indexOf('<nav');

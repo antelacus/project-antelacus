@@ -105,3 +105,9 @@ Who rules on what: Phase 0 of v2.3.0 (2026-09-22) took every open item on this r
 
 - Status: `Open` · Severity: `Low` · Area: `accessibility`
 - Context: `src/components/SiteDocument.tsx` wraps `children` in `<main id="main-content">`, but the `[locale]` layout renders `<Nav />` inside `children`, so "skip to main content" skips nothing; the admin setup notice and the detail pages' not-found branches nest a second `<main>`. Predates v2.2.0. Fix: the layout renders the nav outside `<main>`, and the inner `<main>`s become `<div>`s.
+
+### TD-019 - The about page is the last repo-file content and the last MDX user
+
+- Status: `Open` · Severity: `Low` · Area: `content-management` · Identified: `2026-09-22`
+- Context: `/about` reads `src/content/pages/about/*.mdx`, five per-language files written as JSX (sections, a contact grid, inline SVG icons), rendered by `next-mdx-remote`. It cannot be edited from the admin, and it is the one page the Markdown-only renderer of v2.3.0 does not cover. Converting it to Markdown changes its appearance, which v2.3.0 forbids.
+- Ruled (Project Lead, 2026-09-22): v2.4.0 — the visual upgrade redesigns the about page, and it moves into the database as Markdown (per-language rows with fallback to English, then any) in the same version; `next-mdx-remote` leaves with it.
