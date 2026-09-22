@@ -51,16 +51,18 @@
 - 证据（本地，闸门的每一步）：audit 0；lint 0 错误 25 警告（TD-020）；tsc 净；单元 54（36 过、18 todo）；假环境构建；运行时 23（15 过、8 todo）；关于页在 next-mdx-remote 6 下仍渲染 6 个分节。设计未预见、已处理：proxy 在 Next 16 不再进 `middleware-manifest.json`（DESIGN §3）；三条 React Compiler 规则打中 18 处旧代码（TD-020）
 
 ### Batch 2 — Markdown 渲染与容器
-- 状态：open
+- 状态：done `3474505` + `de24915`（包未进 `package.json` 的修复，CI 拦下）
 - 范围：`src/lib/markdown/`（新）、四个 `[slug]/page.tsx` 改用它、`next-mdx-remote` 升 6 且只剩关于页用、`Dockerfile`（`node:24`、`--chown`、`USER node`）、`check.yml`（`node-version: 24`）、`docker-compose.yml` 若需 · 覆盖 REQ §5.2-a/b/d、§5.5-d
 - 验收判据：§5.2-a、§5.2-b（两条）、§5.2-d、§5.5-d 去掉 todo；本地构建后关于页与 404 页渲染正常；`id -u` 在容器内非 0 且首访能写缓存（本地 `docker compose up` 验）
 - 依赖：Batch 1
+- 证据：五条去掉 todo 全绿；本机 Docker（colima）构建镜像：容器内 uid 1000、Node 24.21，首访 `/fr/about` 200 并以 `node` 用户写出缓存文件；关于页在 next-mdx-remote 6 下 6 个分节；闸门运行 35694542351 绿
 
 ### Batch 3 — 结构合并与测试补全
-- 状态：open
+- 状态：done `95faa07`
 - 范围：`src/lib/content-row.ts`、`src/lib/content-types.ts`、`src/lib/server/content-repo.ts`（新，取代四个 `*-repo.ts`）、四个 `*-types.ts`、四个公开加载器（`cache()` 修正、已发布 slug 集合）、五个卡片与 `Nav` 的语言前缀改用一个 hook、`tests/fakes/supabase.ts`（新）、mapper 回退 / sitemap / `getSafeNextPath` 的测试 · 覆盖 REQ §5.10、§5.11
-- 验收判据：§5.10-c、§5.10 去掉 todo；既有 mapper 快照测试全过；本地构建同一组地址（`/en/about`、`/en/posts`、`/en/notes`）合并前后 HTML 无差异（哈希除外）；§5.11-a 的每个新用例经变异证明能红
+- 验收判据：§5.10-c、§5.10 去掉 todo；既有 mapper 快照测试全过；§5.11-a 的每个新用例经变异证明能红；§5.10-b 本地无数据库测不了列表页，改为：生产列表页的链接与标题摘要存为基线（`tests/runtime/fixtures/list-pages-baseline.json`），Phase 4 部署后对比
 - 依赖：Batch 2
+- 证据：单元 66（55 过、11 todo）；三处变异各红 1 条；四份 repo 与语言前缀表达式已消失（§5.10 测试）；运行时 23（15 过、8 todo）
 
 ### Batch 4 — 发布入口：四种类型
 - 状态：open
