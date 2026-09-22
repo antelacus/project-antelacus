@@ -2,15 +2,17 @@ import { locales, defaultLocale } from '@/i18n/routing';
 
 type Messages = Record<string, Record<string, string>>;
 
+// A key missing from a locale falls back to the default locale, like the client-side messages do.
 export async function getMetaMessage(locale: string, key: string): Promise<string> {
-  let messages: Messages;
-  try {
-    messages = (await import(`@/messages/${locale}.json`)).default;
-  } catch {
-    messages = (await import(`@/messages/${defaultLocale}.json`)).default;
-  }
   const [section, field] = key.split('.');
-  return messages[section]?.[field] ?? key;
+  const lookup = async (l: string) => ((await import(`@/messages/${l}.json`)).default as Messages)[section]?.[field];
+  let value: string | undefined;
+  try {
+    value = await lookup(locale);
+  } catch {
+    value = undefined;
+  }
+  return value ?? (await lookup(defaultLocale)) ?? key;
 }
 
 // next/og serves its images as `immutable` for a year by default, but a share image follows the title

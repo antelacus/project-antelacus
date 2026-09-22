@@ -5,6 +5,7 @@ import {
   getPublishedNotes,
 } from './server/notes-repo';
 import type { Note, NoteMeta } from './note-types';
+import { DATA_CACHE_SECONDS } from './cache-lifetime';
 export type { Note, NoteMeta } from './note-types';
 
 const getAllNotesMetaUncached = async (): Promise<NoteMeta[]> => {
@@ -15,7 +16,7 @@ export const getAllNotesMeta = unstable_cache(
   getAllNotesMetaUncached,
   ['notes-meta', 'dynamic-content-v3'],
   {
-    revalidate: 3600,
+    revalidate: DATA_CACHE_SECONDS,
     tags: ['notes']
   }
 );
@@ -29,7 +30,7 @@ export const getNoteBySlug = cache(
     getNoteBySlugUncached,
     ['note', 'dynamic-content-v3'],
     {
-      revalidate: 3600,
+      revalidate: DATA_CACHE_SECONDS,
       tags: ['notes']
     }
   )

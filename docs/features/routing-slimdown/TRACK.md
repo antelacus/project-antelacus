@@ -37,6 +37,8 @@
   - 2026-09-21 · 图片与分享图的缓存时限由一年不可变改为一天 · Jason · 级联：DESIGN §9、`next.config.ts`、五个 `og.png` 路由
   - 2026-09-21 · 为专栏、实验室、视觉建立发布入口，列入 v2.3.0，与 TD-006 一并设计 · Jason · 级联：关版时写入 `docs/TECHNICAL_DEBT.md`
   - 2026-09-21 · Codex 发布前评审五条发现：MUST-1、MUST-2、SHOULD-1 采纳，MUST-3 驳回（REQ §7 澄清），NICE-1 接受现状 · Jason · 级联：DESIGN §2、§4、§7，REQ §7
+  - 2026-09-22 · 追认：`locales` 顺序改为语言菜单顺序（`es` 前于 `fr`，hreflang 与 JSON-LD 随之）；`/og.png` 印章改为色块 · Jason · 级联：`routing.ts`、`og.png/route.tsx`
+  - 2026-09-22 · 合并后同模型评审十条：#1 数据缓存改半小时、#6 sitemap 遍历栏目清单、#7 文案缺键回退英文、#8 删两条 preconnect（REQ §6 增允许差异）——已修；#2、#4 归 TD-012；#3、#9 记新债；#10 记入 TD-011 · Jason · 级联：REQ §6、DESIGN §2、TECHNICAL_DEBT
 
 **Phase 0 记录**
 
@@ -137,12 +139,12 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 - 修复后实测（本地构建）：`/apiary`、`/administrator`、`/authors`、`/auth`、`/favicon.ico`、`/en--US/about` 由 500 / 308 变为 404；清单内的路径照常到达。新增 `invariant 8`，经变异证明能红（拿掉 `images` 即报出）
 
 合并后的同模型评审（两轴，只读）——除已修的一条外，均 status: open，待 Jason 裁定去向：
-- 规格：页面缓存叠在数据缓存之上，直接改库的内容最坏约两小时才可见，REQ §5.3 写的是一小时
-- 规格：`revalidateTag` 抛错时后台只见框架的通用报错，看不到「已保存」，重试新建会重复插入（DESIGN §6 只满足一半）
-- 规格：`document.cookie` 写的 cookie 在 Safari 上最长保留 7 天，「一年」对 Safari 不成立
-- 规格：详情页对不存在的 slug 返回 200 的「未找到」，如今每个垃圾 slug 还会留下一条页面缓存（软 404 本属 TD-012）
-- 规格（无裁定的改动）：`locales` 里 `fr`、`es` 对调；`/og.png` 印章改为色块
-- 规范：`src/lib/sitemap-entries.ts` 把栏目又列了一遍；`getMetaMessage` 缺键时返回键名而非回退英文；`SiteDocument` 里对 Google Fonts 的两条 preconnect 已无用；`<main>` 嵌套且跳转链接落在导航之前；语言前缀的计算在五个组件里重复
+- 规格：页面缓存叠在数据缓存之上，直接改库的内容最坏约两小时才可见，REQ §5.3 写的是一小时 —— status: 采纳 → 已修（`src/lib/cache-lifetime.ts` = 1800，测试经变异证明能红）
+- 规格：`revalidateTag` 抛错时后台只见框架的通用报错，看不到「已保存」，重试新建会重复插入（DESIGN §6 只满足一半）—— status: 归 TD-012
+- 规格：`document.cookie` 写的 cookie 在 Safari 上最长保留 7 天，「一年」对 Safari 不成立 —— status: 记债 TD-017
+- 规格：详情页对不存在的 slug 返回 200 的「未找到」，如今每个垃圾 slug 还会留下一条页面缓存（软 404 本属 TD-012）—— status: 归 TD-012
+- 规格（无裁定的改动）：`locales` 里 `fr`、`es` 对调；`/og.png` 印章改为色块 —— status: 已追认
+- 规范：`src/lib/sitemap-entries.ts` 把栏目又列了一遍；`getMetaMessage` 缺键时返回键名而非回退英文；`SiteDocument` 里对 Google Fonts 的两条 preconnect 已无用；`<main>` 嵌套且跳转链接落在导航之前；语言前缀的计算在五个组件里重复 —— status: 前三条已修；`<main>` 嵌套记债 TD-018；重复记入 TD-011
 
 **Phase 4 证据**（对象 = `779d196`）：
 - 验收测试：`npm test` 34 过、todo 0；运行时验收 15 过、todo 0（本地干净构建 + `next start`）；闸门运行 35584353597 为绿，计数一致

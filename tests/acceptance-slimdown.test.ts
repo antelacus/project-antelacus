@@ -49,11 +49,13 @@ test('acceptance §5.3-b saving a note invalidates the notes cache tag', () => {
   assert.ok(calls.some((argument) => /^['"]notes['"]$/.test(argument)), `revalidateTag('notes') not found; saw: ${calls.join(', ') || 'no revalidateTag call'}`);
 });
 
-test('acceptance §5.3 detail data is cached for one hour, like the lists', () => {
+test('acceptance §5.3 data is cached for at most half an hour, so an edit shows within the hour', async () => {
+  const { DATA_CACHE_SECONDS } = await import('../src/lib/cache-lifetime');
+  assert.ok(DATA_CACHE_SECONDS <= 1800, `page cache stacks on data cache: ${DATA_CACHE_SECONDS}s × 2 exceeds the hour`);
   for (const name of ['posts', 'notes', 'gallery', 'projects']) {
-    const lifetimes = [...read(`src/lib/${name}.ts`).matchAll(/revalidate:\s*(\d+)/g)].map((match) => Number(match[1]));
+    const lifetimes = [...read(`src/lib/${name}.ts`).matchAll(/revalidate:\s*([\w.]+)/g)].map((match) => match[1]);
     assert.ok(lifetimes.length >= 2, `${name}.ts: expected a list and a detail cache, found ${lifetimes.length}`);
-    assert.deepEqual([...new Set(lifetimes)], [3600], `${name}.ts`);
+    assert.deepEqual([...new Set(lifetimes)], ['DATA_CACHE_SECONDS'], `${name}.ts: every lifetime comes from the one constant`);
   }
 });
 

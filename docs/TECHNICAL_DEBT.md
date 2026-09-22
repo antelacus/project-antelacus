@@ -31,6 +31,7 @@ Update this file when:
   - `src/app/admin/(protected)/notes/page.tsx`
   - No new content has been published since the cutover (newest item on the site: 2025-08-31).
 - Ruled (Project Lead): build a publishing entry for posts, projects and gallery in v2.3.0, designed together with TD-006. Open question for its Phase 1: where the writing happens — an in-site editor (works anywhere, phone included), a local file plus a publish command (best for long-form), or both.
+- The note form has no protection against a double submit, and a second submit of a new note with the same slug fails on the unique constraint and shows the framework's generic error page (seen on the first real publish, 2026-09-22). The publishing entry should make saving idempotent by slug.
 - Until then the procedure is `docs/content-publishing.md` §三: SQL in the Supabase console. Its SQL was derived from the schema and the code and has not been executed; the first real use is its verification.
 
 ### TD-002 - Search now has a single runtime dependency with no fallback path
@@ -108,13 +109,13 @@ Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes e
 ### TD-011 - The four content types repeat one repo four times
 
 - Status: `Open` · Severity: `Low` · Area: `maintainability`
-- Context: the same 19-line select block appears 10 times; the public repos (~380 lines) differ only by `content_type` and one relation; each `*-types.ts` repeats the base row type and three helpers; four OG routes differ by 3 lines. The four mappers genuinely differ and should stay. `src/lib/posts.ts:30` builds a new `cache()` wrapper per call, defeating request-level dedupe (the other three loaders are correct).
+- Context: the same 19-line select block appears 10 times; the locale-prefix line `isSupportedLocale(currentLocale) ? \`/${currentLocale}\` : ''` is repeated in Nav and the four cards (one hook would do); the public repos (~380 lines) differ only by `content_type` and one relation; each `*-types.ts` repeats the base row type and three helpers; four OG routes differ by 3 lines. The four mappers genuinely differ and should stay. `src/lib/posts.ts:30` builds a new `cache()` wrapper per call, defeating request-level dedupe (the other three loaders are correct).
 - Recommended follow-up: one parameterised content repo + one shared row/helper module (~−500 lines). Leave the loaders for last — a loader factory is the change most likely to be abstraction for its own sake.
 
 ### TD-012 - Failures reach visitors raw
 
 - Status: `Open` · Severity: `Low` · Area: `resilience`
-- Context: no `error.tsx` / `global-error.tsx` anywhere, so a Supabase error on a cold cache shows Next's bare 500. A missing slug returns 200 with a "not found" message instead of `notFound()` (the four detail pages under `src/app/[locale]/`); fixing that must keep the status a real 404, which `loading.tsx` defeats for anything that streams (`docs/features/routing-slimdown/DESIGN.md` §8). `/api/search-index` returns raw Supabase error text to anonymous callers, and it is the production search path. Unknown URLs are handled: they get the site's own 404 page (`src/app/global-not-found.tsx`).
+- Context: no `error.tsx` / `global-error.tsx` anywhere, so a Supabase error on a cold cache shows Next's bare 500. A missing slug returns 200 with a "not found" message instead of `notFound()` (the four detail pages under `src/app/[locale]/`); fixing that must keep the status a real 404, which `loading.tsx` defeats for anything that streams (`docs/features/routing-slimdown/DESIGN.md` §8). `/api/search-index` returns raw Supabase error text to anonymous callers, and it is the production search path. Unknown URLs are handled: they get the site's own 404 page (`src/app/global-not-found.tsx`). Two more since v2.2.0: the detail pages are now cached, so every unknown slug leaves a page and a data entry for half an hour (crawlers can grow the cache without bound) — the real `notFound()` fixes both at once; and the admin save action has no `error.tsx`, so if `revalidateTag` throws after a successful save the admin sees a generic crash instead of "saved" (`src/app/admin/(protected)/notes/actions.ts`).
 
 ### TD-013 - The keepalive alert has no reader
 
@@ -130,3 +131,13 @@ Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes e
 
 - Status: `Open` · Severity: `Low` · Area: `tests`
 - Context: 12 of 15 cases are mapper snapshots on a full fixture; no fallback path is covered (null `published_at`, null/array metadata, empty tags). Still untested: the sitemap's locale expansion and XML escaping, `getSafeNextPath`. (The locale routing functions are now covered by acceptance tests.)
+
+### TD-017 - The remembered language lasts 7 days on Safari, not a year
+
+- Status: `Open` · Severity: `Low` · Area: `i18n`
+- Context: `preferred_locale` is written by `document.cookie` in `src/components/UtilityDropdown.tsx`; Safari's tracking prevention caps script-written cookies at 7 days. A Safari visitor who chose a language falls back to the browser language after a week. Fix: write the cookie from the server (a route handler or server action), which is not capped.
+
+### TD-018 - The skip link lands before the navigation
+
+- Status: `Open` · Severity: `Low` · Area: `accessibility`
+- Context: `src/components/SiteDocument.tsx` wraps `children` in `<main id="main-content">`, but the `[locale]` layout renders `<Nav />` inside `children`, so "skip to main content" skips nothing; the admin setup notice and the detail pages' not-found branches nest a second `<main>`. Predates v2.2.0. Fix: the layout renders the nav outside `<main>`, and the inner `<main>`s become `<div>`s.

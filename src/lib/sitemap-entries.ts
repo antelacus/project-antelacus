@@ -1,4 +1,4 @@
-import { locales } from '@/i18n/routing';
+import { locales, localizedSections } from '@/i18n/routing';
 import { getAllPostsMeta } from '@/lib/posts';
 import { getAllNotesMeta } from '@/lib/notes';
 import { getAllProjectsMeta } from '@/lib/projects';
@@ -48,18 +48,14 @@ function page(urlPath: string, lastModified?: string | Date, priority?: number):
 export async function getSitemapEntries(): Promise<SitemapEntry[]> {
   const entries: SitemapEntry[] = [];
 
-  // Static top-level pages for each locale
+  // The home page and every public section, from the one registry; a section not listed here gets the default weight.
+  const sectionPriority: Partial<Record<(typeof localizedSections)[number], number>> = { posts: 0.8, notes: 0.7, gallery: 0.7, projects: 0.7 };
   for (const l of locales) {
     entries.push(page(`/${l}`, undefined, 1.0));
-    entries.push(page(`/${l}/about`, undefined, 0.6));
-    entries.push(page(`/${l}/posts`, undefined, 0.8));
-    entries.push(page(`/${l}/notes`, undefined, 0.7));
-    entries.push(page(`/${l}/gallery`, undefined, 0.7));
-    entries.push(page(`/${l}/projects`, undefined, 0.7));
-    entries.push(page(`/${l}/tags`, undefined, 0.6));
+    for (const section of localizedSections) entries.push(page(`/${l}/${section}`, undefined, sectionPriority[section] ?? 0.6));
   }
 
-  // Content-driven pages (canonical single MDX per content; replicate per-locale paths)
+  // Content pages, one per locale
   const [posts, notes, photos, projects] = await Promise.all([
     getAllPostsMeta(),
     getAllNotesMeta(),

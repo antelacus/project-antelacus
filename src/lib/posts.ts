@@ -6,6 +6,7 @@ import {
   getPublishedPosts,
 } from './server/posts-repo';
 import type { Post, PostMeta } from './post-types';
+import { DATA_CACHE_SECONDS } from './cache-lifetime';
 
 export type { Post, PostMeta } from './post-types';
 
@@ -18,7 +19,7 @@ export const getAllPostsMeta = () =>
     getAllPostsMetaUncached,
     ['posts-meta', 'dynamic-content-v5'],
     {
-      revalidate: 3600,
+      revalidate: DATA_CACHE_SECONDS,
       tags: ['posts'],
     },
   )();
@@ -33,7 +34,7 @@ export const getPostBySlug = (slug: string) =>
       getPostBySlugUncached,
       ['post', 'dynamic-content-v5'],
       {
-        revalidate: 3600,
+        revalidate: DATA_CACHE_SECONDS,
         tags: ['posts'],
       },
     ),

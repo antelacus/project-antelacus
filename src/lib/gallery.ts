@@ -6,6 +6,7 @@ import {
   getPublishedGalleryItems,
 } from './server/gallery-repo';
 import type { Photo, PhotoMeta } from './photo-types';
+import { DATA_CACHE_SECONDS } from './cache-lifetime';
 
 export type { Photo, PhotoInfo, PhotoMeta } from './photo-types';
 
@@ -17,7 +18,7 @@ export const getAllPhotosMeta = unstable_cache(
   getAllPhotosMetaUncached,
   ['photos-meta', 'dynamic-content-v3'],
   {
-    revalidate: 3600,
+    revalidate: DATA_CACHE_SECONDS,
     tags: ['gallery'],
   },
 );
@@ -31,7 +32,7 @@ export const getPhotoBySlug = cache(
     getPhotoBySlugUncached,
     ['photo', 'dynamic-content-v3'],
     {
-      revalidate: 3600,
+      revalidate: DATA_CACHE_SECONDS,
       tags: ['gallery'],
     },
   ),
