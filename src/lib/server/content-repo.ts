@@ -3,7 +3,7 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { CONTENT_TYPES, type FullOf, type MetaOf, type RowOf } from '@/lib/content-types';
-import type { ContentStatus, ContentType, Database } from '@/lib/server/database.types';
+import type { ContentStatus, ContentType, Database, Json } from '@/lib/server/database.types';
 
 // Every read and write of content_items, for every type. The client is handed in by the caller —
 // the public loaders pass the anonymous client, the admin passes the service-role one it obtained
@@ -83,6 +83,21 @@ export async function getPublished<K extends ContentType>(client: ContentClient,
   return row ? CONTENT_TYPES[type].mapFull(row) : null;
 }
 
+export type AdminSummary = { id: string; slug: string; title: string; status: ContentStatus; locale: string; updated_at: string };
+
+// What the admin's list and dashboard need — never the bodies or relations.
+export async function listAdminSummaries(client: ContentClient, type: ContentType): Promise<AdminSummary[]> {
+  const { data, error } = await client
+    .from('content_items')
+    .select('id, slug, title, status, locale, updated_at')
+    .eq('content_type', type)
+    .order('updated_at', { ascending: false });
+
+  if (error) fail(`list admin ${type}s`, error);
+
+  return (data ?? []) as AdminSummary[];
+}
+
 export async function listAdmin<K extends ContentType>(client: ContentClient, type: K): Promise<RowOf<K>[]> {
   const { data, error } = await client
     .from('content_items')
@@ -93,20 +108,6 @@ export async function listAdmin<K extends ContentType>(client: ContentClient, ty
   if (error) fail(`list admin ${type}s`, error);
 
   return (data ?? []) as unknown as RowOf<K>[];
-}
-
-export async function getAdmin<K extends ContentType>(client: ContentClient, type: K, slug: string): Promise<FullOf<K> | null> {
-  const { data, error } = await client
-    .from('content_items')
-    .select(selectFor(type))
-    .eq('content_type', type)
-    .eq('slug', slug)
-    .maybeSingle();
-
-  if (error) fail(`load admin ${type} "${slug}"`, error);
-
-  const row = (data ?? null) as unknown as RowOf<K> | null;
-  return row ? CONTENT_TYPES[type].mapFull(row) : null;
 }
 
 export type SaveContentInput = {
@@ -122,9 +123,18 @@ export type SaveContentInput = {
   status: ContentStatus;
   seoTitle?: string;
   seoDescription?: string;
+  /** The row's existing extra_metadata; keys the editor has no field for survive a save. */
+  metadata?: Record<string, unknown>;
   images?: { storage_path: string; public_url: string; alt_text?: string | null; sort_order?: number; captured_at?: string | null }[];
   links?: { label: string; url: string; link_type: 'repository' | 'demo' | 'reference' | 'other' }[];
 };
+
+// An edit carries the row's metadata back in; only the display date is the editor's to set or clear.
+function mergeMetadata(existing: Record<string, unknown> | undefined, displayDate: string | undefined): Record<string, unknown> {
+  const { displayDate: _previous, ...rest } = existing ?? {};
+  void _previous;
+  return displayDate ? { ...rest, displayDate } : rest;
+}
 
 const normalizeTags = (tags: string[]) => Array.from(new Set(tags.map((tag) => tag.trim()).filter(Boolean)));
 
@@ -146,13 +156,14 @@ export async function saveContent(client: ContentClient, type: ContentType, inpu
     cover_image_url: input.cover || null,
     seo_title: input.seoTitle || null,
     seo_description: input.seoDescription || null,
-    extra_metadata: input.displayDate ? { displayDate: input.displayDate } : {},
+    extra_metadata: mergeMetadata(input.metadata, input.displayDate),
     tags,
     images: input.images ?? [],
     links: input.links ?? [],
   };
 
-  const { data, error } = await client.rpc('save_content_item', { payload });
+  // The metadata is JSON by construction (it came out of the row); the payload type just cannot say so.
+  const { data, error } = await client.rpc('save_content_item', { payload: payload as unknown as Json });
   if (error || !data) fail(`save ${type}`, error);
 
   const row = data as unknown as { id: string; slug: string };

@@ -2,12 +2,12 @@ import Link from 'next/link';
 
 import { CONTENT_TYPE_KEYS, CONTENT_TYPES } from '@/lib/content-types';
 import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
-import { listAdmin } from '@/lib/server/content-repo';
+import { listAdminSummaries } from '@/lib/server/content-repo';
 
 export default async function AdminDashboardPage() {
   const client = await getAdminServiceRoleClient('/admin');
   const counts = await Promise.all(CONTENT_TYPE_KEYS.map(async (type) => {
-    const rows = await listAdmin(client, type);
+    const rows = await listAdminSummaries(client, type);
     return { type, total: rows.length, published: rows.filter((row) => row.status === 'published').length };
   }));
 

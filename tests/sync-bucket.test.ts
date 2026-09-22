@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 // REQ §5.6 — the bucket mirror's listing walks folders and pages, and its plan reuses only unchanged files.
 
 const load = () => import('../scripts/sync-bucket.mjs') as Promise<{
-  listBucket: (fetchImpl: typeof fetch, base: string, key: string, bucket: string) => Promise<{ path: string; size: number | null }[]>;
-  planSync: (objects: { path: string; size: number | null }[], existing: Map<string, number>) => { reuse: unknown[]; fetch: unknown[] };
+  listBucket: (fetchImpl: typeof fetch, base: string, key: string, bucket: string) => Promise<{ path: string; size: number | null; updatedAt: number | null }[]>;
+  planSync: (objects: { path: string; size: number | null; updatedAt: number | null }[], existing: Map<string, { size: number; mtimeMs: number }>) => { reuse: unknown[]; fetch: unknown[] };
 }>;
 
-const entry = (name: string, size?: number) => (size === undefined ? { name, id: null } : { name, id: name, metadata: { size } });
+const entry = (name: string, size?: number) => (size === undefined ? { name, id: null } : { name, id: name, updated_at: '2026-01-01T00:00:00.000Z', metadata: { size } });
 
 test('listBucket recurses into folders and follows pagination', async () => {
   const { listBucket } = await load();
@@ -28,12 +28,13 @@ test('listBucket recurses into folders and follows pagination', async () => {
   assert.deepEqual(calls.map((c) => `${c.prefix}@${c.offset}`), ['@0', 'posts@0', 'posts@1000']);
 });
 
-test('planSync reuses a file only when the size matches, and fetches the rest', async () => {
+test('planSync reuses a file only when size and modification time both match, and fetches the rest', async () => {
   const { planSync } = await load();
+  const t = Date.parse('2026-01-01T00:00:00.000Z');
   const plan = planSync(
-    [{ path: 'a.jpg', size: 10 }, { path: 'b.jpg', size: 20 }, { path: 'c.jpg', size: null }, { path: 'd.jpg', size: 5 }],
-    new Map([['a.jpg', 10], ['b.jpg', 21], ['c.jpg', 7], ['stale.jpg', 1]]),
+    [{ path: 'a.jpg', size: 10, updatedAt: t }, { path: 'b.jpg', size: 20, updatedAt: t }, { path: 'c.jpg', size: null, updatedAt: t }, { path: 'd.jpg', size: 5, updatedAt: t }, { path: 'e.jpg', size: 9, updatedAt: t + 5000 }],
+    new Map([['a.jpg', { size: 10, mtimeMs: t }], ['b.jpg', { size: 21, mtimeMs: t }], ['c.jpg', { size: 7, mtimeMs: t }], ['e.jpg', { size: 9, mtimeMs: t }], ['stale.jpg', { size: 1, mtimeMs: t }]]),
   );
   assert.deepEqual(plan.reuse.map((o) => (o as { path: string }).path), ['a.jpg']);
-  assert.deepEqual(plan.fetch.map((o) => (o as { path: string }).path), ['b.jpg', 'c.jpg', 'd.jpg']);
+  assert.deepEqual(plan.fetch.map((o) => (o as { path: string }).path), ['b.jpg', 'c.jpg', 'd.jpg', 'e.jpg'], 'e.jpg: same size, newer upload');
 });

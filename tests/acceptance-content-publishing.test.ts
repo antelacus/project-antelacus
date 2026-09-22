@@ -104,7 +104,7 @@ test('acceptance §5.3-b the editor form cannot be submitted twice while a submi
 test('acceptance §5.3 rule 4 a slug is lowercase letters, digits and hyphens', async () => {
   const { isValidSlug } = await load('../src/lib/content-slug.js');
   for (const ok of ['a', '2025-07-13-llm-note', 'project-white']) assert.equal(isValidSlug(ok), true, ok);
-  for (const bad of ['', 'A', 'a_b', 'a b', 'a/b', '..', 'x'.repeat(81), 'é']) assert.equal(isValidSlug(bad), false, JSON.stringify(bad));
+  for (const bad of ['', 'A', 'a_b', 'a b', 'a/b', '..', 'x'.repeat(81), 'é', 'new']) assert.equal(isValidSlug(bad), false, JSON.stringify(bad));
 });
 
 test('acceptance §5.3-g every admin action and the upload path check the admin before touching data', () => {
@@ -148,6 +148,16 @@ test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links 
   assert.equal(isSafeExternalUrl('https://example.com/x'), true);
   assert.equal(isSafeExternalUrl('http://example.com'), true);
   assert.equal(isSafeExternalUrl('data:text/html,hi'), false);
+});
+
+test('acceptance §5.3 rule 5 a cover must be an image the public pages can show', async () => {
+  const { isAllowedImageUrl } = await load('../src/lib/content-slug.js');
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abc.supabase.co';
+  assert.equal(isAllowedImageUrl('/images/posts/covers/x.jpg'), true);
+  assert.equal(isAllowedImageUrl('https://abc.supabase.co/storage/v1/object/public/media/post/x/1.jpg'), true);
+  assert.equal(isAllowedImageUrl('https://images.unsplash.com/photo.jpg'), false, 'next/image and the CSP would refuse it');
+  assert.equal(isAllowedImageUrl('//abc.supabase.co/x.jpg'), false);
+  assert.equal(isAllowedImageUrl('http://abc.supabase.co/x.jpg'), false);
 });
 
 test('acceptance §5.5-b the photo viewer builds its details from text, not HTML strings', () => {

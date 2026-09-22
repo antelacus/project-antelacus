@@ -120,6 +120,19 @@ Codex 设计门（只读，xhigh，任务 `task-muc4c5ws-s6ei46`，会话 `01a0c
 - 评审确认成立：自然键唯一约束存在；服务端密钥只经 `admin-auth`；四个加载器各自标签且首页 / 列表 / 标签页 / 搜索 / sitemap 都经它们读；路由按整段比较、语言重定向已 `private, no-store`；Supabase 图片域名已在 `remotePatterns`；三个 XSS 汇点与十处裸域名字面量属实
 - 待核（实现后）：`proxy.ts` 的导出函数名与清单键；`DATABASE_URL` 走直连还是连接池；iOS HEIC；CodeMirror 的 CSP 需求；同构渲染的树一致性与包体积
 
+同模型评审（`/code-review high`，整分支对 `main`，21 个提交 111 个文件；八个角度去重后 10 条，按严重度排）：
+- 1：`saveContent` 整体覆盖 `extra_metadata`，编辑相册 / 项目会抹掉 `location`、`star`、`status` 等键 —— status: 采纳 → 已修（编辑器带回原元数据，保存时合并，只有展示日期由编辑器设或清）
+- 2：DOM 里第一个提交按钮是「撤回为草稿」，在文本框按回车会把已发布条目撤下 —— status: 采纳 → 已修（首位隐藏提交按钮保持现状态）
+- 3：`sessionStorage` 草稿保存成功后不清，下一次「新建」会带出上一条正文；已有条目又根本不恢复 —— status: 采纳 → 已修（只为新建备份，保存成功后清除；已有条目不需要备份）
+- 4：封面接受任意 http(s) 主机，但图片优化与 CSP 只认 Supabase 主机，外域封面会让公开页面崩 —— status: 采纳 → 已修（封面只接受站内路径或本项目的 Supabase 主机；测试）
+- 5：旧的纯日期 `displayDate` 在 `datetime-local` 里显示为空，首次保存即丢 —— status: 采纳 → 已修（日期规范化为 `T00:00`）
+- 6：本版已解决的 TD 仍以 Open 列在登记上 —— status: 按惯例在关版方框「TECHNICAL_DEBT 定稿」时删除
+- 7：后台首页与列表为算计数拉全表含正文与关联 —— status: 采纳 → 已修（`listAdminSummaries` 只取六列）
+- 8：`getAdmin` 无人调用 —— status: 采纳 → 已删
+- 9：桶镜像只比大小，同大小的替换不会重新下载 —— status: 采纳 → 已修（镜像文件带对象的修改时间，大小与时间都相同才复用；测试）
+- 10：slug `new` 与新建路由撞车，条目变得不可编辑 —— status: 采纳 → 已修（`new` 为保留字；测试）
+- 评审附注：`/api/locale` 的绝对 `Location` 在 nginx 之后可能是容器的源 —— status: 采纳 → 已修（改为相对 `Location`）
+
 **Phase 4 证据**：尚未到达。
 
 **Phase 6 boxes**（请求 PR 之前写好——合并 ≠ 发布）：

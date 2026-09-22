@@ -24,6 +24,7 @@ export type EditorValue = {
   tags: string;
   seoTitle: string;
   seoDescription: string;
+  metadata: Record<string, unknown>;
   status: ContentStatus;
   images: EditorImage[];
   links: EditorLink[];
@@ -37,11 +38,16 @@ type Props = {
 
 const empty = (lang: string): EditorValue => ({
   slug: '', title: '', summary: '', content: '', lang, cover: '', displayDate: '', tags: '', seoTitle: '', seoDescription: '',
-  status: 'draft', images: [], links: [],
+  metadata: {}, status: 'draft', images: [], links: [],
 });
 
-// datetime-local wants YYYY-MM-DDTHH:mm; the database gives a full ISO string.
-const dateInput = (value: string) => (value.includes('T') ? value.slice(0, 16) : value);
+// datetime-local wants YYYY-MM-DDTHH:mm; the database may hold a full ISO string or, from before the
+// editor, a bare date. Either way the field shows the value instead of rejecting it as blank.
+const dateInput = (value: string) => {
+  if (!value) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return `${value}T00:00`;
+  return value.includes('T') ? value.slice(0, 16) : '';
+};
 
 function SubmitButton({ intent, children, primary }: { intent: 'draft' | 'publish'; children: string; primary?: boolean }) {
   const { pending } = useFormStatus();
@@ -60,17 +66,24 @@ export default function ContentEditor({ type, initial, notice }: Props) {
   const errors = state?.errors ?? {};
   const set = <K extends keyof EditorValue>(key: K, next: EditorValue[K]) => setValue((current) => ({ ...current, [key]: next }));
 
-  // The body is backed up in this tab as it is typed, so a failed save or a lost tab does not lose it.
-  const draftKey = `editor:${type}:${initial?.slug ?? 'new'}`;
+  // A new item's body is backed up in this tab as it is typed, so a lost tab does not lose it; the
+  // backup is dropped once a save succeeds (the notice is what a successful save redirects to). An
+  // existing item needs no backup: a failed save returns to this same form with its state intact.
+  const draftKey = `editor:${type}:new`;
+  const backingUp = !initial;
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem(draftKey);
-      if (stored && !initial?.content) setValue((current) => ({ ...current, content: stored }));
+      if (notice) sessionStorage.removeItem(draftKey);
+      else if (backingUp) {
+        const stored = sessionStorage.getItem(draftKey);
+        if (stored) setValue((current) => (current.content ? current : { ...current, content: stored }));
+      }
     } catch { /* storage may be unavailable; the form still works */ }
-  }, [draftKey, initial?.content]);
+  }, [draftKey, backingUp, notice]);
   useEffect(() => {
+    if (!backingUp) return;
     try { sessionStorage.setItem(draftKey, value.content); } catch { /* ignore */ }
-  }, [draftKey, value.content]);
+  }, [draftKey, backingUp, value.content]);
 
   const upload = async (file: File) => {
     if (!value.slug) throw new Error('Set the slug before uploading, it names the folder');
@@ -90,6 +103,9 @@ export default function ContentEditor({ type, initial, notice }: Props) {
       <input type="hidden" name="id" value={initial?.id ?? ''} />
       <input type="hidden" name="content" value={value.content} />
       <input type="hidden" name="cover" value={value.cover} />
+      <input type="hidden" name="metadata" value={JSON.stringify(initial?.metadata ?? {})} />
+      {/* Enter in a text field submits through the first submit button; this one keeps the item's status. */}
+      <button type="submit" name="intent" value={initial?.status === 'published' ? 'publish' : 'draft'} hidden aria-hidden tabIndex={-1} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <div>

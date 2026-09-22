@@ -13,7 +13,8 @@ export async function GET(request: Request) {
   }
 
   const next = getSafeNextPath(url.searchParams.get('next'), `/${to}`);
-  const response = NextResponse.redirect(new URL(next, url.origin), 303);
+  // A relative Location: behind nginx the request's own origin would be the container's, not the site's.
+  const response = new NextResponse(null, { status: 303, headers: { Location: next } });
   response.cookies.set(PREFERRED_LOCALE_COOKIE, to, { path: '/', maxAge: 31536000, sameSite: 'lax', secure: true, httpOnly: true });
   // Personal to this visitor: never replayed from any cache.
   response.headers.set('Cache-Control', 'private, no-store');

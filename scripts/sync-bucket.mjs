@@ -6,7 +6,7 @@
 // directory — unchanged files hard-linked from the current mirror, new or changed ones downloaded —
 // verify the file count equals the listing, then swap directories. A short listing or a failed
 // download therefore never replaces a good mirror with a worse one.
-import { link, mkdir, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { link, mkdir, readdir, rename, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const PAGE = 1000;
@@ -28,7 +28,7 @@ export async function listBucket(fetchImpl, base, key, bucket) {
         const path = prefix ? `${prefix}/${entry.name}` : entry.name;
         // A folder comes back without an id; an object carries its size in metadata.
         if (entry.id === null || entry.id === undefined) folders.push(path);
-        else objects.push({ path, size: entry.metadata?.size ?? null, etag: entry.metadata?.eTag ?? null });
+        else objects.push({ path, size: entry.metadata?.size ?? null, updatedAt: entry.updated_at ? Date.parse(entry.updated_at) : null });
       }
       if (entries.length < PAGE) break;
     }
@@ -36,13 +36,16 @@ export async function listBucket(fetchImpl, base, key, bucket) {
   return objects;
 }
 
-// Which listed objects can be reused from the current mirror (same path and size) and which must be fetched.
+// Which listed objects can be reused from the current mirror and which must be fetched. A mirrored file
+// carries the object's modification time as its own, so a replacement of the same size is still seen.
 export function planSync(objects, existing) {
   const reuse = [];
   const fetchList = [];
   for (const object of objects) {
     const have = existing.get(object.path);
-    if (have !== undefined && object.size !== null && have === object.size) reuse.push(object);
+    const same = have !== undefined && object.size !== null && have.size === object.size
+      && object.updatedAt !== null && Math.abs(have.mtimeMs - object.updatedAt) < 1000;
+    if (same) reuse.push(object);
     else fetchList.push(object);
   }
   return { reuse, fetch: fetchList };
@@ -57,7 +60,7 @@ async function filesUnder(dir) {
       const full = join(current, entry.name);
       const relPath = rel ? `${rel}/${entry.name}` : entry.name;
       if (entry.isDirectory()) await walk(full, relPath);
-      else out.set(relPath, (await stat(full)).size);
+      else { const info = await stat(full); out.set(relPath, { size: info.size, mtimeMs: info.mtimeMs }); }
     }
   }
   await walk(dir, '');
@@ -82,6 +85,7 @@ export async function syncBucket({ fetchImpl = fetch, base, key, bucket, dest })
     if (!res.ok) throw new Error(`download ${bucket}/${object.path}: ${res.status}`);
     await mkdir(dirname(join(next, object.path)), { recursive: true });
     await writeFile(join(next, object.path), Buffer.from(await res.arrayBuffer()));
+    if (object.updatedAt !== null) await utimes(join(next, object.path), new Date(object.updatedAt), new Date(object.updatedAt));
   }
 
   const written = (await filesUnder(next)).size;

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { locales } from '@/i18n/routing';
-import { isSafeExternalUrl, isValidSlug } from '@/lib/content-slug';
+import { isAllowedImageUrl, isSafeExternalUrl, isValidSlug } from '@/lib/content-slug';
 import { CONTENT_TYPES } from '@/lib/content-types';
 import { getAdminServiceRoleClient, requireAdminUser } from '@/lib/server/admin-auth';
 import { saveContent } from '@/lib/server/content-repo';
@@ -39,6 +39,15 @@ const formSchema = z.object({
   displayDate: z.string().trim().optional(),
   seoTitle: z.string().trim().optional(),
   seoDescription: z.string().trim().optional(),
+  metadata: z.string().optional().transform((raw, ctx) => {
+    if (!raw) return {} as Record<string, unknown>;
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed as Record<string, unknown>;
+    } catch { /* fall through */ }
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'not an object' });
+    return z.NEVER;
+  }),
   images: jsonArray(z.object({
     storage_path: z.string().min(1),
     public_url: z.string().url(),
@@ -54,7 +63,7 @@ const formSchema = z.object({
 }).superRefine((value, ctx) => {
   // An album's text is its summary; every other type needs a body.
   if (value.type !== 'gallery' && value.content.trim() === '') ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['content'], message: 'required' });
-  if (value.cover && !isSafeExternalUrl(value.cover) && !value.cover.startsWith('/')) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['cover'], message: 'must be an http(s) address' });
+  if (value.cover && !isAllowedImageUrl(value.cover)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['cover'], message: 'must be an image on this site or in the storage bucket' });
 });
 
 const field = (formData: FormData, name: string) => {
@@ -68,7 +77,7 @@ export async function saveContentAction(_previous: SaveState, formData: FormData
   await requireAdminUser(`/admin/content/${type.data}`);
 
   const parsed = formSchema.safeParse(Object.fromEntries(
-    ['type', 'id', 'slug', 'title', 'summary', 'content', 'tags', 'lang', 'cover', 'displayDate', 'seoTitle', 'seoDescription', 'images', 'links', 'intent']
+    ['type', 'id', 'slug', 'title', 'summary', 'content', 'tags', 'lang', 'cover', 'displayDate', 'seoTitle', 'seoDescription', 'metadata', 'images', 'links', 'intent']
       .map((name) => [name, field(formData, name)]),
   ));
   if (!parsed.success) {
@@ -94,6 +103,7 @@ export async function saveContentAction(_previous: SaveState, formData: FormData
       status,
       seoTitle: input.seoTitle,
       seoDescription: input.seoDescription,
+      metadata: input.metadata,
       images: input.images.map((image, index) => ({ ...image, sort_order: index })),
       links: input.links,
     });

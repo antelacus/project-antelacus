@@ -35,6 +35,7 @@ export default async function AdminContentEditorPage({ params, searchParams }: P
       tags: (row.content_item_tags ?? []).map((entry) => entry.content_tags?.name).filter(Boolean).join(', '),
       seoTitle: row.seo_title ?? '',
       seoDescription: row.seo_description ?? '',
+      metadata: row.extra_metadata && typeof row.extra_metadata === 'object' && !Array.isArray(row.extra_metadata) ? (row.extra_metadata as Record<string, unknown>) : {},
       status: row.status,
       images: ((row as PhotoRecordRow).gallery_images ?? [])
         .slice()
