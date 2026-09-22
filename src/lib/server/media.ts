@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { randomBytes } from 'node:crypto';
+import sharp from 'sharp';
 
 import type { ContentType } from '@/lib/server/database.types';
 import { getAdminServiceRoleClient } from './admin-auth';
@@ -9,7 +10,11 @@ import { getAdminServiceRoleClient } from './admin-auth';
 // file of the same name never overwrites — and never collides with an image a page already shows.
 export const MEDIA_BUCKET = 'media';
 export const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
-// HEIC is accepted as is: Next's image optimiser (sharp with libheif) serves it as WebP.
+// Body images are plain <img> tags (the Markdown renderer's output), not next/image, so what sits in the
+// bucket is what browsers get. A phone's HEIC would show only in Safari: photos (HEIC, HEIF, JPEG) are
+// therefore re-encoded as JPEG at most PHOTO_LONG_EDGE wide before upload. PNG, WebP, GIF, AVIF are
+// stored as they are (a screenshot's text must not be smeared; an animation must stay one).
+export const PHOTO_LONG_EDGE = 2400;
 export const IMAGE_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -35,11 +40,25 @@ export async function uploadImage(input: { type: ContentType; slug: string; file
   if (file.size === 0) throw new UploadRejected('The file is empty');
 
   const client = await getAdminServiceRoleClient('/admin');
-  const path = `${type}/${slug}/${randomBytes(4).toString('hex')}-${safeName(file.name)}.${extension}`;
+  const prepared = await prepareImage(Buffer.from(await file.arrayBuffer()), file.type, extension);
+  const path = `${type}/${slug}/${randomBytes(4).toString('hex')}-${safeName(file.name)}.${prepared.extension}`;
   const { error } = await client.storage
     .from(MEDIA_BUCKET)
-    .upload(path, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+    .upload(path, prepared.bytes, { contentType: prepared.contentType, upsert: false });
   if (error) throw new Error(`Upload failed: ${error.message}`);
 
   return { url: client.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl, path };
+}
+
+const PHOTO_TYPES = new Set(['image/heic', 'image/heif', 'image/jpeg']);
+
+// Photos come back as JPEG no wider than PHOTO_LONG_EDGE, EXIF orientation applied; everything else untouched.
+export async function prepareImage(bytes: Buffer, contentType: string, extension: string): Promise<{ bytes: Buffer; contentType: string; extension: string }> {
+  if (!PHOTO_TYPES.has(contentType)) return { bytes, contentType, extension };
+  const out = await sharp(bytes)
+    .rotate()
+    .resize({ width: PHOTO_LONG_EDGE, height: PHOTO_LONG_EDGE, fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 88, mozjpeg: true })
+    .toBuffer();
+  return { bytes: out, contentType: 'image/jpeg', extension: 'jpg' };
 }

@@ -89,7 +89,7 @@
 - **Safari**：脚本写的 cookie 最长 7 天；服务端 `Set-Cookie` 不受此限。
 - **healthchecks.io**：每个检查一个 ping 地址；`/fail` 后缀立即告警；周期与宽限期在服务端设置。免费档 20 个检查。
 - **Cloudflare**：原样转发源站响应头；它自己也能加 HSTS，本版在应用层加，Cloudflare 侧保持不动以免两处不一致。
-- **iOS Safari / sharp**：文件选择框可从相册取图，HEIC 原样上传即可——Next 图片优化用的 sharp 带 libheif，能解码 HEIC 并以 WebP 送出；不做浏览器端转码或压缩，原图存桶。
+- **正文图片不经 Next 图片优化**：渲染器输出的是普通 `<img>`，桶里是什么浏览器就拿到什么；只有封面走 `<Image>`。iPhone 的 HEIC 只有 Safari 能显示（生产首次手机上传时发现）。因此照片类（HEIC / HEIF / JPEG）在上传时由 sharp 转为长边 ≤ 2400px 的 JPEG 再入桶；PNG / WebP / GIF / AVIF 原样存。
 
 ## 4 模块间契约
 - `renderMarkdown(source: string): ReactNode` —— 纯函数，不抛错（解析失败的片段按文字显示）；同一输入在浏览器与服务端产出同一树。
@@ -131,7 +131,7 @@
 
 ## 8 其他设计
 - CSP 字符串：`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://<supabase 域名>; font-src 'self'; connect-src 'self' https://<supabase 域名>; frame-ancestors 'self'; base-uri 'self'; form-action 'self'`。Supabase 域名从环境变量取。
-- 图片上限：单张 20 MB，类型 JPEG / PNG / WebP / GIF / AVIF / HEIC / HEIF（`src/lib/server/media.ts`）。
+- 图片上限：单张 20 MB，类型 JPEG / PNG / WebP / GIF / AVIF / HEIC / HEIF；照片类入桶前转为 ≤ 2400px 的 JPEG（`src/lib/server/media.ts`）。
 - 备份保留 14 天；cron：keepalive 每 6 小时、备份每日 03:00、站点检查每 10 分钟。
 - 后台旧路由 `/admin/notes` 删除，不留重定向（后台无外部链接）。
 - `docs/content-publishing.md` 第五至七节（Markdown 写作规范）保留，前四节重写。
