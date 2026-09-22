@@ -146,7 +146,12 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 - 评审确认成立：原始 HTML/JSX 在建树前已成文字；`iframe`/`object`/`embed` 不可达；`javascript:`/`data:`/`blob:` 与协议相对地址被拒；表格、任务列表、图片 `title` 放行；图片行插件不引入正文可控的属性；KaTeX 无 `trust`；按 id 与按自然键两条路径；封面规则；载荷字段名与函数一致；无效 `link_type` 报错而非静默；`revoke … from public` 正确，函数只授 `service_role`；关联写入与父行同一调用、无异常吞没
 - 待核（上线后）：经 PostgREST 以 `service_role` 调函数的表权限与整体回滚；唯一索引迁移若生产已有跨语言重复 slug 会失败（应用迁移时看报错）；同构渲染的水合树一致性；数据库时区与 `datetime-local` 无时区值的关系
 
-**Phase 4 证据**：尚未到达。
+**Phase 4 证据**（对象 = `e990e85`）：
+- 验收测试：单元 69 过、todo 0；运行时 23 条里 22 过、todo 1（§5.4-a 需要数据库，上线后对生产跑）；本地干净构建（假环境变量）+ `next start`；闸门在 GitHub 上逐批为绿
+- 数据库函数：`scripts/db-function-check.sh` 21 项全过（本机 postgres 17 容器，含 Codex 三条 MUST 的回归用例）
+- 浏览器：关于页与登录页在 CSP 下零违规（Playwright）；容器 uid 1000、首访写缓存（本机 Docker）
+- 评审：Codex 设计门 18 条、同模型整分支评审 10 条、Codex 部署前评审 9 条，均已处置，无在途评审
+- **留出的真实输入按裁定在生产做**（本地与 CI 没有数据库）：合并部署后发布一条测试内容再撤下，列为下面的发布方框
 
 **Phase 6 boxes**（请求 PR 之前写好——合并 ≠ 发布）：
 - [ ] CHANGELOG 条目
@@ -156,7 +161,10 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 - [ ] tag
 - [ ] 生产部署 + 核对 served SHA
 - [ ] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿
-- [ ] 上线后：后台发布一篇测试 post / project / gallery 项，随即可见，再撤下（TD-001 的真实输入）
+- [ ] 部署前：在 Supabase SQL Editor 依次执行三个新迁移（桶、唯一索引、保存函数）；唯一索引若报错说明生产已有跨语言重复的 slug，先处理再重跑
+- [ ] 上线后：后台发布一篇测试 post / project / gallery 项，随即可见，再撤下（TD-001 的真实输入；同时验证经 PostgREST 以 `service_role` 调用保存函数的权限与回滚——Codex 待核）；在 iPhone 上完成一次上传（§5.3-d、HEIC）
+- [ ] 上线后：在新后台打开 `2025-07-13-llm-note`，把三图并排的 JSX 段改写为一段三张带 `title` 的 Markdown 图片（§5.2-c）
+- [ ] 上线后：`node tests/runtime/list-digest.mjs https://www.antelacus.com` 与 `tests/runtime/fixtures/list-pages-baseline.json` 对比（§5.10-b）
 - [ ] 上线后：备份实际跑一次，把导出恢复进一个空的测试项目、站点能读出内容（TD-003）；让 keepalive 停跑一个周期，死人开关的告警到达（TD-013）
 - [ ] 各门读数：运行次数 / 改变了输出的拦截次数——含文档预算检查：v2.2.0 定下的退役触发是「v2.3.0 整版仍为 0 次拦截则改为只在关版时跑」
 - [ ] 文档预算为绿 · 记忆修剪（v2.2.0 提请晋升的「按前缀匹配代替按段匹配」教训：核实是否已写入通用记忆）
