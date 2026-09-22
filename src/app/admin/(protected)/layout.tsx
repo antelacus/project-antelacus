@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { requireAdminUser } from '@/lib/server/admin-auth';
@@ -21,7 +22,9 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
         }}
       >
         <div>
-          <p style={{ margin: 0, color: 'var(--color-seal)', fontSize: '0.95rem' }}>Admin workspace</p>
+          <p style={{ margin: 0, color: 'var(--color-seal)', fontSize: '0.95rem' }}>
+            <Link href="/admin" style={{ color: 'inherit', borderBottom: 'none' }}>Admin workspace</Link>
+          </p>
           <h1 style={{ marginTop: '0.25rem', marginBottom: 0 }}>Dynamic content control room</h1>
         </div>
 
