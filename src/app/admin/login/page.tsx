@@ -40,7 +40,7 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
   const errorMessage = params.error ? errorMessages[params.error] ?? errorMessages.config : null;
 
   return (
-    <main className="content-container content-container-standard">
+    <div className="content-container content-container-standard">
       <section
         style={{
           maxWidth: '34rem',
@@ -124,6 +124,6 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
           </button>
         </form>
       </section>
-    </main>
+    </div>
   );
 }

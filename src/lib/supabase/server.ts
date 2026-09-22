@@ -9,6 +9,8 @@ export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(env.url, env.publishableKey, {
+    // No browser-side Supabase client exists, so the session never needs to be readable by script.
+    cookieOptions: { httpOnly: true, secure: true, sameSite: 'lax' },
     cookies: {
       getAll() {
         return cookieStore.getAll();

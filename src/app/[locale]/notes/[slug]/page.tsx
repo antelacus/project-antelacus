@@ -3,7 +3,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { isNotFoundError } from '@/lib/not-found';
 import { languageAlternates } from '@/lib/seo';
-import { noteJsonLd } from '@/lib/structured-data';
+import { SITE_ORIGIN } from '@/lib/site';
+import { noteJsonLd, jsonLdScript } from '@/lib/structured-data';
 import Link from 'next/link';
 import { renderMarkdown } from '@/lib/markdown';
 import TagList from '@/components/TagList';
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: note.title,
         description: note.summary || '',
         type: 'article',
-        url: `https://antelacus.com/notes/${note.slug}`,
+        url: `${SITE_ORIGIN}/notes/${note.slug}`,
         images: [{ url: `/notes/${note.slug}/og.png`, width: 1200, height: 630 }],
       },
       twitter: {
@@ -57,7 +58,7 @@ export default async function NotePage({ params }: { params: Promise<{ locale: s
 
   return (
     <div className="content-container content-container-standard">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       <article data-title={note.title}>
         <header>
           <h1>{note.title}</h1>

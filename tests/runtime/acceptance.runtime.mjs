@@ -195,7 +195,7 @@ test('§5.4-d a malformed slug is a 404 without the database', async () => {
   }
 });
 
-test('§5.5-a security headers are present and x-powered-by is not', { todo: 'Batch 6' }, async () => {
+test('§5.5-a security headers are present and x-powered-by is not', async () => {
   for (const path of ['/en/about', '/admin/login']) {
     const res = await get(path);
     assert.match(res.headers.get('content-security-policy') ?? '', /default-src 'self'/, path);
@@ -204,14 +204,14 @@ test('§5.5-a security headers are present and x-powered-by is not', { todo: 'Ba
   }
 });
 
-test('§5.5-c canonical and alternate links use the www origin', { todo: 'Batch 6' }, async () => {
+test('§5.5-c canonical and alternate links use the www origin', async () => {
   const html = await (await get('/en/about')).text();
   const hrefs = [...html.matchAll(/<link[^>]+rel="(?:canonical|alternate)"[^>]+href="([^"]+)"/g)].map((m) => m[1]).filter((h) => h.startsWith('http'));
   assert.ok(hrefs.length > 0);
   for (const href of hrefs) assert.ok(href.startsWith('https://www.antelacus.com/'), href);
 });
 
-test('§5.8-a the language choice is remembered by a server-set cookie for a year', { todo: 'Batch 6' }, async () => {
+test('§5.8-a the language choice is remembered by a server-set cookie for a year', async () => {
   const res = await get('/api/locale?to=zh-CN&next=/zh-CN/about');
   assert.equal(res.status, 303);
   assert.equal(locationPath(res), '/zh-CN/about');
@@ -224,7 +224,7 @@ test('§5.8-a the language choice is remembered by a server-set cookie for a yea
   assert.equal(locationPath(evil), '/zh-CN', 'an external next must not be followed');
 });
 
-test('§5.9-a one <main>, and the navigation sits before it', { todo: 'Batch 6' }, async () => {
+test('§5.9-a one <main>, and the navigation sits before it', async () => {
   const paths = ['/en/about', '/admin/login', ...(WITH_DB ? ['/en', '/en/posts', `/en/posts/${POST_SLUG}`] : [])];
   for (const path of paths) {
     const html = await (await get(path)).text();

@@ -4,6 +4,7 @@ import { getAllNotesMeta } from '@/lib/notes';
 import { getAllProjectsMeta } from '@/lib/projects';
 import { getAllPhotosMeta } from '@/lib/gallery';
 import { getAllTags } from '@/lib/tags';
+import { SITE_ORIGIN } from '@/lib/site';
 
 type SitemapEntry = {
   url: string;
@@ -15,7 +16,7 @@ type SitemapEntry = {
   };
 };
 
-const BASE = 'https://antelacus.com';
+const BASE = SITE_ORIGIN;
 
 function withLocales(path: string): Record<string, string> {
   // Given a path that already includes defaultLocale prefix (e.g. /en/posts)

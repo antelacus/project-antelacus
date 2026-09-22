@@ -1,6 +1,8 @@
 import { locales } from '@/i18n/routing';
 
-const SITE_URL = 'https://antelacus.com';
+import { SITE_ORIGIN } from '@/lib/site';
+
+const SITE_URL = SITE_ORIGIN;
 const SITE_NAME = 'AnteLacus';
 
 export function websiteJsonLd() {
@@ -137,4 +139,10 @@ export function softwareProjectJsonLd(project: {
     },
     ...(project.tags?.length ? { keywords: project.tags.join(', ') } : {}),
   };
+}
+
+// JSON inside a <script> ends at the first `</script`, whatever the JSON thinks. `<` as its JSON escape
+// keeps a title such as `</script><script>…` inert; the parsed value is unchanged.
+export function jsonLdScript(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c');
 }

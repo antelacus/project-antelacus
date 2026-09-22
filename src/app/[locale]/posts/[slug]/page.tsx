@@ -7,7 +7,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import TagList from '@/components/TagList';
 import { languageAlternates } from '@/lib/seo';
-import { blogPostingJsonLd } from '@/lib/structured-data';
+import { SITE_ORIGIN } from '@/lib/site';
+import { blogPostingJsonLd, jsonLdScript } from '@/lib/structured-data';
 
 // Nothing is built ahead of time (the build must not need the database); an empty list is what lets
 // Next cache each page after its first visit instead of rendering it on every request.
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: post.title,
         description: post.summary || '',
         type: 'article',
-        url: `https://antelacus.com/posts/${post.slug}`,
+        url: `${SITE_ORIGIN}/posts/${post.slug}`,
         images: [{ url: `/posts/${post.slug}/og.png`, width: 1200, height: 630 }],
       },
       twitter: {
@@ -59,7 +60,7 @@ export default async function PostPage({ params }: { params: Promise<{ locale: s
 
   return (
     <div className="content-container content-container-standard">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       <article data-title={post.title}>
         <header>
           <h1>{post.title}</h1>

@@ -4,7 +4,7 @@
 // (its body is backed up in the tab), so "go back" is the way out.
 export default function AdminError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <main className="content-container content-container-standard">
+    <div className="content-container content-container-standard">
       <div className="admin-card" style={{ display: 'grid', gap: '0.75rem' }}>
         <p style={{ margin: 0, color: 'var(--color-seal)', fontSize: '0.95rem' }}>Admin</p>
         <h1 style={{ margin: 0 }}>That did not go through</h1>
@@ -15,6 +15,6 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
           <button type="button" className="admin-button" onClick={reset}>Try again</button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

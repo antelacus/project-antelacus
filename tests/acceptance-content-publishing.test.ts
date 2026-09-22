@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 import ts from 'typescript';
 
@@ -138,7 +138,7 @@ test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone'
 
 // ---------- §5.5 hardening ----------
 
-test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links must be http(s)', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links must be http(s)', async () => {
   const { jsonLdScript } = await load('../src/lib/structured-data.js');
   const out = jsonLdScript({ name: 'x</script><script>alert(1)</script>' });
   assert.doesNotMatch(out, /<\/script/);
@@ -150,15 +150,15 @@ test('acceptance §5.5-b JSON-LD cannot close its own script tag; project links 
   assert.equal(isSafeExternalUrl('data:text/html,hi'), false);
 });
 
-test('acceptance §5.5-b the photo viewer builds its details from text, not HTML strings', { todo: 'Batch 6' }, () => {
+test('acceptance §5.5-b the photo viewer builds its details from text, not HTML strings', () => {
   assert.doesNotMatch(read('src/components/PhotoViewer.tsx'), /innerHTML/);
 });
 
-test('acceptance §5.5-c the canonical origin is one constant with www', { todo: 'Batch 6' }, () => {
-  const offenders = sourceFiles(join(ROOT, 'src'))
-    .filter((file) => !file.endsWith('/seo.ts') && readFileSync(file, 'utf8').includes('https://antelacus.com'));
-  assert.deepEqual(offenders, [], 'the bare domain appears outside src/lib/seo.ts');
-  assert.match(read('src/lib/seo.ts'), /https:\/\/www\.antelacus\.com/);
+test('acceptance §5.5-c the canonical origin is one constant with www', () => {
+  const bare = sourceFiles(join(ROOT, 'src')).filter((file) => readFileSync(file, 'utf8').includes('https://antelacus.com'));
+  assert.deepEqual(bare, [], 'the bare domain appears in src');
+  const www = sourceFiles(join(ROOT, 'src')).filter((file) => readFileSync(file, 'utf8').includes('https://www.antelacus.com')).map((f) => relative(ROOT, f));
+  assert.deepEqual(www, ['src/lib/site.ts'], 'the origin is written in exactly one place');
 });
 
 test('acceptance §5.5-d the image Node major equals the gate\'s and is still maintained', () => {
@@ -171,7 +171,7 @@ test('acceptance §5.5-d the image Node major equals the gate\'s and is still ma
 
 // ---------- §5.8 language memory ----------
 
-test('acceptance §5.8-a no page script writes document.cookie', { todo: 'Batch 6' }, () => {
+test('acceptance §5.8-a no page script writes document.cookie', () => {
   const offenders = sourceFiles(join(ROOT, 'src')).filter((file) => readFileSync(file, 'utf8').includes('document.cookie'));
   assert.deepEqual(offenders, []);
 });

@@ -36,7 +36,7 @@
 | `src/lib/server/media.ts`（新） | 上传到桶 `media`：校验类型与大小（常量在此文件）、路径 `<类型>/<slug>/<随机前缀>-<文件名>`、返回公开 URL；只经管理员校验后的服务端客户端 | IO |
 | `src/lib/structured-data.ts` | 增 `jsonLdScript(obj)`：`JSON.stringify` 后把 `<` 替换为 `\u003c`（JSON 里合法的转义），输出永不含 `</script`；六处 JSON-LD 输出改用它 | core |
 | `src/components/PhotoViewer.tsx` | 详情区用 DOM API 与 `textContent` 构建，不再拼 HTML 字符串 | IO |
-| `src/lib/seo.ts` | `SITE_ORIGIN = 'https://www.antelacus.com'`，全部 canonical / alternate / OG 地址由它拼；仓库内不再有别的 `https://antelacus.com` 字面量 | infra |
+| `src/lib/site.ts`（新） | `SITE_ORIGIN = 'https://www.antelacus.com'`，全部 canonical / alternate / OG / JSON-LD / sitemap 地址由它拼；`src/` 内不再有别的站点域名字面量 | infra |
 | `src/app/api/locale/route.ts`（新） | `GET /api/locale?to=<语言>&next=<站内路径>`：服务端写 `preferred_locale`（一年、`Secure`、`Lax`、`Path=/`），303 到 `next`，响应 `private, no-store`；`next` 经 `getSafeNextPath` 校验 | IO |
 | `src/lib/supabase/{server,middleware}.ts` | 会话 cookie 显式传 `httpOnly: true`、`secure: true`、`sameSite: 'lax'`（站上没有浏览器端 Supabase 客户端，cookie 不需要脚本可读） | infra |
 | `src/components/UtilityDropdown.tsx` | 语言项变成指向 `/api/locale?…` 的普通链接；不再写 `document.cookie` | IO |
@@ -119,7 +119,7 @@
 ## 7 不变量（新增，接上一版 §7 编号）
 9. 唯一能拿到服务端密钥的仍是 `admin-auth`（既有测试保持）；新增：`media.ts` 与 `content-repo` 的写函数不自行创建客户端（语法检查）。
 10. `Dockerfile` 基础镜像的 Node 主版本 = `check.yml` 的 `node-version`（测试）。
-11. 仓库内 `https://antelacus.com` 字面量只出现在 `seo.ts` 的一处（测试）。
+11. 站点域名的字面量只出现在 `src/lib/site.ts` 一处，裸域名一处都没有（测试）。
 12. `src/` 内没有 `document.cookie` 写入（测试）。
 13. 每个公开页与后台页恰有一个 `<main>`，`<nav>` 在其外（运行时验收：首页、一个列表页、关于页、登录页；有数据库时再加一个详情页）。
 14. 响应头：CSP、HSTS 存在，`x-powered-by` 不存在（运行时验收）。

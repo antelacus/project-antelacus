@@ -15,12 +15,12 @@ test('acceptance §5.11-a every page exists once per locale and lists every loca
   assert.equal(urls.length, pages * locales.length);
   assert.equal(new Set(urls).size, urls.length, 'no duplicates');
   for (const l of locales) {
-    assert.ok(urls.includes(`https://antelacus.com/${l}/posts/p`), l);
-    assert.ok(urls.includes(`https://antelacus.com/${l}/tags/${encodeURIComponent('a&b')}`), l);
+    assert.ok(urls.includes(`https://www.antelacus.com/${l}/posts/p`), l);
+    assert.ok(urls.includes(`https://www.antelacus.com/${l}/tags/${encodeURIComponent('a&b')}`), l);
   }
   const post = entries.find((e) => e.url.endsWith('/en/posts/p'))!;
   assert.deepEqual(Object.keys(post.alternates!.languages).sort(), [...locales].sort());
-  assert.equal(post.alternates!.languages['zh-HK'], 'https://antelacus.com/zh-HK/posts/p');
+  assert.equal(post.alternates!.languages['zh-HK'], 'https://www.antelacus.com/zh-HK/posts/p');
   assert.equal(post.lastModified, '2026-01-02');
 });
 

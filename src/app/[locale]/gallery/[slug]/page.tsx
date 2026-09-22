@@ -1,7 +1,8 @@
 import { getPhotoBySlug, getPhotoSlugs } from '@/lib/gallery';
 import { setRequestLocale } from 'next-intl/server';
 import { languageAlternates } from '@/lib/seo';
-import { imageGalleryJsonLd } from '@/lib/structured-data';
+import { SITE_ORIGIN } from '@/lib/site';
+import { imageGalleryJsonLd, jsonLdScript } from '@/lib/structured-data';
 import { notFound } from 'next/navigation';
 import { isNotFoundError } from '@/lib/not-found';
 import { renderMarkdown } from '@/lib/markdown';
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: photo.title,
         description: photo.caption || `视觉作品 - ${photo.title}`,
         type: 'article',
-        url: `https://antelacus.com/gallery/${photo.slug}`,
+        url: `${SITE_ORIGIN}/gallery/${photo.slug}`,
         images: [{ url: `/gallery/${photo.slug}/og.png`, width: 1200, height: 630 }],
       },
       twitter: {
@@ -58,7 +59,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
 
   return (
     <div>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       <header className="content-container content-container-standard text-center mt-12">
         <h1>{photo.title}</h1>
         <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>

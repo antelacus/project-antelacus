@@ -4,9 +4,25 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : null;
 
+// Same-origin plus inline (DESIGN §8): Next hands the browser its data in inline scripts, and a nonce per
+// request would make every page dynamic. External scripts, exfiltration targets and framing are still shut.
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  `img-src 'self' data: blob:${supabaseHost ? ` https://${supabaseHost}` : ''}`,
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "frame-ancestors 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join('; ');
+
 const nextConfig: NextConfig = {
   // Emit a self-contained server bundle for the VPS Docker image.
   output: 'standalone',
+  poweredByHeader: false,
 
   // Performance optimizations for the "Living Manuscript" aesthetic
   
@@ -46,6 +62,13 @@ const nextConfig: NextConfig = {
   // Headers for caching and security
   async headers() {
     return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Content-Security-Policy', value: contentSecurityPolicy },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+        ],
+      },
       {
         // Files under public/images keep their names when their content changes, so they must not be
         // `immutable`: a day bounds how long a replaced image stays stale. Hashed assets under

@@ -3,7 +3,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { isNotFoundError } from '@/lib/not-found';
 import { languageAlternates } from '@/lib/seo';
-import { softwareProjectJsonLd } from '@/lib/structured-data';
+import { SITE_ORIGIN } from '@/lib/site';
+import { softwareProjectJsonLd, jsonLdScript } from '@/lib/structured-data';
 import Link from 'next/link';
 import Image from 'next/image';
 import { renderMarkdown } from '@/lib/markdown';
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: project.name,
         description: project.description || '',
         type: 'article',
-        url: `https://antelacus.com/projects/${project.slug}`,
+        url: `${SITE_ORIGIN}/projects/${project.slug}`,
         images: [{ url: `/projects/${project.slug}/og.png`, width: 1200, height: 630 }],
       },
       twitter: {
@@ -67,7 +68,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ locale
 
   return (
     <div className="content-container content-container-standard">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       <article data-title={project.name}>
         <header>
           <h1>{project.name}</h1>
