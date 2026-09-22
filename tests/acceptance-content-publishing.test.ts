@@ -118,7 +118,7 @@ test('acceptance §5.3-g every admin action and the upload path check the admin 
 
 // ---------- §5.4 failure handling ----------
 
-test('acceptance §5.4-d a malformed detail slug is decided "not found" before any page runs', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.4-d a malformed detail slug is decided "not found" before any page runs', async () => {
   const { decideLocaleRoute } = await import('../src/i18n/route-decision.js');
   const decide = (pathname: string) => decideLocaleRoute({ pathname, acceptLanguage: null, preferredLocale: null });
   for (const bad of ['/en/posts/Bad', '/en/notes/a_b', '/fr/projects/' + 'x'.repeat(81), '/zh-CN/gallery/a.b']) {
@@ -126,9 +126,11 @@ test('acceptance §5.4-d a malformed detail slug is decided "not found" before a
   }
   assert.deepEqual(decide('/en/posts/2025-07-13-llm-note'), { kind: 'pass' });
   assert.deepEqual(decide('/en/posts'), { kind: 'pass' });
+  assert.deepEqual(decide('/en/tags/Some Tag'), { kind: 'pass' }, 'tags are not slugs');
+  assert.deepEqual(decide('/en/about/anything'), { kind: 'pass' }, 'only slug sections are checked');
 });
 
-test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone', { todo: 'Batch 5' }, () => {
+test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone', () => {
   assert.equal(existsSync(join(ROOT, 'src/app/[locale]/loading.tsx')), false);
   assert.ok(existsSync(join(ROOT, 'src/app/[locale]/error.tsx')));
   assert.ok(existsSync(join(ROOT, 'src/app/admin/error.tsx')));
@@ -214,4 +216,10 @@ test('acceptance §5.10 the four repos are one', () => {
   assert.ok(existsSync(join(ROOT, 'src/lib/server/content-repo.ts')));
   const prefixLines = sourceFiles(join(ROOT, 'src/components')).filter((file) => /isSupportedLocale\(currentLocale\) \?/.test(readFileSync(file, 'utf8')));
   assert.deepEqual(prefixLines, [], 'the locale-prefix expression is still repeated in components');
+});
+
+test('invariant 17 — the proxy\'s slug sections are the content-type registry\'s sections', async () => {
+  const { slugSections } = await import('../src/i18n/routing.js');
+  const { CONTENT_TYPES } = await import('../src/lib/content-types.js');
+  assert.deepEqual([...slugSections].sort(), Object.values(CONTENT_TYPES).map((spec) => spec.section).sort());
 });

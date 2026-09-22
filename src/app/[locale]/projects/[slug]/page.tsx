@@ -1,5 +1,7 @@
-import { getProjectBySlug } from '@/lib/projects';
+import { getProjectBySlug, getProjectSlugs } from '@/lib/projects';
 import { setRequestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { isNotFoundError } from '@/lib/not-found';
 import { languageAlternates } from '@/lib/seo';
 import { softwareProjectJsonLd } from '@/lib/structured-data';
 import Link from 'next/link';
@@ -15,44 +17,42 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
-  if (!project) {
-    return { title: '项目未找到' };
-  }
-  return { 
-    title: project.name, 
-    description: project.description || '',
-    alternates: {
-      languages: languageAlternates(`/projects/${project.slug}`),
-    },
-    openGraph: {
-      title: project.name,
+  // Metadata renders outside the error boundary: a database failure here would be a bare 500, so
+  // it falls back to the layout's defaults and lets the page body raise the error where it is caught.
+  try {
+    if (!(await getProjectSlugs()).includes(slug)) notFound();
+    const project = await getProjectBySlug(slug);
+    if (!project) notFound();
+    return { 
+      title: project.name, 
       description: project.description || '',
-      type: 'article',
-      url: `https://antelacus.com/projects/${project.slug}`,
-      images: [{ url: `/projects/${project.slug}/og.png`, width: 1200, height: 630 }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      images: [`/projects/${project.slug}/og.png`],
-    },
-  };
+      alternates: {
+        languages: languageAlternates(`/projects/${project.slug}`),
+      },
+      openGraph: {
+        title: project.name,
+        description: project.description || '',
+        type: 'article',
+        url: `https://antelacus.com/projects/${project.slug}`,
+        images: [{ url: `/projects/${project.slug}/og.png`, width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: [`/projects/${project.slug}/og.png`],
+      },
+    };
+  } catch (error) {
+    if (isNotFoundError(error)) throw error;
+    return {};
+  }
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  if (!(await getProjectSlugs()).includes(slug)) notFound();
   const project = await getProjectBySlug(slug);
-  
-  if (!project) {
-    return (
-      <main className="content-container content-container-standard text-center">
-        <h1>项目未找到</h1>
-        <p>你访问的项目不存在或已被删除。</p>
-        <Link href="../">返回实验室</Link>
-      </main>
-    );
-  }
+  if (!project) notFound();
   
   const getStatusLabel = (status: string) => {
     switch (status) {

@@ -81,8 +81,8 @@ export async function GET() {
 
     items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     return NextResponse.json(items, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'failed';
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    // Never the database's own words: this endpoint is public.
+    return NextResponse.json({ error: 'unavailable' }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
 }
