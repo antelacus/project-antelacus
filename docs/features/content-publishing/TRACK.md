@@ -44,10 +44,11 @@
 验收测试已写红：`tests/acceptance-content-publishing.test.ts`（单元）与 `tests/runtime/acceptance.runtime.mjs` 末段（运行时），每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。
 
 ### Batch 1 — Next 16 与依赖
-- 状态：open
+- 状态：done `3c03394`（§5.1-c 的闸门红灯实验待首次推送时做）
 - 范围：`package.json`（`next` 16.x 钉死、`react`、`eslint-config-next`、`next-intl`、`sharp`；`lint` 脚本）、`eslint.config.mjs`（flat config）、`src/middleware.ts` → `src/proxy.ts`、`src/app/admin/(protected)/notes/actions.ts`（`revalidateTag` 第二参数）、`.github/workflows/check.yml`（eslint 直跑、清单断言的键、`npm audit --omit=dev` 步骤）、`tests/runtime/fixtures/head-baseline.json`（`viewport` 顺序）· 覆盖 REQ §5.1
 - 验收判据：§5.1-a 去掉 todo；§5.1-b 既有单元与运行时验收全绿；§5.1-c 在分支上故意造一个 lint 错误，闸门红（记录运行号）；`npm audit --omit=dev` 报 0
 - 依赖：none
+- 证据（本地，闸门的每一步）：audit 0；lint 0 错误 25 警告（TD-020）；tsc 净；单元 54（36 过、18 todo）；假环境构建；运行时 23（15 过、8 todo）；关于页在 next-mdx-remote 6 下仍渲染 6 个分节。设计未预见、已处理：proxy 在 Next 16 不再进 `middleware-manifest.json`（DESIGN §3）；三条 React Compiler 规则打中 18 处旧代码（TD-020）
 
 ### Batch 2 — Markdown 渲染与容器
 - 状态：open
