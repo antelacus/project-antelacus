@@ -83,6 +83,7 @@
 - **Next**：`error.tsx` 是客户端组件，只在客户端导航或水合后接管；一个「首访生成、之后缓存」的页面在**生成阶段**出错（读库失败），框架直接回 21 字节的纯文本 500，不经任何边界，`global-error.tsx` 也不经。`generateMetadata` 更在边界之外（本版让它读库失败时退回布局默认值）。在保持页面可缓存的前提下，服务端渲染失败时访客只能拿到状态码正确、不带原文的裸 500；站点风格的错误页只在站内导航时出现。REQ §5.4-b 据此只要求状态码与不泄露原文。
 - **hast-util-sanitize**：默认 schema 在 `<code>` 上只放行 `language-*` 类，remark-math 的 `math-display` 会被剥掉、块级公式退化为行内；协议比较大小写敏感。渲染器为此扩白名单、并在净化前把协议小写化。
 - **remark-rehype**：默认不传递原始 HTML 节点（直接丢弃）。REQ 要求「原样作为文字显示」，故管道里加一个把 `html` 节点改为 `text` 节点的小插件。
+- **Supabase SQL Editor**：PL/pgSQL 的 `for … in <查询> loop` 若查询里含字符串字面量（`where x <> ''`），编辑器报「missing LOOP at end of SQL expression」，psql 则正常。迁移里的循环查询不放字面量，过滤写在循环体。
 - **Supabase Storage**：桶的公开读取是桶级设置；写入只经服务端密钥，不开匿名写策略。
 - **Supabase**：免费档项目一周无请求即暂停；`pg_dump` 的主版本须是服务端的或更新（用官方 postgres 镜像跑）。直连地址只有 IPv6，VPS 用 Supavisor 会话模式的连接串（`DATABASE_URL`，运维文档写明取法）；对生产的首次备份是它的验证（Phase 6 方框）。
 - **Safari**：脚本写的 cookie 最长 7 天；服务端 `Set-Cookie` 不受此限。

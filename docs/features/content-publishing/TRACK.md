@@ -163,7 +163,7 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 - [ ] tag
 - [x] 生产部署 + 核对 served SHA —— PR #7 合并提交 `ad96693`；部署运行 35703014555 的日志回显同一 SHA，健康检查 6 秒通过
 - [x] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿 —— 23 过、todo 0；§5.4-a、§5.8-a、§5.9-a 的读库地址首次得到验证；响应头实测含 CSP 与 HSTS、无 `x-powered-by`
-- [ ] 部署前：在 Supabase SQL Editor 依次执行三个新迁移（桶、唯一索引、保存函数）；唯一索引若报错说明生产已有跨语言重复的 slug，先处理再重跑
+- [x] 三个新迁移在 Supabase SQL Editor 执行完成（合并后、首次发布前）；唯一索引无冲突；保存函数第一版被编辑器拒绝（FOR 查询含字面量），改后通过——约束记入 DESIGN §3
 - [ ] 上线后：后台发布一篇测试 post / project / gallery 项，随即可见，再撤下（TD-001 的真实输入；同时验证经 PostgREST 以 `service_role` 调用保存函数的权限与回滚——Codex 待核）；在 iPhone 上完成一次上传（§5.3-d、HEIC）
 - [ ] 上线后：在新后台打开 `2025-07-13-llm-note`，把三图并排的 JSX 段改写为一段三张带 `title` 的 Markdown 图片（§5.2-c）
 - [x] 上线后：列表页摘要与基线对比（§5.10-b）—— 差异两类，均可解释：每页少四个导航链接（导航移出 `<main>`，§5.9 的设计）；相册列表多出四个相册链接与标题（相册卡片现在在服务端 HTML 里，基线里没有）。内容条目本身无增减
