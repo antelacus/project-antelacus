@@ -164,7 +164,10 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 - [x] 生产部署 + 核对 served SHA —— PR #7 合并提交 `ad96693`；部署运行 35703014555 的日志回显同一 SHA，健康检查 6 秒通过
 - [x] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿 —— 23 过、todo 0；§5.4-a、§5.8-a、§5.9-a 的读库地址首次得到验证；响应头实测含 CSP 与 HSTS、无 `x-powered-by`
 - [x] 三个新迁移在 Supabase SQL Editor 执行完成（合并后、首次发布前）；唯一索引无冲突；保存函数第一版被编辑器拒绝（FOR 查询含字面量），改后通过——约束记入 DESIGN §3
-- [ ] 上线后：后台发布一篇测试 post / project / gallery 项，随即可见，再撤下（TD-001 的真实输入；同时验证经 PostgREST 以 `service_role` 调用保存函数的权限与回滚——Codex 待核）；在 iPhone 上完成一次上传（§5.3-d、HEIC）
+- [ ] 上线后的真实输入（TD-001）：
+  - [x] 闪念 `v230-test`：发布 → 详情 200 且公式渲染、sitemap 与列表出现；改标题 → 详情与列表更新；撤回 → 详情 404、列表 / 搜索 / sitemap 消失。经 PostgREST 以 `service_role` 调用保存函数正常（Codex 待核关闭）。**发现**：`revalidateTag(tag, 'max')` 是先旧后新，第二次访问才新——改为 `updateTag`（`d95064b`，随关版 PR 部署）
+  - [ ] 相册（多图上传、排序、选封面）与实验室（链接）各发一条再撤下
+  - [ ] iPhone 上传一张 HEIC 原图（§5.3-d）
 - [ ] 上线后：在新后台打开 `2025-07-13-llm-note`，把三图并排的 JSX 段改写为一段三张带 `title` 的 Markdown 图片（§5.2-c）
 - [x] 上线后：列表页摘要与基线对比（§5.10-b）—— 差异两类，均可解释：每页少四个导航链接（导航移出 `<main>`，§5.9 的设计）；相册列表多出四个相册链接与标题（相册卡片现在在服务端 HTML 里，基线里没有）。内容条目本身无增减
 - [ ] 上线后：备份实际跑一次，把导出恢复进一个空的测试项目、站点能读出内容（TD-003）；让 keepalive 停跑一个周期，死人开关的告警到达（TD-013）
