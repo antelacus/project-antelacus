@@ -32,7 +32,7 @@ const processor = unified()
     protocols: { ...defaultSchema.protocols, href: ['http', 'https', 'mailto'], src: ['http', 'https'] },
   })
   .use(imageRows)
-  .use(rehypeKatex, { throwOnError: false })
+  .use(rehypeKatex)
   .use(rehypeReact, { Fragment, jsx, jsxs });
 
 export function renderMarkdown(source: string): ReactNode {
