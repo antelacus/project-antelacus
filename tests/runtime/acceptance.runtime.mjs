@@ -162,7 +162,7 @@ test('§6-a document metadata is unchanged by the root-layout move', async () =>
 
 // ---------- v2.3.0 (docs/features/content-publishing/REQ.md); todo until the named batch lands ----------
 
-test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', { todo: 'Batch 5; needs the database' }, async () => {
+test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', async () => {
   if (!WITH_DB) return;
   const res = await get('/en/posts/this-slug-does-not-exist');
   assert.equal(res.status, 404);
