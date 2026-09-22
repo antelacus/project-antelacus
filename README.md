@@ -18,7 +18,7 @@
 - **框架**：Next.js（React 生态，支持静态生成和高度定制）
 - **部署平台**：VPS 自托管（Docker + nginx + Cloudflare）
 - **代码托管**：GitHub
-- **内容格式**：Markdown/MDX
+- **内容格式**：Markdown（关于页暂为 MDX）
 - **域名**：antelacus.com（Cloudflare 保护）
 
 ---
@@ -30,9 +30,9 @@
 本站基于 **Next.js** 的 **App Router** 构建，并部署于 **VPS 自托管环境**，通过 Docker 容器运行应用、nginx 反向代理对外提供服务，内容存放在 **Supabase（PostgreSQL）** 中。
 
 #### 数据与内容流
-- **内容源**: 专栏、闪念、视觉、实验室四类内容存放在 Supabase 的 `content_items` 及其关联表中，正文为 MDX 文本。闪念可在站内后台 `/admin` 撰写与发布；其余类型目前直接在数据库中维护。“关于”页是例外，仍以 MDX 文件存放在 `src/content/pages/about/`。
-- **读取路径**: `src/lib/server/*-repo.ts`（仅服务端的查询与类型映射）→ `src/lib/{posts,notes,gallery,projects}.ts`（带缓存标签、时限一小时的公开读取函数）→ `src/app/[locale]/` 下的页面。
-- **渲染策略**: 公开页面在首次被访问时生成，随后在一小时内复用；构建过程不访问数据库。后台发布闪念后相关页面立即更新，直接改库的内容最长一小时内生效。
+- **内容源**: 专栏、闪念、视觉、实验室四类内容存放在 Supabase 的 `content_items` 及其关联表中，正文为 Markdown。四类都在站内后台 `/admin` 撰写、上传图片与发布（手机浏览器亦可）。“关于”页是例外，仍以 MDX 文件存放在 `src/content/pages/about/`。
+- **读取路径**: `src/lib/server/content-repo.ts`（仅服务端、按内容类型参数化的查询）→ `src/lib/{posts,notes,gallery,projects}.ts`（带缓存标签、时限半小时的公开读取函数）→ `src/lib/markdown/`（唯一的正文渲染器）→ `src/app/[locale]/` 下的页面。
+- **渲染策略**: 公开页面在首次被访问时生成，随后复用；构建过程不访问数据库。后台发布后相关页面立即更新，直接改库的内容最长一小时内生效。不存在的地址是真正的 404。
 - **部署闸门**: 每次推送都经过 `.github/workflows/check.yml`（lint、类型检查、单元测试、构建、对运行中服务的验收、文档预算），通过后才部署。
 
 #### 技术栈亮点
@@ -217,9 +217,9 @@ public/images/                   # 统一的图片根目录
 
 ### （九）LaTeX 数学渲染
 
-- **实现**：在专栏页面的 MDX 渲染链启用 `remark-math` 与 `rehype-katex`，并在全局引入 `katex/dist/katex.min.css`，保证数学公式的排版与样式一致。
+- **实现**：`src/lib/markdown/` 的渲染管道启用 `remark-math` 与 `rehype-katex`，并在全局引入 `katex/dist/katex.min.css`，保证数学公式的排版与样式一致。
 - **用法**：支持内联 `$...$` 与块级 `$$...$$`，以及常见环境（`aligned`、`cases`、`matrix` 等）。
-- **范围**：当前已在专栏生效；可按需扩展到闪念与实验室详情页。
+- **范围**：四类内容的正文都支持。
 - **测试**：示例页面 `/posts/2025-09-12-latex-test` 可用于回归验证。
 
 ### （十）国际化 (i18n) 架构
@@ -243,7 +243,7 @@ public/images/                   # 统一的图片根目录
 
 - **专栏文章**：每篇仅保留一份规范稿件，不维护按语言的多份译文。不同语言访问网站时，均展示同一篇原文。
 - **UI 界面**：通过 `src/messages/` 下每种语言一份的 JSON 文件提供多语言界面与导航。
-- **“关于”页**：每种语言一份 MDX（`src/content/pages/about/`）；若缺失则回退到简体中文或英文版本。
+- **“关于”页**：每种语言一份 MDX（`src/content/pages/about/`）；若缺失则回退到简体中文或英文版本。它进数据库与视觉重做排在 v2.4.0。
 
 #### 作者指南
 
@@ -261,7 +261,7 @@ public/images/                   # 统一的图片根目录
 - **只改文档不部署**：仅涉及 `*.md` 与 `docs/` 的提交不会触发线上重新构建。
 - **服务器上的检出目录只用于部署**，不在那里编辑代码。运行期配置在服务器的 `.env` 中，不入库；变量名清单以及 nginx、compose 的配置快照在私有仓库 `vps-infra`。
 - **镜像**：`Dockerfile` 多阶段构建，Next.js 以 `standalone` 方式输出，容器只监听本机端口，由 nginx 反向代理并经 Cloudflare 对外。
-- **保活**：`scripts/supabase-keepalive.sh` 由服务器上的 cron 每日运行，防止 Supabase 免费项目因闲置被暂停。
+- **运维**：服务器上的 cron 运行保活（`scripts/supabase-keepalive.sh`）、每日备份（`scripts/backup.sh`，数据库转储加存储桶镜像）与站点探测（`scripts/site-check.sh`），三者都向 healthchecks.io 报平安，缺席即告警。细节与恢复步骤见 `docs/DEPLOYMENT.md`。
 
 ## 三、未来扩展计划
 

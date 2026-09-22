@@ -4,6 +4,29 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.3.0 - 2026-09-22
+
+### Added
+- Every content type can be written and published from the admin: posts, notes, projects and albums have one editor at `/admin/content/<type>`, usable on a phone. Images are pasted, dropped or picked from the device and uploaded as you write; albums take several photos at once, in your order, with captions and a chosen cover; projects carry their links. A preview shows exactly what the page will show.
+- A nightly backup of the database and every stored image lands on the server, and three small jobs (keep the database awake, back up, check the site from outside) report to a dead-man's switch that emails when one of them stops reporting.
+
+### Changed
+- Bodies are Markdown (CommonMark, tables, task lists, formulas). Anything that looks like HTML or code is shown as text, never run. A paragraph made only of images becomes a row of captioned figures.
+- Saving is all-or-nothing: an item and its tags, images and links are written together or not at all; saving twice does not create twice; a published item keeps its original publication date through edits and re-publishing.
+- A page that does not exist is a real 404; an address with a malformed slug is refused before any page runs. Errors never show the database's words.
+- Security headers on every response (Content-Security-Policy, Strict-Transport-Security), sign-in cookies unreadable by scripts, and the container runs as an unprivileged user on a maintained Node.
+- Every canonical, alternate and share address uses `https://www.antelacus.com`.
+- The language you pick from the menu is remembered for a year on Safari too (it used to lapse after a week).
+- The skip link really skips the navigation.
+
+### Removed
+- The page-transition loading animation (it made real 404s impossible).
+- Next.js 15, `next lint`, and the four copies of the content repository.
+
+### For the maintainer
+- Next 16, React 19.3; production dependencies carry no advisories and the gate audits them.
+- `docs/DEPLOYMENT.md` holds the cron lines, the alert setup and the restore procedure; `docs/content-publishing.md` describes publishing from the admin.
+
 ## v2.2.0 - 2026-09-21
 
 ### Fixed

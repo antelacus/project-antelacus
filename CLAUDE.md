@@ -18,14 +18,17 @@ The scripts are in `package.json`. What the names do not tell you:
 
 ```
 Supabase (content_items, content_tags, gallery_images, project_links)
-  → src/lib/server/*-repo.ts                   server-only queries and row → domain mappers
-  → src/lib/{posts,notes,gallery,projects}.ts  public loaders: unstable_cache, one tag per content type, one hour
+  → src/lib/server/content-repo.ts             server-only reads and the save (one RPC), parameterised by content type
+  → src/lib/{posts,notes,gallery,projects}.ts  public loaders: unstable_cache, one tag per content type, half an hour
+  → src/lib/markdown/                          the one Markdown renderer (public pages and the admin preview)
   → src/app/[locale]/…                         server components
 ```
 
-A write path invalidates its content type's tag after a successful write (`revalidateTag`); every page showing that content reads it through the tag, so nothing is revalidated by path.
+What differs between the four content types (cache tag, section, relation, mappers) is one row each in `src/lib/content-types.ts`; the repo, the loaders and the admin read it there. A content type's mapper lives in its `src/lib/*-types.ts` on the shared row of `src/lib/content-row.ts`.
 
-Each content type keeps three layers — domain type (`src/lib/post-types.ts`), row type (from `src/lib/server/database.types.ts`), mapper (in its repo file). Change all three together.
+Writes go through `/admin/content/<type>/<slug>` → `src/app/admin/(protected)/content/actions.ts` → `save_content_item`, a database function (in `supabase/migrations/`) that writes the row and its relations in one transaction; `scripts/db-function-check.sh` exercises it on a throwaway Postgres. After a save the action invalidates the type's tag; every page showing that content reads it through the tag, so nothing is revalidated by path. Images upload through `POST /api/admin/upload` into the `media` bucket.
+
+Bodies are Markdown, never executed: raw HTML and JSX render as text, links are http(s)/mailto only. The about page is the one exception (repo MDX files, TD-019).
 
 ### Routing and languages
 
