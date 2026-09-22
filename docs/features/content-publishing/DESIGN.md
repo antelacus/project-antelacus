@@ -27,7 +27,7 @@
 | `src/app/[locale]/loading.tsx` | 删除（§3：它使 `notFound()` 只能给 200） | — |
 | `src/app/admin/(protected)/content/[type]/page.tsx`（新） | 某类型的条目列表 + 「新建」 | IO |
 | `src/app/admin/(protected)/content/[type]/[slug]/page.tsx`（新） | 编辑器页（`slug` 为 `new` 时新建）；取代 `notes/page.tsx` | IO |
-| `src/app/admin/(protected)/content/actions.ts`（新） | 服务端动作：保存（zod 校验 → 管理员校验 → repo → `revalidateTag(tag, 'max')` → 回编辑器）、改状态；取代 `notes/actions.ts` | IO |
+| `src/app/admin/(protected)/content/actions.ts`（新） | 服务端动作：保存（zod 校验 → 管理员校验 → repo → `updateTag(tag)` → 回编辑器）、改状态；取代 `notes/actions.ts` | IO |
 | `src/app/api/admin/upload/route.ts`（新） | `POST` 上传图片的路由处理器（服务端动作的请求体上限 1 MB，路由处理器没有）：管理员校验 → `media.ts` → `{ url }` | IO |
 | `src/components/admin/ContentEditor.tsx`（新，客户端） | 表单：核心字段 + 按类型描述表挂的附加面板；提交中禁用按钮；校验错误原位显示 | IO（浏览器实测） |
 | `src/components/admin/MarkdownEditor.tsx`（新，客户端） | **窄接口**：`{ value, onChange, onUpload }`；内部是 CodeMirror 6 + Markdown 语言包，粘贴 / 拖入图片调 `onUpload` 并在光标处插入 `![](url)` | IO |
@@ -54,7 +54,7 @@
 删除的文件：四个 `src/lib/server/*-repo.ts`、`src/app/admin/(protected)/notes/`、`src/app/[locale]/loading.tsx`、`src/lib/supabase/middleware.ts` 若随 `proxy` 改名合并。
 
 ### 2.2 数据流
-发布：编辑器表单 → 服务端动作（zod 按类型校验）→ `requireAdminUser` → `content-repo.save` → 一次 RPC `save_content_item`：有 `id` 按 `id` 更新，否则按 `(content_type, locale, slug)` upsert；同一事务里标签、相册图（按 `sort_order` 重排）、链接整体替换；封面若不在提交的图片集合里则置空（映射函数已回落到第一张）；`published_at` 首次发布时写、之后不动 → `revalidateTag(<类型标签>, 'max')` → 303 回编辑器带 `saved=`。新建的第二次提交没有 `id`，走自然键，是更新。
+发布：编辑器表单 → 服务端动作（zod 按类型校验）→ `requireAdminUser` → `content-repo.save` → 一次 RPC `save_content_item`：有 `id` 按 `id` 更新，否则按 `(content_type, locale, slug)` upsert；同一事务里标签、相册图（按 `sort_order` 重排）、链接整体替换；封面若不在提交的图片集合里则置空（映射函数已回落到第一张）；`published_at` 首次发布时写、之后不动 → `updateTag(<类型标签>)` → 303 回编辑器带 `saved=`。新建的第二次提交没有 `id`，走自然键，是更新。
 
 图片：编辑器收到粘贴 / 拖入 / 选择 → `POST /api/admin/upload`（`FormData` 含文件与类型、slug）→ `media.ts` 校验并写桶 → 返回公开 URL → 编辑器在光标处插入 `![](url)`；封面与相册图同一接口，返回值写进各自字段。图片在页面上经 Next 图片优化（Supabase 域名已在 `remotePatterns`）。
 
@@ -74,7 +74,7 @@
 ## 3 外部系统约束
 上一版 §8 全部仍然成立，以下为本版新学到的（Phase 0 与 Phase 2 的实测，对象 Next 16.3.5）：
 - **Next 16**：`next lint` 已删除；`eslint-config-next` 16 只提供 flat config，`FlatCompat` 包装它报循环引用错误。`lint` 脚本与闸门直接跑 `eslint`。
-- **Next 16**：`revalidateTag` 必须带第二个参数（缓存配置名）。
+- **Next 16**：`revalidateTag` 必须带第二个参数；`'max'` 是 stale-while-revalidate——发布后第一次访问仍是旧页、第二次才新（生产实测）。服务端动作里要「下一次访问即反映」用 `updateTag(tag)`，它让标签立即过期。
 - **Next 16**：`middleware` 文件约定弃用，文件与导出函数都改名 `proxy`，运行时固定为 Node；行为不变。改名后 `middleware-manifest.json` 的两个键都为空，登记在 `functions-config-manifest.json` 的 `functions['/_middleware']`（带 matcher），闸门断言读这里。
 - **Next 16**：`viewport` 的属性序列化顺序变了（`user-scalable` 移到 `viewport-fit` 之前）；`<head>` 基线随之更新，routing-slimdown REQ §6 增列这一允许的差异。
 - **Next 16**：`globalNotFound` 仍是实验标志，行为同 15.5。
@@ -98,7 +98,7 @@
 - `save_content_item(payload jsonb) returns content_items`：`payload` = 父行字段 + `tags: text[]` + `images: {storage_path, public_url, alt_text, sort_order}[]` + `links: {label, url, link_type}[]`；只对服务端角色授权，匿名角色不可调用。
 - `POST /api/admin/upload`（`multipart/form-data`：`file`、`type`、`slug`）→ `200 { url }` 或 `4xx { error }`（用户可读文案）；未登录 401。
 - `MarkdownEditor` props：`{ value: string; onChange(next: string): void; onUpload(file: File): Promise<string> }`。
-- 缓存标签：`posts`、`notes`、`gallery`、`projects`；写入方在写成功后 `revalidateTag(tag, 'max')`。测试：每个动作使失效的标签 = 类型描述表里该类型的标签；首页、搜索索引、sitemap 只经四个加载器读。
+- 缓存标签：`posts`、`notes`、`gallery`、`projects`；写入方在写成功后 `updateTag(tag)`。测试：每个动作使失效的标签 = 类型描述表里该类型的标签；首页、搜索索引、sitemap 只经四个加载器读。
 - cookie `preferred_locale`：只由 `/api/locale` 写、只由 `proxy` 读（上一版契约不变，写方换了）。
 - 环境变量（VPS `.env` 新增）：`DATABASE_URL`（备份用）、`ANTELACUS_DATA_DIR`、`HC_PING_KEEPALIVE`、`HC_PING_BACKUP`、`HC_PING_SITE`。
 
