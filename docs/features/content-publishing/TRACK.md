@@ -79,10 +79,11 @@
 - 证据：单元 66（62 过、4 todo）；运行时 23（18 过、5 todo）：格式不合的 slug 404、搜索接口不回显、读库失败 500 无原文；`generateMetadata` 在边界外的事实与「缓存页生成失败只能裸 500」记入 DESIGN §3
 
 ### Batch 6 — 加固、语言 cookie、跳转链接
-- 状态：open
+- 状态：done `b21ce99`
 - 范围：`next.config.ts`（CSP、HSTS、`poweredByHeader`）、`src/lib/supabase/{server,middleware}.ts`（cookie 选项）、`src/lib/structured-data.ts`（`jsonLdScript`）与六处调用、`src/components/PhotoViewer.tsx`、`src/lib/seo.ts`（`SITE_ORIGIN`）与十处字面量、`src/app/api/locale/route.ts`（新）、`src/components/UtilityDropdown.tsx`、`src/components/SiteDocument.tsx`、`src/app/[locale]/layout.tsx`、两个 admin 布局 · 覆盖 REQ §5.5-a/b/c、§5.8、§5.9
 - 验收判据：§5.5-b（两条）、§5.5-c、§5.8-a（单元）；运行时 §5.5-a、§5.5-c、§5.8-a、§5.9-a 去掉 todo；浏览器下 CSP 无报错（公式、相册查看器、搜索、后台编辑器各开一次）；routing-slimdown §5.2-h 仍绿
 - 依赖：Batch 5
+- 证据：单元 66 全绿（todo 0）；运行时 22 过、todo 1（§5.4-a 待数据库）；浏览器（Playwright）打开关于页与登录页，CSP 零违规；响应头实测含 CSP、HSTS，无 `x-powered-by`；`<head>` 基线按 §5.5-c 更新为 www
 
 ### Batch 7 — 备份与告警
 - 状态：open
