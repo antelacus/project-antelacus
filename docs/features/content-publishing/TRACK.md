@@ -153,6 +153,8 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 - 评审：Codex 设计门 18 条、同模型整分支评审 10 条、Codex 部署前评审 9 条，均已处置，无在途评审
 - **留出的真实输入按裁定在生产做**（本地与 CI 没有数据库）：合并部署后发布一条测试内容再撤下，列为下面的发布方框
 
+**Phase 5**：版本 PR #7（`feat/content-publishing` → `main`），同模型评审与三份登记均已结清；Jason 审结构与范围后合并。
+
 **Phase 6 boxes**（请求 PR 之前写好——合并 ≠ 发布）：
 - [ ] CHANGELOG 条目
 - [ ] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑；TD-002、TD-004 留）
