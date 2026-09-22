@@ -6,9 +6,15 @@ export type EditorLink = { label: string; url: string; link_type: ProjectLinkTyp
 
 const LINK_TYPES: ProjectLinkType[] = ['repository', 'demo', 'reference', 'other'];
 
+// The card and the detail page show the repository and the demo; a new link defaults to whichever of
+// those is still missing, so the first link added is the one that actually appears.
+const nextLinkType = (links: EditorLink[]): ProjectLinkType =>
+  !links.some((l) => l.link_type === 'repository') ? 'repository' : !links.some((l) => l.link_type === 'demo') ? 'demo' : 'other';
+
 type Props = { links: EditorLink[]; onChange(links: EditorLink[]): void; error?: string };
 
-// A project's links: label, address, kind. The repository and demo kinds feed the card; the rest are listed.
+// A project's links: label, address, kind. Only the repository and demo kinds are shown on the public pages;
+// the others are stored for later.
 export default function ProjectLinksPanel({ links, onChange, error }: Props) {
   const update = (index: number, patch: Partial<EditorLink>) => onChange(links.map((link, i) => (i === index ? { ...link, ...patch } : link)));
 
@@ -26,7 +32,7 @@ export default function ProjectLinksPanel({ links, onChange, error }: Props) {
         </div>
       ))}
       {error && <p role="alert" style={{ margin: 0, color: 'var(--color-seal)' }}>{error}</p>}
-      <button type="button" className="admin-button" style={{ justifySelf: 'start' }} onClick={() => onChange([...links, { label: '', url: '', link_type: 'other' }])}>Add link</button>
+      <button type="button" className="admin-button" style={{ justifySelf: 'start' }} onClick={() => onChange([...links, { label: '', url: '', link_type: nextLinkType(links) }])}>Add link</button>
       <input type="hidden" name="links" value={JSON.stringify(links)} />
     </fieldset>
   );
