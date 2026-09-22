@@ -44,11 +44,12 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   return (
-    <SiteDocument lang={locale}>
-      <NextIntlClientProvider locale={locale} messages={messages}>
-        <Nav />
-        {children}
-      </NextIntlClientProvider>
+    <SiteDocument
+      lang={locale}
+      nav={<Nav />}
+      wrap={(content) => <NextIntlClientProvider locale={locale} messages={messages}>{content}</NextIntlClientProvider>}
+    >
+      {children}
     </SiteDocument>
   );
 }

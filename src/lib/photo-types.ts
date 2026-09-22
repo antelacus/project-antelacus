@@ -1,6 +1,5 @@
-import path from 'path';
-
-import type { Json } from '@/lib/server/database.types';
+import type { ContentRow } from '@/lib/content-row';
+import { displayDate, stringMetadata, tagNames } from '@/lib/content-row';
 
 export interface PhotoInfo {
   filename: string;
@@ -30,12 +29,6 @@ export interface Photo extends PhotoMeta {
   content: string;
 }
 
-export type PhotoTagJoinRow = {
-  content_tags: {
-    name: string;
-  } | null;
-};
-
 export type GalleryImageRow = {
   storage_path: string;
   public_url: string;
@@ -45,54 +38,19 @@ export type GalleryImageRow = {
   created_at: string;
 };
 
-export type PhotoRecordRow = {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string | null;
-  body_markdown: string;
-  status: 'draft' | 'published';
-  published_at: string | null;
-  created_at: string;
-  updated_at: string;
-  locale: string;
-  cover_image_url: string | null;
-  extra_metadata: Json | null;
-  content_item_tags?: PhotoTagJoinRow[] | null;
+export type PhotoRecordRow = ContentRow & {
   gallery_images?: GalleryImageRow[] | null;
 };
 
-function extractMetadataValue(metadata: Json | null, key: string): Json | undefined {
-  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-    return undefined;
-  }
+// The last path segment; a plain string operation so this module can also run in the browser.
+const fileName = (value: string) => value.split('/').filter(Boolean).pop() ?? value;
 
-  return metadata[key];
-}
-
-function getStringMetadataValue(metadata: Json | null, key: string): string | undefined {
-  const value = extractMetadataValue(metadata, key);
-  return typeof value === 'string' ? value : undefined;
-}
-
-function getPhotoTags(row: PhotoRecordRow): string[] {
-  return (row.content_item_tags ?? [])
-    .map((entry) => entry.content_tags?.name?.trim())
-    .filter((value): value is string => Boolean(value));
-}
-
-function mapGalleryImageToPhotoInfo(
-  image: GalleryImageRow,
-  row: PhotoRecordRow,
-): PhotoInfo {
-  const location = getStringMetadataValue(row.extra_metadata, 'location');
-  const fileName = path.basename(image.storage_path || image.public_url);
-
+function mapGalleryImageToPhotoInfo(image: GalleryImageRow, row: PhotoRecordRow): PhotoInfo {
   return {
-    filename: fileName,
+    filename: fileName(image.storage_path || image.public_url),
     path: image.public_url,
     caption: image.alt_text ?? row.summary ?? undefined,
-    location,
+    location: stringMetadata(row.extra_metadata, 'location'),
     timestamp: image.captured_at ?? undefined,
   };
 }
@@ -107,29 +65,20 @@ function getSortedGalleryImages(row: PhotoRecordRow): GalleryImageRow[] {
   });
 }
 
-function resolveDisplayDate(row: PhotoRecordRow): string {
-  return getStringMetadataValue(row.extra_metadata, 'displayDate')
-    ?? row.published_at
-    ?? row.updated_at;
-}
-
 export function mapPhotoRecordToPhotoMeta(row: PhotoRecordRow): PhotoMeta {
-  const sortedImages = getSortedGalleryImages(row);
-  const photos = sortedImages.map((image) => mapGalleryImageToPhotoInfo(image, row));
-  const imageFolder = getStringMetadataValue(row.extra_metadata, 'imageFolder') ?? row.slug;
-  const coverImage = row.cover_image_url ?? photos[0]?.path ?? '';
+  const photos = getSortedGalleryImages(row).map((image) => mapGalleryImageToPhotoInfo(image, row));
 
   return {
     slug: row.slug,
     title: row.title,
-    date: resolveDisplayDate(row),
+    date: displayDate(row),
     caption: row.summary ?? undefined,
-    location: getStringMetadataValue(row.extra_metadata, 'location'),
-    imageFolder,
-    coverImage,
+    location: stringMetadata(row.extra_metadata, 'location'),
+    imageFolder: stringMetadata(row.extra_metadata, 'imageFolder') ?? row.slug,
+    coverImage: row.cover_image_url ?? photos[0]?.path ?? '',
     photoCount: photos.length,
     photos,
-    tags: getPhotoTags(row),
+    tags: tagNames(row),
   };
 }
 

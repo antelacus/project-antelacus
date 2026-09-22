@@ -5,11 +5,20 @@ import SkipLink from './SkipLink';
 import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from '@/app/fonts';
 import type { AppLocale } from '@/i18n/routing';
 import { getMetaMessage } from '@/lib/seo';
-import { websiteJsonLd } from '@/lib/structured-data';
+import { jsonLdScript, websiteJsonLd } from '@/lib/structured-data';
 
 // The document shell shared by the two root layouts. It must not read the request (cookies, headers):
 // the caller passes `lang`, which keeps every public page cacheable.
-export default async function SiteDocument({ lang, children }: { lang: AppLocale; children: React.ReactNode }) {
+type Props = {
+  lang: AppLocale;
+  children: React.ReactNode;
+  /** Rendered before <main>, so a skip link really skips it. */
+  nav?: React.ReactNode;
+  /** Wraps nav and main together (a translation provider both need). */
+  wrap?: (content: React.ReactNode) => React.ReactNode;
+};
+
+export default async function SiteDocument({ lang, children, nav, wrap = (content) => content }: Props) {
   // Rendered above the translation provider, so the one string the shell shows is read here.
   const skipLabel = await getMetaMessage(lang, 'utility.skip_to_content');
   return (
@@ -54,14 +63,19 @@ export default async function SiteDocument({ lang, children }: { lang: AppLocale
         
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd()) }}
         />
       </head>
       <body>
         <SkipLink label={skipLabel} />
-        <main id="main-content" tabIndex={-1}>
-          {children}
-        </main>
+        {wrap(
+          <>
+            {nav}
+            <main id="main-content" tabIndex={-1}>
+              {children}
+            </main>
+          </>,
+        )}
       </body>
     </html>
   );

@@ -16,6 +16,8 @@ export async function updateSupabaseSession(request: NextRequest) {
   const env = getSupabasePublicEnv();
 
   const supabase = createServerClient<Database>(env.url, env.publishableKey, {
+    // No browser-side Supabase client exists, so the session never needs to be readable by script.
+    cookieOptions: { httpOnly: true, secure: true, sameSite: 'lax' },
     cookies: {
       getAll() {
         return request.cookies.getAll();

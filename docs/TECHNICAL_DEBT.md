@@ -34,24 +34,6 @@ Update this file when:
 - The note form has no protection against a double submit, and a second submit of a new note with the same slug fails on the unique constraint and shows the framework's generic error page (seen on the first real publish, 2026-09-22). The publishing entry should make saving idempotent by slug.
 - Until then the procedure is `docs/content-publishing.md` §三: SQL in the Supabase console. Its SQL was derived from the schema and the code and has not been executed; the first real use is its verification.
 
-### TD-002 - Search now has a single runtime dependency with no fallback path
-
-- Status: `Accepted`
-- Severity: `Medium`
-- Area: `search`
-- Identified: `2026-03-19`
-- Context:
-  - The static search-index fallback was intentionally removed during the Supabase-only cutover.
-  - The search modal now depends entirely on `/api/search-index`.
-- Risk:
-  - Any failure in the runtime search API makes the search modal unavailable.
-  - Search availability is now tightly coupled to the live application and Supabase-backed content fetches.
-- Evidence:
-  - `src/components/SearchModal.tsx`
-  - `src/app/api/search-index/route.ts`
-- Recommended follow-up:
-  - Optional only. If desired later, add a resilient degraded mode or operational monitoring for search failures.
-
 ### TD-003 - No in-repo bootstrap/recovery path for migrated content
 
 - Status: `Open`
@@ -67,38 +49,19 @@ Update this file when:
 - Evidence:
   - `package.json`
   - deleted legacy content under `src/content/posts`, `src/content/notes`, `src/content/projects`, `src/content/gallery`
-- Recommended follow-up:
-  - Create an operational backup/export process outside the runtime app, or restore a private recovery tool that is not part of the public runtime path.
-
-### TD-004 - `/about` remains a file-based exception
-
-- Status: `Intentional`
-- Severity: `Low`
-- Area: `localization`
-- Identified: `2026-03-19`
-- Context:
-  - `/about` still reads localized MDX files from disk.
-  - This was intentionally kept outside the Supabase migration scope.
-- Risk:
-  - The content architecture is not fully uniform across the site.
-  - Future maintenance needs to remember that `/about` does not follow the same source-of-truth model as the migrated content domains.
-- Evidence:
-  - `src/lib/pages.ts`
-  - `src/app/[locale]/about/page.tsx`
-- Recommended follow-up:
-  - No immediate action required unless the site later standardizes all content on Supabase.
+- Ruled (Project Lead, 2026-09-22): in v2.3.0 — a cron on the VPS runs `pg_dump` plus a storage-bucket sync into the VPS data directory; the database password becomes a new secret in the VPS `.env`.
 
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
 
-Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes each one into scope, accepts it, or declines it — none of them is parked.
+Who rules on what: Phase 0 of v2.3.0 (2026-09-22) took every open item on this register, including TD-001, into scope (TD-003 included) — see `docs/features/content-publishing/TRACK.md` zone 一. Nothing is parked.
 
 ### TD-005 - Five production dependency advisories remain, each behind a major upgrade
 
 - Status: `Open` · Severity: `High` · Area: `dependencies` · Identified: `2026-09-21`
 - Context: after v2.1.4 (`next` 15.5.25 + `npm audit fix`), `npm audit --omit=dev` reports 5: `next` (moderate) and `postcss` via `next` (high) — fixed only in Next 16; `next-mdx-remote` (high — see TD-006); `sharp` (high, fixed in 0.35 — nothing imports it, Next uses it for image optimisation); `next-intl` (moderate, fixed in 4.14.5 — its open-redirect path is not reachable here because its middleware and navigation are not imported).
-- Recommended follow-up: `next-intl` and `sharp` bumps are small and can ride v2.2.0; Next 16 is its own version.
+- Ruled (Project Lead, 2026-09-22): all three, including Next 16, in v2.3.0 — overriding v2.2.0's ruling that Next 16 is its own version.
 
 ### TD-006 - Database content is compiled and executed as code on the server
 
@@ -121,11 +84,12 @@ Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes e
 
 - Status: `Open` · Severity: `Low` · Area: `operations`
 - Context: `scripts/supabase-keepalive.sh` writes `ALERT` to a log file on the VPS after three failed runs; nothing reads that file. Together with TD-003 (no backup/export), a paused or lost Supabase project would be noticed by a visitor first.
+- Ruled (Project Lead, 2026-09-22): in v2.3.0, as an external dead-man's-switch service — the script pings on success, a missing ping alerts; nothing self-hosted on the VPS, since a monitor must not share a machine with what it watches.
 
 ### TD-014 - Small hardening items
 
 - Status: `Open` · Severity: `Low` · Area: `security`
-- Context: base image `node:20` is past end-of-life; no CSP or HSTS, `x-powered-by` exposed; Supabase session cookies are set without `secure`; three admin-authored XSS sinks (`PhotoViewer.tsx:190` `innerHTML`, JSON-LD written without escaping `<`, `projects/[slug]/page.tsx:105` `href` without a scheme check); "admin" is an email match only — **check in the Supabase dashboard that sign-ups are disabled or email confirmation is required**, otherwise a listed address with no account yet can be registered by anyone; canonical URLs use `antelacus.com`, which nginx redirects to `www`.
+- Context: base image `node:20` is past end-of-life; no CSP or HSTS, `x-powered-by` exposed; Supabase session cookies are set without `secure`; three admin-authored XSS sinks (`PhotoViewer.tsx:190` `innerHTML`, JSON-LD written without escaping `<`, `projects/[slug]/page.tsx:105` `href` without a scheme check); "admin" is an email match only — sign-ups are confirmed disabled and email confirmation on in the Supabase dashboard (2026-09-22), which closes the register-an-admin-address hole; the runbook should record where to re-check; canonical URLs use `antelacus.com`, which nginx redirects to `www`.
 
 ### TD-016 - The tests pin mappers only
 
@@ -141,3 +105,15 @@ Who rules on what: every item below goes to **Phase 0 of v2.2.0**, which takes e
 
 - Status: `Open` · Severity: `Low` · Area: `accessibility`
 - Context: `src/components/SiteDocument.tsx` wraps `children` in `<main id="main-content">`, but the `[locale]` layout renders `<Nav />` inside `children`, so "skip to main content" skips nothing; the admin setup notice and the detail pages' not-found branches nest a second `<main>`. Predates v2.2.0. Fix: the layout renders the nav outside `<main>`, and the inner `<main>`s become `<div>`s.
+
+### TD-019 - The about page is the last repo-file content and the last MDX user
+
+- Status: `Open` · Severity: `Low` · Area: `content-management` · Identified: `2026-09-22`
+- Context: `/about` reads `src/content/pages/about/*.mdx`, five per-language files written as JSX (sections, a contact grid, inline SVG icons), rendered by `next-mdx-remote`. It cannot be edited from the admin, and it is the one page the Markdown-only renderer of v2.3.0 does not cover. Converting it to Markdown changes its appearance, which v2.3.0 forbids.
+- Ruled (Project Lead, 2026-09-22): v2.4.0 — the visual upgrade redesigns the about page, and it moves into the database as Markdown (per-language rows with fallback to English, then any) in the same version; `next-mdx-remote` leaves with it.
+
+### TD-020 - Three React hook rules run as warnings, not errors
+
+- Status: `Open` · Severity: `Low` · Area: `lint` · Identified: `2026-09-22`
+- Context: `eslint-config-next` 16 enables the React Compiler's `react-hooks/set-state-in-effect`, `immutability` and `static-components`. Eighteen existing sites fail them: state set inside effects in the four cards, `Nav`, `SearchModal`, `UtilityDropdown`; ref mutation in `PhotoViewer`; components defined inside `SearchModal`'s render. `eslint.config.mjs` downgrades the three rules to warnings so the gate stays meaningful.
+- Retirement trigger: v2.4.0 rewrites these components for the visual upgrade; that version deletes the override and fixes whatever is left.

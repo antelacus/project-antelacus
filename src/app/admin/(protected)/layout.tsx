@@ -8,7 +8,7 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
   const session = await requireAdminUser('/admin');
 
   return (
-    <main className="content-container content-container-standard">
+    <div className="content-container content-container-standard">
       <header
         style={{
           display: 'flex',
@@ -46,6 +46,6 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
       </header>
 
       {children}
-    </main>
+    </div>
   );
 }

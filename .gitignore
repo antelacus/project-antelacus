@@ -42,3 +42,6 @@ next-env.d.ts
 
 # python
 __pycache__/
+
+# Playwright MCP session output (browser checks during development)
+.playwright-mcp/

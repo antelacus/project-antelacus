@@ -5,7 +5,8 @@ import { join, relative } from 'node:path';
 
 import ts from 'typescript';
 
-// REQ §5.3-b and §5.4 — freshness on save, and what must be gone.
+// REQ §5.3 and §5.4 — the cache lifetime, and what must be gone. (Tag invalidation on save moved to
+// tests/acceptance-content-publishing.test.ts with the one content editor.)
 
 const ROOT = join(import.meta.dirname, '..');
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8');
@@ -37,24 +38,13 @@ const REMOVED_FILES = [
   'scripts/submit-sitemap.cjs',
 ];
 
-test('acceptance §5.3-b saving a note invalidates the notes cache tag', () => {
-  const path = 'src/app/admin/(protected)/notes/actions.ts';
-  const source = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, true);
-  const calls: string[] = [];
-  const visit = (node: ts.Node) => {
-    if (ts.isCallExpression(node) && node.expression.getText() === 'revalidateTag') calls.push(node.arguments[0]?.getText() ?? '');
-    node.forEachChild(visit);
-  };
-  visit(source);
-  assert.ok(calls.some((argument) => /^['"]notes['"]$/.test(argument)), `revalidateTag('notes') not found; saw: ${calls.join(', ') || 'no revalidateTag call'}`);
-});
-
 test('acceptance §5.3 data is cached for at most half an hour, so an edit shows within the hour', async () => {
   const { DATA_CACHE_SECONDS } = await import('../src/lib/cache-lifetime');
   assert.ok(DATA_CACHE_SECONDS <= 1800, `page cache stacks on data cache: ${DATA_CACHE_SECONDS}s × 2 exceeds the hour`);
   for (const name of ['posts', 'notes', 'gallery', 'projects']) {
-    const lifetimes = [...read(`src/lib/${name}.ts`).matchAll(/revalidate:\s*([\w.]+)/g)].map((match) => match[1]);
-    assert.ok(lifetimes.length >= 2, `${name}.ts: expected a list and a detail cache, found ${lifetimes.length}`);
+    const source = read(`src/lib/${name}.ts`);
+    const lifetimes = [...source.matchAll(/revalidate:\s*([\w.]+)/g)].map((match) => match[1]);
+    assert.ok((source.match(/unstable_cache\(/g) ?? []).length >= 2, `${name}.ts: expected a list and a detail cache`);
     assert.deepEqual([...new Set(lifetimes)], ['DATA_CACHE_SECONDS'], `${name}.ts: every lifetime comes from the one constant`);
   }
 });

@@ -16,7 +16,7 @@
 | `src/i18n/routing.ts` | 支持的语言、默认语言、**公开栏目清单**（`/<语言>/` 之下的一级路径名）、**不参与语言路由的顶级路径清单**（目录与单个文件）——唯一来源 | infra |
 | `src/i18n/detect.ts` | 把语言标签（路径段、`Accept-Language`）归到支持的语言；归不到则为空 | core |
 | `src/i18n/route-decision.ts`（新） | **语言路由的全部规则**：路径、`Accept-Language`、记住的选择 → 「放行」「308 到某地址」或「不存在」 | core |
-| `src/middleware.ts`（由根目录移入） | 薄壳：执行 `route-decision` 的结论；放行的请求若在 `/admin`、`/auth` 之下则续期会话。自身不含规则，`matcher` 只排除框架自己的 `/_next/` | IO |
+| `src/proxy.ts`（由根目录的 `middleware.ts` 移入，Next 16 起改名） | 薄壳：执行 `route-decision` 的结论；放行的请求若在 `/admin`、`/auth` 之下则续期会话。自身不含规则，`matcher` 只排除框架自己的 `/_next/` | IO |
 | `src/app/global-not-found.tsx`（新） | 全站唯一的 404 页：英文、站点外壳（`SiteDocument`）、无导航；构建时生成一次 | infra |
 | `src/app/site-metadata.ts`（新） | 全站的 `metadata` 与 `viewport` 对象（由现根布局原样搬来） | infra |
 | `src/components/SiteDocument.tsx`（新） | `<html lang>`、`<head>`、`<body>` 的公共外壳：全局 CSS、KaTeX 样式、字体变量与预载都在这里引入；`lang` 由调用方传入 | infra |
@@ -84,13 +84,13 @@ N/A —— 本版不改数据库结构。
 2. 公开页面保持可缓存 —— 两道守卫：`src/app/[locale]/**` 及其用到的服务端模块不引入 `next/headers`；其下每个 `layout.tsx`、`page.tsx` 都调用 `setRequestLocale`（新测试，按语法树检查）。**证据只认运行中服务的响应头**：构建的路由表把页面标成静态，并不意味着运行时不是 `no-store`（实测）。
 3. 支持的语言只在 `src/i18n/routing.ts` 里列出 —— 新测试：别处不得出现同时含 `zh-CN` 与 `zh-HK` 的字面量数组（`src/messages/` 除外）。
 4. 公开栏目清单 = `src/app/[locale]/` 下的一级目录名 —— 新测试。加了栏目却没登记，它的无前缀地址就会 404 而不是跳转。
-5. 中间件确实被注册 —— 闸门里构建之后断言 `.next/server/middleware-manifest.json` 含一个入口。
+5. proxy（中间件）确实被注册 —— 闸门里构建之后断言 `.next/server/functions-config-manifest.json` 的 `/_middleware` 项带 matcher（Next 16 起；15 时是 `middleware-manifest.json`）；运行时验收的 §5.2-b 重定向是第二道证据。
 6. 构建不依赖 Supabase 可达 —— 闸门用假环境变量完成构建即是证明。
 7. `CLAUDE.md` 提到的路径与脚本都存在 —— `tests/claude-md.test.ts`。
 8. `src/app` 与 `public/` 的每个顶级条目都已登记为栏目或「不参与语言路由」—— 新测试。中间件对不认识的第一段一律答 404，未登记的新路由或新文件不会被提供。
 
 ## 8 外部系统约束
-- **Next.js**：`middleware.ts` 必须与 `app` 目录同级；本项目的 `app` 在 `src/` 下，故为 `src/middleware.ts`。放在仓库根目录时构建不报错，只是不注册（实测：除位置外相同的两次构建，清单入口分别为空与 `/`）。
+- **Next.js**：`middleware.ts`（Next 16 起为 `proxy.ts`）必须与 `app` 目录同级；本项目的 `app` 在 `src/` 下，故为 `src/proxy.ts`。放在仓库根目录时构建不报错，只是不注册（实测：除位置外相同的两次构建，清单入口分别为空与 `/`）。
 - **Next.js**：没有顶层 `app/layout.tsx` 时，每个含页面的顶级路由段要有自己的根布局；只有路由处理器的段不需要。顶层的 `not-found.tsx` 在此结构下不可用——未匹配的地址都落进 `[locale]`。
 - **Next.js**：`metadata` 与 `viewport` 是路由段的导出，不能放进组件；两个根布局都得各自导出。
 - **Next.js**：动态段的页面要在首次访问后被缓存，必须导出 `generateStaticParams`（可返回空数组）。

@@ -1,9 +1,11 @@
-import { getPhotoBySlug } from '@/lib/gallery';
+import { getPhotoBySlug, getPhotoSlugs } from '@/lib/gallery';
 import { setRequestLocale } from 'next-intl/server';
 import { languageAlternates } from '@/lib/seo';
-import { imageGalleryJsonLd } from '@/lib/structured-data';
-// import { notFound } from 'next/navigation';
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { SITE_ORIGIN } from '@/lib/site';
+import { imageGalleryJsonLd, jsonLdScript } from '@/lib/structured-data';
+import { notFound } from 'next/navigation';
+import { isNotFoundError } from '@/lib/not-found';
+import { renderMarkdown } from '@/lib/markdown';
 import Link from 'next/link';
 import PhotoViewer from '@/components/PhotoViewer';
 import TagList from '@/components/TagList';
@@ -16,53 +18,48 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const photo = await getPhotoBySlug(slug);
-  if (!photo) {
+  // Metadata renders outside the error boundary: a database failure here would be a bare 500, so
+  // it falls back to the layout's defaults and lets the page body raise the error where it is caught.
+  try {
+    if (!(await getPhotoSlugs()).includes(slug)) notFound();
+    const photo = await getPhotoBySlug(slug);
+    if (!photo) notFound();
     return {
-      title: '照片集未找到',
-      description: '你访问的照片集不存在或已被删除。',
-    };
-  }
-  return {
-    title: photo.title,
-    description: photo.caption || `视觉作品 - ${photo.title}`,
-    alternates: {
-      languages: languageAlternates(`/gallery/${photo.slug}`),
-    },
-    openGraph: {
       title: photo.title,
       description: photo.caption || `视觉作品 - ${photo.title}`,
-      type: 'article',
-      url: `https://antelacus.com/gallery/${photo.slug}`,
-      images: [{ url: `/gallery/${photo.slug}/og.png`, width: 1200, height: 630 }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      images: [`/gallery/${photo.slug}/og.png`],
-    },
-  };
+      alternates: {
+        languages: languageAlternates(`/gallery/${photo.slug}`),
+      },
+      openGraph: {
+        title: photo.title,
+        description: photo.caption || `视觉作品 - ${photo.title}`,
+        type: 'article',
+        url: `${SITE_ORIGIN}/gallery/${photo.slug}`,
+        images: [{ url: `/gallery/${photo.slug}/og.png`, width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: [`/gallery/${photo.slug}/og.png`],
+      },
+    };
+  } catch (error) {
+    if (isNotFoundError(error)) throw error;
+    return {};
+  }
 }
 
 export default async function GalleryPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  if (!(await getPhotoSlugs()).includes(slug)) notFound();
   const photo = await getPhotoBySlug(slug);
-  
-  if (!photo) {
-    return (
-      <main className="content-container content-container-standard text-center">
-        <h1>照片集未找到</h1>
-        <p>你访问的照片集不存在或已被删除。</p>
-        <Link href="../">返回视觉</Link>
-      </main>
-    );
-  }
+  if (!photo) notFound();
 
   const jsonLd = imageGalleryJsonLd(photo);
 
   return (
-    <main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+    <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       <header className="content-container content-container-standard text-center mt-12">
         <h1>{photo.title}</h1>
         <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
@@ -93,10 +90,10 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
       {photo.content && (
         <div className="content-container content-container-standard">
           <article className="prose" data-title={photo.title}>
-            <MDXRemote source={photo.content} />
+            {renderMarkdown(photo.content)}
           </article>
         </div>
       )}
-    </main>
+    </div>
   );
 }

@@ -5,7 +5,10 @@ import SearchModal from './SearchModal';
 import UtilityDropdown from './UtilityDropdown';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { locales, isSupportedLocale } from '@/i18n/routing';
+import { locales } from '@/i18n/routing';
+import { useLocalePrefix } from '@/i18n/use-locale-prefix';
+import { SITE_ORIGIN } from '@/lib/site';
+import { jsonLdScript } from '@/lib/structured-data';
 
 export default function Nav() {
   const t = useTranslations();
@@ -14,8 +17,7 @@ export default function Nav() {
   const [isFromHomepage, setIsFromHomepage] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const currentLocale = (pathname.split('/')[1] || '');
-  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = useLocalePrefix();
   const stripLocale = (path: string) => {
     const seg = (path || '/').split('/')[1] || '';
     if ((locales as readonly string[]).includes(seg)) {
@@ -280,9 +282,9 @@ export default function Nav() {
   const breadcrumbJsonLd = useMemo(() => {
     if (!isDetailPage || !sectionInfo || !currentTitle) return null;
     const items = [
-      { position: 1, name: '首页', item: 'https://antelacus.com/' },
-      { position: 2, name: sectionInfo.label, item: `https://antelacus.com${sectionInfo.href}` },
-      { position: 3, name: currentTitle, item: `https://antelacus.com${pathname}` },
+      { position: 1, name: '首页', item: `${SITE_ORIGIN}/` },
+      { position: 2, name: sectionInfo.label, item: `${SITE_ORIGIN}${sectionInfo.href}` },
+      { position: 3, name: currentTitle, item: `${SITE_ORIGIN}${pathname}` },
     ];
     return {
       '@context': 'https://schema.org',
@@ -528,7 +530,7 @@ export default function Nav() {
         </div>
       </nav>
       {breadcrumbJsonLd && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd) }} />
       )}
       <SearchModal open={searchOpen} onClose={() => { setSearchOpen(false); setSearchPreset(undefined); }} preset={searchPreset} />
     </header>

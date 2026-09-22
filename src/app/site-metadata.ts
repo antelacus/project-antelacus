@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 
+import { SITE_ORIGIN } from '@/lib/site';
+
 // Both root layouts (`[locale]` and `admin`) export these: metadata and viewport are route-segment
 // exports, so a shared component cannot carry them.
 export const siteMetadata: Metadata = {
@@ -8,7 +10,7 @@ export const siteMetadata: Metadata = {
     template: '%s | AnteLacus',
   },
   description: 'Ante Lacus, Pax Mentis',
-  metadataBase: new URL('https://antelacus.com'),
+  metadataBase: new URL(SITE_ORIGIN),
   formatDetection: {
     email: false,
     address: false,

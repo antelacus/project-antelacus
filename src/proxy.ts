@@ -11,7 +11,7 @@ const UNMATCHED_PATH = '/404/unmatched';
 const SESSION_TREES = ['admin', 'auth'];
 
 // A thin shell: which paths exist and where they lead is decided in src/i18n/route-decision.ts, not here.
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const decision = decideLocaleRoute({

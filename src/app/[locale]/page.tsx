@@ -47,7 +47,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
         <p className="garden-motto">Ante Lacus, Pax Mentis</p>
       </header>
 
-      <main className="framed-views">
+      <div className="framed-views">
         <section className="mountain-range">
           {featuredPosts.map((post, index) => (
             <div
@@ -81,7 +81,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
             </div>
           )}
         </section>
-      </main>
+      </div>
     </div>
   );
 }

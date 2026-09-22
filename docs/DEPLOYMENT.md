@@ -1,31 +1,50 @@
-# antelacus VPS deployment
+# antelacus VPS deployment and operations
 
-## Current hosting split
+The site runs on one VPS as a Docker container behind nginx, with Cloudflare in front and Supabase (Postgres, Storage, Auth) as the only backing service. `project-white` and `project-wexler` stay on GitHub Pages under their own subdomains.
 
-- `project-antelacus`: self-host on this VPS with Docker + nginx
-- `project-white`: keep on GitHub Pages at `white.antelacus.com`
-- `project-wexler`: keep on GitHub Pages at `wexler.antelacus.com`
+## Files
 
-## Files added for VPS hosting
+- `Dockerfile`: multi-stage Next.js image; the runtime stage runs as the unprivileged `node` user.
+- `docker-compose.yml`: runs the app on `127.0.0.1:${ANTELACUS_PORT}`; reads `.env`.
+- `.env.example`: every variable the runtime and the scripts below read. The real `.env` exists only on the VPS.
+- `deploy/nginx/www.antelacus.com.conf`: the nginx vhost.
+- `scripts/supabase-keepalive.sh`, `scripts/backup.sh`, `scripts/sync-bucket.mjs`, `scripts/site-check.sh`: the cron jobs (below).
 
-- `Dockerfile`: multi-stage Next.js production image
-- `docker-compose.yml`: runs the app on `127.0.0.1:3002`
-- `.env.example`: local runtime settings to copy into `.env`
-- `deploy/nginx/www.antelacus.com.conf`: nginx vhost template
+## Deploy
 
-## Local deploy steps on the VPS
+A push to `main` deploys: the gate (`.github/workflows/check.yml`) must pass, then `.github/workflows/deploy.yml` SSHes to the VPS and runs `docker compose up -d --build`, then checks health. Nothing unpushed reaches the server. Verify a deploy by comparing the served SHA with `main`.
 
-1. Copy `.env.example` to `.env` and adjust values if needed.
-2. Run `docker compose up -d --build` from the repo root.
-3. Verify the app locally on `http://127.0.0.1:3002`.
-4. Copy `deploy/nginx/www.antelacus.com.conf` into `/etc/nginx/sites-available/`.
-5. Enable the nginx site, test with `nginx -t`, then reload nginx.
-6. Point `www.antelacus.com` at this VPS and redirect `antelacus.com` to `www.antelacus.com`.
+First-time setup on the VPS: copy `.env.example` to `.env` and fill it in; `docker compose up -d --build`; copy the nginx vhost into `sites-available`, enable it, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`.
 
-## Important implementation detail
+Database changes ship as files in `supabase/migrations/`; apply them in the Supabase SQL editor (or with the Supabase CLI) **before** deploying the code that needs them. `scripts/db-function-check.sh` applies every migration to a throwaway Postgres and exercises the save function; run it after editing a migration.
 
-The current site still reads content directly from `src/content` and `public/images/gallery` at runtime. The Docker image copies those directories on purpose so the existing file-based publishing flow keeps working after the move off Vercel.
+## Cron jobs (as the deploy user)
 
-## Next phase: dynamic publishing
+```
+0 */6 * * *  /home/deploy/antelacus/scripts/supabase-keepalive.sh
+0 3 * * *    /home/deploy/antelacus/scripts/backup.sh >> /home/deploy/.local/state/antelacus/backup.log 2>&1
+*/10 * * * * /home/deploy/antelacus/scripts/site-check.sh
+```
 
-After the VPS cutover is stable, the next refactor is to replace runtime file reads with a database-backed content layer so new posts can be published instantly without a rebuild.
+- **keepalive**: one small query every six hours so the free-tier project is never idle for a week (idle a week, it pauses).
+- **backup**: a `pg_dump` of the whole database (custom format) plus a mirror of the `media` and `gallery` buckets, into `ANTELACUS_DATA_DIR` (outside the repository; it holds unpublished drafts, so it never leaves the VPS). Dumps older than `BACKUP_KEEP_DAYS` are deleted. `pg_dump` runs from the official `postgres:$PG_MAJOR` image; its major must be the server's or newer. `DATABASE_URL` is the **session pooler** string from the dashboard (Connect → Session pooler): the direct address is IPv6-only.
+- **site-check**: fetches `/en/about` from the public address every ten minutes.
+
+## Alerting: the dead-man's switch
+
+Each job reports to healthchecks.io after it succeeds (and to its `/fail` address when it fails). The service alerts by email when a report is missing or a failure arrives — so a job that stopped running is caught, not only one that ran and failed, and the VPS being down shows up as three missing reports.
+
+Setup, once: create three checks (keepalive: period 6 h, grace 1 h · backup: period 1 day, grace 3 h · site-check: period 10 min, grace 10 min) and put their ping URLs into `.env` as `HC_PING_KEEPALIVE`, `HC_PING_BACKUP`, `HC_PING_SITE`. Nothing runs on the VPS to watch the VPS.
+
+## Restore
+
+1. Create the target project (a fresh Supabase project, or any Postgres 17+) and apply `supabase/migrations/` — the dump carries the data, the migrations carry the schema, functions and grants.
+2. `pg_restore --data-only --no-owner --no-privileges -d "$TARGET_URL" antelacus-<stamp>.dump` from a `postgres:$PG_MAJOR` container.
+3. Upload `ANTELACUS_DATA_DIR/storage/<bucket>/…` into buckets of the same names (public read), keeping the paths: `public_url` values in the database are rebuilt from the project URL only if it changes — search and replace the old project host in `content_items.cover_image_url`, `body_markdown` and `gallery_images.public_url` when restoring into a different project.
+4. Point `.env` at the new project, `docker compose up -d --build`, run `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`.
+
+## Things to re-check by hand
+
+- Supabase → Authentication → Sign In / Providers: **Allow new users to sign up** off, **Confirm email** on. Admins are the emails in `SUPABASE_ADMIN_EMAILS`; with sign-ups open, a listed address without an account could be registered by anyone.
+- After a deploy that changes headers or images: `curl -I https://www.antelacus.com/en/about` shows `content-security-policy`, `strict-transport-security`, and no `x-powered-by`.
+- Cloudflare caches `/og.png` and `/images/` for a day; purge after replacing either.

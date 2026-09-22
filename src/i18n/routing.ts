@@ -16,6 +16,11 @@ export const defaultLocale: AppLocale = 'en';
 // tests/invariants.test.ts keeps this equal to the directories under src/app/[locale].
 export const localizedSections = ['about', 'gallery', 'notes', 'posts', 'projects', 'tags'] as const;
 
+// The sections whose next segment is a content slug. A slug that is not lowercase letters, digits and
+// hyphens is answered 404 by the proxy before any page runs (no database read, no cache entry).
+// tests/invariants.test.ts keeps this equal to the content-type registry's sections.
+export const slugSections = ['gallery', 'notes', 'posts', 'projects'] as const;
+
 // What is served outside `/<locale>/`: directories (`src/app/<name>/…`, `public/<name>/…`) and single files.
 // The middleware answers 404 for every first segment that is neither here nor a section nor a language,
 // so a new top-level route or public file must be added here. tests/invariants.test.ts keeps this complete.

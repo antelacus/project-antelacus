@@ -1,10 +1,9 @@
 "use client";
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { PhotoMeta } from '../lib/gallery';
 import { useState, useEffect } from 'react';
-import { isSupportedLocale } from '@/i18n/routing';
+import { useLocalePrefix } from '@/i18n/use-locale-prefix';
 
 interface PhotoCardProps {
   photo: PhotoMeta;
@@ -14,10 +13,7 @@ interface PhotoCardProps {
 }
 
 export default function PhotoCard({ photo, layout = 'vertical', compact = false, suppressAnimations = false }: PhotoCardProps) {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  const currentPath = usePathname?.() || pathname || '/';
-  const currentLocale = (currentPath.split('/')[1] || '');
-  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = useLocalePrefix();
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
 

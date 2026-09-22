@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
-import { locales, isSupportedLocale, PREFERRED_LOCALE_COOKIE } from '@/i18n/routing';
+import { locales, isSupportedLocale } from '@/i18n/routing';
 
 interface TocItem {
   id: string;
@@ -35,8 +35,8 @@ export default function UtilityDropdown({
   }, [pathname]);
 
   const changeLocale = (nextLocale: string) => {
-    // Only a manual switch is a choice; opening a prefixed link must never write this.
-    document.cookie = `${PREFERRED_LOCALE_COOKIE}=${nextLocale}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`;
+    // Only a manual switch is a choice; opening a prefixed link must never write this. The cookie is
+    // set by the server (/api/locale) so it outlives Safari's seven-day cap on script-written cookies.
     const segments = (pathname || '/').split('/');
     if (segments.length > 1 && isSupportedLocale(segments[1])) {
       segments[1] = nextLocale;
@@ -45,7 +45,8 @@ export default function UtilityDropdown({
     }
     // Read at click time rather than with useSearchParams(): that hook would force a Suspense boundary
     // around the nav on every statically rendered page.
-    router.push(segments.join('/') + window.location.search);
+    const next = segments.join('/') + window.location.search;
+    window.location.assign(`/api/locale?to=${encodeURIComponent(nextLocale)}&next=${encodeURIComponent(next)}`);
     onClose();
   };
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Keeps the Supabase free-tier project active by pinging the REST API.
-# Retries on transient failures. Logs every attempt. Tracks consecutive
-# failures in a state file so an external check (or future alerting
-# hook) can detect prolonged outages.
+# Keeps the Supabase free-tier project active by pinging the REST API (a week without a request
+# pauses it). Retries on transient failures, logs every attempt, and reports to the dead-man's switch:
+# a run that succeeds pings HC_PING_KEEPALIVE, a run that fails pings its /fail address, and a run that
+# never happens (cron stopped) is the missing ping the service alerts on.
+# Cron: 0 */6 * * * /home/deploy/antelacus/scripts/supabase-keepalive.sh
 
 REPO_DIR="/home/deploy/antelacus"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/antelacus"
@@ -11,7 +12,7 @@ FAIL_COUNT_FILE="$STATE_DIR/supabase-keepalive-failures"
 
 MAX_RETRIES=3
 RETRY_DELAY=30          # seconds between retries
-ALERT_THRESHOLD=3       # consecutive failed runs before alerting
+ALERT_THRESHOLD=3       # consecutive failed runs before the log says ALERT
 
 mkdir -p "$STATE_DIR"
 cd "$REPO_DIR" || exit 1
@@ -47,6 +48,7 @@ while (( attempt < MAX_RETRIES )); do
   if [[ "$HTTP_CODE" == "200" ]]; then
     echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) ok http=200 bytes=$BYTES attempt=$attempt" >> "$LOG_FILE"
     echo "0" > "$FAIL_COUNT_FILE"
+    [[ -n "${HC_PING_KEEPALIVE:-}" ]] && curl -fsS -m 10 --retry 3 -o /dev/null "$HC_PING_KEEPALIVE" || true
     exit 0
   fi
 
@@ -66,5 +68,6 @@ echo "$CONSECUTIVE" > "$FAIL_COUNT_FILE"
 if (( CONSECUTIVE >= ALERT_THRESHOLD )); then
   echo "$NOW ALERT consecutive_failures=$CONSECUTIVE threshold=$ALERT_THRESHOLD" >> "$LOG_FILE"
 fi
+[[ -n "${HC_PING_KEEPALIVE:-}" ]] && curl -fsS -m 10 --retry 3 -o /dev/null "$HC_PING_KEEPALIVE/fail" || true
 
 exit 1

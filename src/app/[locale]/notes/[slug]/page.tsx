@@ -1,11 +1,13 @@
-import { getNoteBySlug } from '@/lib/notes';
+import { getNoteBySlug, getNoteSlugs } from '@/lib/notes';
 import { setRequestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { isNotFoundError } from '@/lib/not-found';
 import { languageAlternates } from '@/lib/seo';
-import { noteJsonLd } from '@/lib/structured-data';
+import { SITE_ORIGIN } from '@/lib/site';
+import { noteJsonLd, jsonLdScript } from '@/lib/structured-data';
 import Link from 'next/link';
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { renderMarkdown } from '@/lib/markdown';
 import TagList from '@/components/TagList';
-import remarkGfm from 'remark-gfm';
 
 // Nothing is built ahead of time (the build must not need the database); an empty list is what lets
 // Next cache each page after its first visit instead of rendering it on every request.
@@ -15,50 +17,48 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const note = await getNoteBySlug(slug);
-  if (!note) {
-    return { title: '笔记未找到' };
-  }
-  return { 
-    title: note.title, 
-    description: note.summary || '',
-    alternates: {
-      languages: languageAlternates(`/notes/${note.slug}`),
-    },
-    openGraph: {
-      title: note.title,
+  // Metadata renders outside the error boundary: a database failure here would be a bare 500, so
+  // it falls back to the layout's defaults and lets the page body raise the error where it is caught.
+  try {
+    if (!(await getNoteSlugs()).includes(slug)) notFound();
+    const note = await getNoteBySlug(slug);
+    if (!note) notFound();
+    return { 
+      title: note.title, 
       description: note.summary || '',
-      type: 'article',
-      url: `https://antelacus.com/notes/${note.slug}`,
-      images: [{ url: `/notes/${note.slug}/og.png`, width: 1200, height: 630 }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      images: [`/notes/${note.slug}/og.png`],
-    },
-  };
+      alternates: {
+        languages: languageAlternates(`/notes/${note.slug}`),
+      },
+      openGraph: {
+        title: note.title,
+        description: note.summary || '',
+        type: 'article',
+        url: `${SITE_ORIGIN}/notes/${note.slug}`,
+        images: [{ url: `/notes/${note.slug}/og.png`, width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: [`/notes/${note.slug}/og.png`],
+      },
+    };
+  } catch (error) {
+    if (isNotFoundError(error)) throw error;
+    return {};
+  }
 }
 
 export default async function NotePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  if (!(await getNoteSlugs()).includes(slug)) notFound();
   const note = await getNoteBySlug(slug);
-
-  if (!note) {
-    return (
-      <main className="content-container content-container-standard text-center">
-        <h1>笔记未找到</h1>
-        <p>你访问的笔记不存在或已被删除。</p>
-        <Link href="../">返回闪念</Link>
-      </main>
-    );
-  }
+  if (!note) notFound();
 
   const jsonLd = noteJsonLd(note);
 
   return (
     <div className="content-container content-container-standard">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
       <article data-title={note.title}>
         <header>
           <h1>{note.title}</h1>
@@ -80,14 +80,7 @@ export default async function NotePage({ params }: { params: Promise<{ locale: s
         </header>
         
         <div className="prose mt-8">
-          <MDXRemote 
-            source={note.content}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm],
-              }
-            }}
-          />
+          {renderMarkdown(note.content)}
         </div>
         
       </article>

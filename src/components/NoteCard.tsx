@@ -1,9 +1,8 @@
 "use client";
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { NoteMeta } from '../lib/notes';
 import { useState, useEffect } from 'react';
-import { isSupportedLocale } from '@/i18n/routing';
+import { useLocalePrefix } from '@/i18n/use-locale-prefix';
 
 interface NoteCardProps {
   note: NoteMeta;
@@ -13,10 +12,7 @@ interface NoteCardProps {
 }
 
 export default function NoteCard({ note, layout = 'vertical', compact = false, suppressAnimations = false }: NoteCardProps) {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  const currentPath = usePathname?.() || pathname || '/';
-  const currentLocale = (currentPath.split('/')[1] || '');
-  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = useLocalePrefix();
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');

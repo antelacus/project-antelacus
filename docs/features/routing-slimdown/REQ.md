@@ -97,7 +97,7 @@
 ## 6 其他需求
 - 安全：本版不得放宽 v2.1.3 建立的约束——特权数据库客户端只经管理员校验发放（`tests/service-role-guard.test.ts` 保持通过，线上未登录探测保持 0）。
 - 可回退：每一批可单独回退；部署出问题时，回退到上一个 tag 即恢复。
-- 外观与 `<head>` 不变：根布局搬迁前后，公开页面与后台页面的 `<head>`（标题与标题模板、描述、规范地址、Open Graph 与 Twitter 标签、图标、robots、viewport 与主题色）以及全局样式、公式样式、字体一致；允许的差异只有四处：`<html lang>` 变为正确的语言；哪些页面预加载导航图片（`link rel=preload as=image`）；两条指向不存在文件的字体预加载（`/fonts/*.woff2`）与两条对 Google Fonts 的 preconnect（字体已自托管）被删除。
+- 外观与 `<head>` 不变：根布局搬迁前后，公开页面与后台页面的 `<head>`（标题与标题模板、描述、规范地址、Open Graph 与 Twitter 标签、图标、robots、viewport 与主题色）以及全局样式、公式样式、字体一致；允许的差异只有四处：`<html lang>` 变为正确的语言；哪些页面预加载导航图片（`link rel=preload as=image`）；两条指向不存在文件的字体预加载（`/fonts/*.woff2`）与两条对 Google Fonts 的 preconnect（字体已自托管）被删除。v2.3.0 起另允许两处：`viewport` 属性的顺序（Next 16 的序列化）；页面切换的加载占位动画删除（真 404 的前提，`content-publishing` DESIGN §3）。
   - 验收判据 §6-a 同一组地址（`/en`、`/zh-CN/posts`、一篇文章、`/en/about`、`/admin/login`）在搬迁前后的 `<head>` 逐项比对，除 `lang` 与构建产物的哈希文件名外无差异。
 
 ## 7 对外接口

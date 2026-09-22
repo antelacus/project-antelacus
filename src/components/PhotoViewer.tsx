@@ -162,12 +162,14 @@ export default function PhotoViewer({ photos, location, date }: PhotoViewerProps
   const createPhotoInfoElement = () => {
     const element = document.createElement('div');
     element.className = 'custom-photo-info';
-    element.innerHTML = `
-      <div class="photo-info-content">
-        <div class="photo-counter"></div>
-        <div class="photo-details"></div>
-      </div>
-    `;
+    const content = document.createElement('div');
+    content.className = 'photo-info-content';
+    for (const name of ['photo-counter', 'photo-details']) {
+      const part = document.createElement('div');
+      part.className = name;
+      content.appendChild(part);
+    }
+    element.appendChild(content);
     return element;
   };
 
@@ -186,14 +188,18 @@ export default function PhotoViewer({ photos, location, date }: PhotoViewerProps
       counter.textContent = `${currentIndex + 1} / ${photos.length}`;
     }
     if (details) {
-      let detailsHTML = '';
-      if (location) {
-        detailsHTML += `<div class="detail-item"><span class="label">地点:</span> ${location}</div>`;
+      // Built from text nodes: the location and date come from the database, never from markup.
+      details.replaceChildren();
+      for (const [label, value] of [['地点:', location], ['时间:', date]] as const) {
+        if (!value) continue;
+        const item = document.createElement('div');
+        item.className = 'detail-item';
+        const labelNode = document.createElement('span');
+        labelNode.className = 'label';
+        labelNode.textContent = label;
+        item.append(labelNode, ` ${value}`);
+        details.appendChild(item);
       }
-      if (date) {
-        detailsHTML += `<div class="detail-item"><span class="label">时间:</span> ${date}</div>`;
-      }
-      details.innerHTML = detailsHTML;
     }
   };
 

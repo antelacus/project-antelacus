@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
 function SetupRequired() {
   return (
-    <main className="content-container content-container-standard">
+    <div className="content-container content-container-standard">
       <section
         style={{
           border: '1px solid rgba(29, 29, 27, 0.16)',
@@ -46,6 +46,6 @@ function SetupRequired() {
           to your local environment.
         </p>
       </section>
-    </main>
+    </div>
   );
 }

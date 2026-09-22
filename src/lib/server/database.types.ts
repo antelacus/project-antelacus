@@ -139,47 +139,16 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      save_content_item: {
+        Args: { payload: Json };
+        Returns: Database['public']['Tables']['content_items']['Row'];
+      };
+    };
     Enums: {
       content_type: ContentType;
       content_status: ContentStatus;
       project_link_type: ProjectLinkType;
     };
-  };
-}
-
-export function validateDynamicContentSchemaSamples() {
-  return {
-    contentItem: contentItemInsertSchema.parse({
-      content_type: 'note',
-      slug: '2026-03-19-dynamic-content-sample',
-      title: 'Dynamic content sample note',
-      summary: 'Schema validation sample for the v2.1.0 migration.',
-      body_markdown: 'This is a schema validation sample.',
-      status: 'draft',
-      locale: 'en',
-      extra_metadata: { source: 'schema-sample' },
-    }),
-    contentTag: contentTagInsertSchema.parse({
-      name: 'dynamic-content',
-      slug: 'dynamic-content',
-    }),
-    contentItemTag: contentItemTagInsertSchema.parse({
-      content_item_id: '11111111-1111-4111-8111-111111111111',
-      tag_id: '22222222-2222-4222-8222-222222222222',
-    }),
-    galleryImage: galleryImageInsertSchema.parse({
-      content_item_id: '33333333-3333-4333-8333-333333333333',
-      storage_path: 'gallery/sample/cover.jpg',
-      public_url: 'https://example.com/storage/v1/object/public/gallery/sample/cover.jpg',
-      alt_text: 'Sample gallery image',
-      sort_order: 0,
-    }),
-    projectLink: projectLinkInsertSchema.parse({
-      content_item_id: '44444444-4444-4444-8444-444444444444',
-      label: 'Repository',
-      url: 'https://github.com/example/repo',
-      link_type: 'repository',
-    }),
   };
 }

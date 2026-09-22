@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
@@ -17,10 +17,14 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/src/content ./src/content
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Everything the runtime owns belongs to the unprivileged user: pages are generated on first visit and
+# revalidated, and Next writes them under .next/cache. Copied as root they would fail with EACCES.
+COPY --chown=node:node --from=builder /app/public ./public
+COPY --chown=node:node --from=builder /app/src/content ./src/content
+COPY --chown=node:node --from=builder /app/.next/standalone ./
+COPY --chown=node:node --from=builder /app/.next/static ./.next/static
+RUN mkdir -p .next/cache && chown -R node:node .next/cache
+USER node
 
 EXPOSE 3000
 
