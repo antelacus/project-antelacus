@@ -176,7 +176,7 @@ test('acceptance §5.8-a no page script writes document.cookie', { todo: 'Batch 
 
 // ---------- §5.10 consolidation ----------
 
-test('acceptance §5.10-c every loader\'s request-level cache() wrapper is created once, at module level', { todo: 'Batch 3' }, () => {
+test('acceptance §5.10-c every loader\'s request-level cache() wrapper is created once, at module level', () => {
   for (const name of ['posts', 'notes', 'gallery', 'projects']) {
     const path = `src/lib/${name}.ts`;
     const source = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, true);
@@ -207,7 +207,7 @@ test('acceptance §5.3 every admin action invalidates the tag the type registry 
   }
 });
 
-test('acceptance §5.10 the four repos are one', { todo: 'Batch 3' }, () => {
+test('acceptance §5.10 the four repos are one', () => {
   for (const gone of ['posts-repo', 'notes-repo', 'gallery-repo', 'projects-repo']) {
     assert.equal(existsSync(join(ROOT, `src/lib/server/${gone}.ts`)), false, `${gone}.ts still exists`);
   }

@@ -32,7 +32,8 @@ const processor = unified()
     protocols: { ...defaultSchema.protocols, href: ['http', 'https', 'mailto'], src: ['http', 'https'] },
   })
   .use(imageRows)
-  .use(rehypeKatex)
+  // Bounds on macro expansion and glyph size so a pathological formula cannot pin the renderer.
+  .use(rehypeKatex, { maxExpand: 1000, maxSize: 100 })
   .use(rehypeReact, { Fragment, jsx, jsxs });
 
 export function renderMarkdown(source: string): ReactNode {

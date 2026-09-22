@@ -5,7 +5,8 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { requireAdminUser } from '@/lib/server/admin-auth';
-import { saveAdminNote } from '@/lib/server/notes-repo';
+import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
+import { saveContent } from '@/lib/server/content-repo';
 
 const noteFormSchema = z.object({
   id: z.string().uuid().optional().or(z.literal('')),
@@ -38,7 +39,7 @@ async function saveNoteAction(formData: FormData, intent: 'draft' | 'publish') {
     redirect('/admin/notes?error=validation');
   }
 
-  const result = await saveAdminNote({
+  const result = await saveContent(await getAdminServiceRoleClient('/admin/notes'), 'note', {
     id: parsed.data.id || undefined,
     slug: parsed.data.slug,
     title: parsed.data.title,

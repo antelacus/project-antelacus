@@ -53,8 +53,9 @@ test('acceptance §5.3 data is cached for at most half an hour, so an edit shows
   const { DATA_CACHE_SECONDS } = await import('../src/lib/cache-lifetime');
   assert.ok(DATA_CACHE_SECONDS <= 1800, `page cache stacks on data cache: ${DATA_CACHE_SECONDS}s × 2 exceeds the hour`);
   for (const name of ['posts', 'notes', 'gallery', 'projects']) {
-    const lifetimes = [...read(`src/lib/${name}.ts`).matchAll(/revalidate:\s*([\w.]+)/g)].map((match) => match[1]);
-    assert.ok(lifetimes.length >= 2, `${name}.ts: expected a list and a detail cache, found ${lifetimes.length}`);
+    const source = read(`src/lib/${name}.ts`);
+    const lifetimes = [...source.matchAll(/revalidate:\s*([\w.]+)/g)].map((match) => match[1]);
+    assert.ok((source.match(/unstable_cache\(/g) ?? []).length >= 2, `${name}.ts: expected a list and a detail cache`);
     assert.deepEqual([...new Set(lifetimes)], ['DATA_CACHE_SECONDS'], `${name}.ts: every lifetime comes from the one constant`);
   }
 });

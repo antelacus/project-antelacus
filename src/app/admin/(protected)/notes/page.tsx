@@ -2,7 +2,8 @@ import Link from 'next/link';
 
 import { locales } from '@/i18n/routing';
 import { mapNoteRecordToNoteMeta } from '@/lib/note-types';
-import { getAdminNoteBySlug, listAdminNotes } from '@/lib/server/notes-repo';
+import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
+import { getAdmin, listAdmin } from '@/lib/server/content-repo';
 import { publishNoteAction, saveDraftNoteAction } from './actions';
 
 type AdminNotesPageProps = {
@@ -21,8 +22,8 @@ function formatDateInput(value?: string): string {
 export default async function AdminNotesPage({ searchParams }: AdminNotesPageProps) {
   const params = await searchParams;
   const [rows, selectedNote] = await Promise.all([
-    listAdminNotes(),
-    params.slug ? getAdminNoteBySlug(params.slug) : Promise.resolve(null),
+    listAdmin(await getAdminServiceRoleClient('/admin/notes'), 'note'),
+    params.slug ? getAdmin(await getAdminServiceRoleClient('/admin/notes'), 'note', params.slug) : Promise.resolve(null),
   ]);
 
   const notes = rows.map(mapNoteRecordToNoteMeta);

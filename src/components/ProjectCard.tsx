@@ -1,10 +1,9 @@
 "use client";
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { ProjectMeta } from '../lib/projects';
 import { useState, useEffect } from 'react';
-import { isSupportedLocale } from '@/i18n/routing';
+import { useLocalePrefix } from '@/i18n/use-locale-prefix';
 
 interface ProjectCardProps {
   project: ProjectMeta;
@@ -14,10 +13,7 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, layout = 'vertical', compact = false, suppressAnimations = false }: ProjectCardProps) {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  const currentPath = usePathname?.() || pathname || '/';
-  const currentLocale = (currentPath.split('/')[1] || '');
-  const prefix = isSupportedLocale(currentLocale) ? `/${currentLocale}` : '';
+  const prefix = useLocalePrefix();
   const [isHovered, setIsHovered] = useState(false);
   const [naturalTilt, setNaturalTilt] = useState('');
   const [inkVariant, setInkVariant] = useState('');

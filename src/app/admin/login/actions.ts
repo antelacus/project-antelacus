@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import { getSafeNextPath } from '@/lib/safe-next-path';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const loginSchema = z.object({
@@ -12,14 +13,6 @@ const loginSchema = z.object({
   next: z.string().optional(),
 });
 
-function getSafeNextPath(nextPath?: string): string {
-  if (!nextPath || !nextPath.startsWith('/admin')) {
-    return '/admin';
-  }
-
-  return nextPath;
-}
-
 export async function login(formData: FormData) {
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
@@ -27,7 +20,7 @@ export async function login(formData: FormData) {
     next: formData.get('next'),
   });
 
-  const nextPath = getSafeNextPath(typeof formData.get('next') === 'string' ? formData.get('next') as string : undefined);
+  const nextPath = getSafeNextPath(formData.get('next'), '/admin', '/admin');
 
   if (!parsed.success) {
     redirect(`/admin/login?error=validation&next=${encodeURIComponent(nextPath)}`);

@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "test": "node --import tsx --test tests/*.test.ts",
+    "test": "node --import tsx --import ./tests/setup/stub-server-only.mjs --test tests/*.test.ts",
     "test:runtime": "node --test tests/runtime/acceptance.runtime.mjs",
     "lint": "eslint ."
   },

@@ -1,37 +1,32 @@
 import { cache } from 'react';
 import { unstable_cache } from 'next/cache';
-import {
-  getPublishedNoteBySlug,
-  getPublishedNotes,
-} from './server/notes-repo';
-import type { Note, NoteMeta } from './note-types';
+
 import { DATA_CACHE_SECONDS } from './cache-lifetime';
+import { CONTENT_TYPES } from './content-types';
+import { getPublished, listPublished, listPublishedSlugs } from './server/content-repo';
+import { createSupabasePublicServerClient } from './supabase/public-server';
+
 export type { Note, NoteMeta } from './note-types';
 
-const getAllNotesMetaUncached = async (): Promise<NoteMeta[]> => {
-  return getPublishedNotes();
-};
+const { tag } = CONTENT_TYPES.note;
+const options = { revalidate: DATA_CACHE_SECONDS, tags: [tag] };
 
 export const getAllNotesMeta = unstable_cache(
-  getAllNotesMetaUncached,
-  ['notes-meta', 'dynamic-content-v3'],
-  {
-    revalidate: DATA_CACHE_SECONDS,
-    tags: ['notes']
-  }
+  () => listPublished(createSupabasePublicServerClient(), 'note'),
+  ['notes-meta', 'dynamic-content-v6'],
+  options,
 );
 
-const getNoteBySlugUncached = async (slug: string): Promise<Note | null> => {
-  return getPublishedNoteBySlug(slug);
-};
+export const getNoteSlugs = unstable_cache(
+  () => listPublishedSlugs(createSupabasePublicServerClient(), 'note'),
+  ['notes-slugs', 'dynamic-content-v6'],
+  options,
+);
 
 export const getNoteBySlug = cache(
   unstable_cache(
-    getNoteBySlugUncached,
-    ['note', 'dynamic-content-v3'],
-    {
-      revalidate: DATA_CACHE_SECONDS,
-      tags: ['notes']
-    }
-  )
-); 
+    (slug: string) => getPublished(createSupabasePublicServerClient(), 'note', slug),
+    ['note', 'dynamic-content-v6'],
+    options,
+  ),
+);

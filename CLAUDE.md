@@ -6,7 +6,7 @@
 
 The scripts are in `package.json`. What the names do not tell you:
 
-- `npm run test` — unit tests on Node's built-in runner (no Jest/Vitest). One file: `node --import tsx --test tests/posts-repo.test.ts`.
+- `npm run test` — unit tests on Node's built-in runner (no Jest/Vitest). It preloads `tests/setup/stub-server-only.mjs` so modules that import `server-only` can be tested; one file: `node --import tsx --import ./tests/setup/stub-server-only.mjs --test tests/posts-repo.test.ts`. Database-touching code is tested against `tests/fakes/supabase.ts`.
 - `npm run test:runtime` — acceptance checks against a **running** server; needs `BASE_URL`. How to build and start a local server without a database is in the header of `tests/runtime/acceptance.runtime.mjs`.
 - `npm run build` must succeed without reaching Supabase; the gate builds with placeholder env vars to prove it.
 
