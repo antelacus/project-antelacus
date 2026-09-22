@@ -34,7 +34,8 @@ mv "$DUMP.part" "$DUMP"
 [[ -s "$DUMP" ]] || fail "empty dump"
 
 # Storage: every object of both buckets, mirrored under storage/<bucket>/ (see sync-bucket.mjs).
-docker run --rm -v "$REPO_DIR/scripts:/scripts:ro" -v "$DATA_DIR/storage:/data" \
+# Runs as the invoking user so the mirror in the data directory is owned by it, not by root.
+docker run --rm --user "$(id -u):$(id -g)" -v "$REPO_DIR/scripts:/scripts:ro" -v "$DATA_DIR/storage:/data" \
   -e NEXT_PUBLIC_SUPABASE_URL -e SUPABASE_SERVICE_ROLE_KEY \
   node:24-slim node /scripts/sync-bucket.mjs /data media gallery
 
