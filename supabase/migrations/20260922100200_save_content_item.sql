@@ -89,7 +89,11 @@ begin
   end if;
 
   delete from public.content_item_tags where content_item_id = item.id;
-  for tag_name in select distinct trim(t) from jsonb_array_elements_text(tags) t where trim(t) <> '' loop
+  -- The filter sits in the body, not in the FOR query: a string literal inside that query trips the
+  -- statement handling of Supabase's SQL editor ("missing LOOP at end of SQL expression").
+  for entry in select * from jsonb_array_elements(tags) loop
+    tag_name := trim(entry #>> '{}');
+    continue when tag_name is null or tag_name = '';
     insert into public.content_tags (name, slug) values (tag_name, lower(tag_name))
       on conflict (slug) do update set name = excluded.name
       returning id into tag_row_id;
