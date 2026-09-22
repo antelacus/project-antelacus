@@ -39,7 +39,55 @@
 
 ## 二、批次
 
-批次在 Phase 2（DESIGN 过 Codex 设计门、验收测试写红）结束时切出；此前本区为空。
+验收测试已写红：`tests/acceptance-content-publishing.test.ts`（单元）与 `tests/runtime/acceptance.runtime.mjs` 末段（运行时），每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。
+
+### Batch 1 — Next 16 与依赖
+- 状态：open
+- 范围：`package.json`（`next` 16.x 钉死、`react`、`eslint-config-next`、`next-intl`、`sharp`；`lint` 脚本）、`eslint.config.mjs`（flat config）、`src/middleware.ts` → `src/proxy.ts`、`src/app/admin/(protected)/notes/actions.ts`（`revalidateTag` 第二参数）、`.github/workflows/check.yml`（eslint 直跑、清单断言的键、`npm audit --omit=dev` 步骤）、`tests/runtime/fixtures/head-baseline.json`（`viewport` 顺序）· 覆盖 REQ §5.1
+- 验收判据：§5.1-a 去掉 todo；§5.1-b 既有单元与运行时验收全绿；§5.1-c 在分支上故意造一个 lint 错误，闸门红（记录运行号）；`npm audit --omit=dev` 报 0
+- 依赖：none
+
+### Batch 2 — Markdown 渲染与容器
+- 状态：open
+- 范围：`src/lib/markdown/`（新）、五个 `[slug]/page.tsx` 与 `about/page.tsx` 改用它、删 `next-mdx-remote`、`Dockerfile`（`node:24`、`USER node`）、`check.yml`（`node-version: 24`）、`docker-compose.yml` 若需 · 覆盖 REQ §5.2-a/b/d、§5.5-d
+- 验收判据：§5.2-a、§5.2-b（两条）、§5.2-d、§5.5-d 去掉 todo；本地构建后五种页面渲染正常（假环境下用关于页）；`id -u` 在容器内非 0（本地 `docker compose up` 验）
+- 依赖：Batch 1
+
+### Batch 3 — 结构合并与测试补全
+- 状态：open
+- 范围：`src/lib/content-row.ts`、`src/lib/content-types.ts`、`src/lib/server/content-repo.ts`（新，取代四个 `*-repo.ts`）、四个 `*-types.ts`、四个公开加载器（`cache()` 修正、已发布 slug 集合）、五个卡片与 `Nav` 的语言前缀改用一个 hook、`tests/fakes/supabase.ts`（新）、mapper 回退 / sitemap / `getSafeNextPath` 的测试 · 覆盖 REQ §5.10、§5.11
+- 验收判据：§5.10-c、§5.10 去掉 todo；既有 mapper 快照测试全过；本地构建同一组地址（`/en/about`、`/en/posts`、`/en/notes`）合并前后 HTML 无差异（哈希除外）；§5.11-a 的每个新用例经变异证明能红
+- 依赖：Batch 2
+
+### Batch 4 — 发布入口：四种类型
+- 状态：open
+- 范围：`supabase/migrations/`（桶 `media`）、`src/lib/server/media.ts`、`src/lib/content-slug.ts`、`src/app/admin/(protected)/content/`（列表、编辑器页、`actions.ts`）、`src/components/admin/{ContentEditor,MarkdownEditor,MarkdownPreview,GalleryImagesPanel,ProjectLinksPanel}.tsx`、删 `admin/(protected)/notes/`、`src/app/admin/(protected)/page.tsx` · 覆盖 REQ §5.3（除 §5.3-f）、§7
+- 验收判据：§5.3-b（两条）、§5.3 规则 4、§5.3-g 去掉 todo；§5.3-a/c/d/e 在本地对一个测试用 Supabase 项目走一遍并记录（或上线后对生产，见第三区）；iOS Safari 实测 HEIC 与大图，关闭 DESIGN D-1
+- 依赖：Batch 3
+
+### Batch 5 — 发布入口：关于页
+- 状态：open
+- 范围：`supabase/migrations/`（枚举值 `page`）、`src/lib/server/database.types.ts`、`src/lib/pages.ts`（回退链）、`src/app/[locale]/about/page.tsx`、一次性导入脚本（跑完即删）、删 `src/content/pages/about/`、`Dockerfile` 去掉 `src/content` 的复制、`docs/content-publishing.md` 前四节重写 · 覆盖 REQ §5.3-f、规则 2
+- 验收判据：§5.3-f 去掉 todo；五种语言的 `/about` 与迁移前逐字一致（本地构建对比）；删掉一种语言后回退到英文
+- 依赖：Batch 4
+
+### Batch 6 — 失败处理与真 404
+- 状态：open
+- 范围：`src/app/[locale]/error.tsx`、`src/app/admin/error.tsx`（新）、删 `src/app/[locale]/loading.tsx`、四个详情页（slug 集合 → `notFound()`）、`src/i18n/route-decision.ts` 与 `routing.ts`（详情路径的 slug 格式判定）、`src/app/api/search-index/route.ts`、`content/actions.ts`（`revalidateTag` 抛错后的 `stale=1`）· 覆盖 REQ §5.4
+- 验收判据：§5.4-d（单元）、§5.4 占位删除、运行时 §5.4-b/c/d 去掉 todo；§5.4-a 上线后对生产跑；本地假环境下 20 个格式合规的未知 slug 不产生 `.next/cache` 数据条目（构建目录计数）
+- 依赖：Batch 3
+
+### Batch 7 — 加固、语言 cookie、跳转链接
+- 状态：open
+- 范围：`next.config.ts`（CSP、HSTS、`poweredByHeader`）、`src/lib/supabase/{server,middleware}.ts`（cookie 选项）、`src/lib/structured-data.ts`（`jsonLdScript`）与六处调用、`src/components/PhotoViewer.tsx`、`src/lib/seo.ts`（`SITE_ORIGIN`）与十处字面量、`src/app/api/locale/route.ts`（新）、`src/components/UtilityDropdown.tsx`、`src/components/SiteDocument.tsx`、`src/app/[locale]/layout.tsx`、两个 admin 布局 · 覆盖 REQ §5.5-a/b/c、§5.8、§5.9
+- 验收判据：§5.5-b（两条）、§5.5-c、§5.8-a（单元）；运行时 §5.5-a、§5.5-c、§5.8-a、§5.9-a 去掉 todo；浏览器下 CSP 无报错（公式、相册查看器、搜索、后台编辑器各开一次）；routing-slimdown §5.2-h 仍绿
+- 依赖：Batch 6
+
+### Batch 8 — 备份与告警
+- 状态：open
+- 范围：`scripts/backup.sh`、`scripts/sync-bucket.mjs`、`scripts/site-check.sh`（新）、`scripts/supabase-keepalive.sh`（ping）、`.env.example`（五个新变量）、`docs/DEPLOYMENT.md` 重写（cron 三行、恢复步骤、注册开关与死人开关的核对位置）· 覆盖 REQ §5.6、§5.7
+- 验收判据：`backup.sh` 对本地 postgres 容器干跑成功（`pg_restore --list` 可读）；`sync-bucket.mjs` 对测试桶跑通；healthchecks.io 三个检查建好、ping 地址进 VPS `.env`；§5.6-a/b、§5.7-a/b/c 上线后验（第三区）
+- 依赖：none（可与 4–7 并行）
 
 ## 三、门与发布
 

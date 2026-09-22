@@ -21,7 +21,7 @@
 | `src/lib/{post,note,photo,project}-types.ts` | 四个映射函数，各自差异保留 | core |
 | `src/lib/{posts,notes,gallery,projects}.ts` | 公开加载器，接口不变；每种类型一个缓存标签。专栏加载器的 `cache()` 包装移到模块顶层（现状每次调用新建一个，去重失效）。各加一个**已发布 slug 集合**的缓存读取（单条缓存、同标签） | IO |
 | `src/lib/pages.ts` | 关于页：`getPage(slug, locale)`，按「请求语言 → `en` → 任意一份」回退；不再读文件；标签 `pages` | core（回退链） |
-| `src/lib/markdown/`（新） | `renderMarkdown(source)`：unified 管道——解析 → GFM → 数学 → 转 HTML 树（原始 HTML 节点转为文本节点，不丢不执行）→ KaTeX → **图片段落规则**（段落里只有图片时转为并排的 `figure`，`title` 作图注）→ React 节点。不引 `server-only`，浏览器与服务端同一份 | core |
+| `src/lib/markdown/`（新） | `renderMarkdown(source)`：unified 管道——解析 → GFM → 数学 → 转 HTML 树（原始 HTML 节点转为文本节点，不丢不执行）→ KaTeX → **图片段落规则**（段落里只有图片时转为并排的 `figure`，`title` 作图注）→ **白名单净化**（`rehype-sanitize`：链接与图片只允许 `http(s)`、相对路径与 `mailto`，`javascript:` 等一律剥除；元素与属性白名单在默认基础上加 KaTeX 的类与 MathML、`figure`/`figcaption`）→ React 节点。不引 `server-only`，浏览器与服务端同一份 | core |
 | `src/app/[locale]/{posts,notes,gallery,projects}/[slug]/page.tsx`、`about/page.tsx` | 用 `renderMarkdown`；slug 不在已发布集合里 → `notFound()`；不再有自带 `<main>` 的「未找到」分支 | IO |
 | `src/app/[locale]/error.tsx`、`src/app/admin/error.tsx`（新） | 站点风格 / 后台风格的错误页，不显示错误原文 | infra |
 | `src/app/[locale]/loading.tsx` | 删除（§3：它使 `notFound()` 只能给 200） | — |
@@ -83,7 +83,7 @@
 - **remark-rehype**：默认不传递原始 HTML 节点（直接丢弃）。REQ 要求「原样作为文字显示」，故管道里加一个把 `html` 节点改为 `text` 节点的小插件。
 - **Supabase**：`ALTER TYPE … ADD VALUE` 不能与使用该新值的语句同处一个事务，故加枚举值是单独一个迁移文件。
 - **Supabase Storage**：桶的公开读取是桶级设置；写入只经服务端密钥，不开匿名写策略。
-- **Supabase**：免费档项目一周无请求即暂停；`pg_dump` 客户端主版本须与服务端一致（用官方 postgres 镜像跑）。
+- **Supabase**：免费档项目一周无请求即暂停；`pg_dump` 客户端主版本须与服务端一致（用官方 postgres 镜像跑）。直连地址只有 IPv6，VPS 若无 IPv6 须走 Supavisor 连接池的会话模式端口——`DATABASE_URL` 的取法在 Batch 开工时对 VPS 实测后写进运维文档（待核）。
 - **Safari**：脚本写的 cookie 最长 7 天；服务端 `Set-Cookie` 不受此限。
 - **healthchecks.io**：每个检查一个 ping 地址；`/fail` 后缀立即告警；周期与宽限期在服务端设置。免费档 20 个检查。
 - **Cloudflare**：原样转发源站响应头；它自己也能加 HSTS，本版在应用层加，Cloudflare 侧保持不动以免两处不一致。
@@ -121,7 +121,7 @@
 12. `src/` 内没有 `document.cookie` 写入（测试）。
 13. 每个公开页与后台页恰有一个 `<main>`，`<nav>` 在其外（运行时验收）。
 14. 响应头：CSP、HSTS 存在，`x-powered-by` 不存在（运行时验收）。
-15. `renderMarkdown` 对含脚本、表达式、JSX、import 的输入不产生 `<script>`、不求值（测试）。
+15. `renderMarkdown` 对含脚本、表达式、JSX、import 的输入不产生 `<script>`、不求值；`[x](javascript:…)` 与 `![](javascript:…)` 不产生带该协议的 `href`/`src`（测试）。
 16. `content-repo.save` 对同一自然键连续两次调用只产生一次 insert（假客户端测试）。
 
 ## 8 其他设计
