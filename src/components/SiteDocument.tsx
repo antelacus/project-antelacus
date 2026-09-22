@@ -19,7 +19,7 @@ export default async function SiteDocument({ lang, children }: { lang: AppLocale
     >
       {/* eslint-disable-next-line @next/next/no-head-element -- this IS the root layouts' document; the rule only knows app/layout.tsx */}
       <head>
-        {/* Critical CSS for immediate paint */}
+        {/* Inline so the first paint has the paper colour before the stylesheet arrives */}
         <style dangerouslySetInnerHTML={{
           __html: `
             :root {
@@ -52,10 +52,6 @@ export default async function SiteDocument({ lang, children }: { lang: AppLocale
         <link rel="shortcut icon" href="/images/common/logo-icon.svg" />
         <link rel="apple-touch-icon" href="/images/common/logo-icon.svg" />
         
-        {/* Preconnect to external domains for faster loading */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}

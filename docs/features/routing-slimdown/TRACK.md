@@ -37,6 +37,8 @@
   - 2026-09-21 · 图片与分享图的缓存时限由一年不可变改为一天 · Jason · 级联：DESIGN §9、`next.config.ts`、五个 `og.png` 路由
   - 2026-09-21 · 为专栏、实验室、视觉建立发布入口，列入 v2.3.0，与 TD-006 一并设计 · Jason · 级联：关版时写入 `docs/TECHNICAL_DEBT.md`
   - 2026-09-21 · Codex 发布前评审五条发现：MUST-1、MUST-2、SHOULD-1 采纳，MUST-3 驳回（REQ §7 澄清），NICE-1 接受现状 · Jason · 级联：DESIGN §2、§4、§7，REQ §7
+  - 2026-09-22 · 追认：`locales` 顺序改为语言菜单顺序（`es` 前于 `fr`，hreflang 与 JSON-LD 随之）；`/og.png` 印章改为色块 · Jason · 级联：`routing.ts`、`og.png/route.tsx`
+  - 2026-09-22 · 合并后同模型评审十条：#1 数据缓存改半小时、#6 sitemap 遍历栏目清单、#7 文案缺键回退英文、#8 删两条 preconnect（REQ §6 增允许差异）——已修；#2、#4 归 TD-012；#3、#9 记新债；#10 记入 TD-011 · Jason · 级联：REQ §6、DESIGN §2、TECHNICAL_DEBT
 
 **Phase 0 记录**
 
@@ -136,6 +138,14 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 
 - 修复后实测（本地构建）：`/apiary`、`/administrator`、`/authors`、`/auth`、`/favicon.ico`、`/en--US/about` 由 500 / 308 变为 404；清单内的路径照常到达。新增 `invariant 8`，经变异证明能红（拿掉 `images` 即报出）
 
+合并后的同模型评审（两轴，只读）——除已修的一条外，均 status: open，待 Jason 裁定去向：
+- 规格：页面缓存叠在数据缓存之上，直接改库的内容最坏约两小时才可见，REQ §5.3 写的是一小时 —— status: 采纳 → 已修（`src/lib/cache-lifetime.ts` = 1800，测试经变异证明能红）
+- 规格：`revalidateTag` 抛错时后台只见框架的通用报错，看不到「已保存」，重试新建会重复插入（DESIGN §6 只满足一半）—— status: 归 TD-012
+- 规格：`document.cookie` 写的 cookie 在 Safari 上最长保留 7 天，「一年」对 Safari 不成立 —— status: 记债 TD-017
+- 规格：详情页对不存在的 slug 返回 200 的「未找到」，如今每个垃圾 slug 还会留下一条页面缓存（软 404 本属 TD-012）—— status: 归 TD-012
+- 规格（无裁定的改动）：`locales` 里 `fr`、`es` 对调；`/og.png` 印章改为色块 —— status: 已追认
+- 规范：`src/lib/sitemap-entries.ts` 把栏目又列了一遍；`getMetaMessage` 缺键时返回键名而非回退英文；`SiteDocument` 里对 Google Fonts 的两条 preconnect 已无用；`<main>` 嵌套且跳转链接落在导航之前；语言前缀的计算在五个组件里重复 —— status: 前三条已修；`<main>` 嵌套记债 TD-018；重复记入 TD-011
+
 **Phase 4 证据**（对象 = `779d196`）：
 - 验收测试：`npm test` 34 过、todo 0；运行时验收 15 过、todo 0（本地干净构建 + `next start`）；闸门运行 35584353597 为绿，计数一致
 - Codex 发布前评审：三条 MUST 均已处置（两条已修、一条驳回），无在途评审
@@ -143,17 +153,23 @@ Codex 发布前评审（只读，xhigh，任务 `task-muay9zda-cbgi6n`，会话 
 - **本版没有「类生产环境上的留出输入」这一项**：`.env` 只在 VPS 上，本地与 CI 都没有数据库，读库的页面（首页、各列表、详情、`/sitemap.xml`、`/api/search-index`）在上线前无处可验。它们的验收只能对生产跑，已列为下面的发布方框——合并不等于验过
 
 **Phase 6 boxes**：
-- [ ] CHANGELOG 条目
-- [ ] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑）
-- [ ] README 仍然属实
-- [ ] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致）
+- [x] CHANGELOG 条目
+- [x] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑） —— TD-007、008、009、010、015 删除；TD-001 承接「发布入口进 v2.3.0」的裁定；TD-012、TD-016 按现状改写
+- [x] README 仍然属实
+- [x] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致）
 - [ ] tag
-- [ ] 生产部署 + 核对 served SHA
-- [ ] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿（§5.2-f 详情分享图、§5.3-a、§6-a 的读库页面首次得到验证）
-- [ ] 上线后：后台发布一篇测试笔记，随即访问其详情页与笔记列表，二者都已包含它（§5.3-b），再撤下
-- [ ] 上线后：用一个装过旧 Service Worker 的浏览器回访，确认旧脚本被注销、缓存被清空（§5.4-c 的覆盖路径）
-- [ ] 上线后：在 Cloudflare 清一次 `/og.png` 与 `/images/` 的缓存
-- [ ] 各门读数：运行次数 / 改变了输出的拦截次数
+- [x] 生产部署 + 核对 served SHA —— 合并提交 `7423388`；部署日志回显同一 SHA，健康检查 6 秒通过；从外部确认新行为（`/essays`、`/apiary` → 404，`/en/about` 可缓存）
+- [x] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿（§5.2-f 详情分享图、§5.3-a、§6-a 的读库页面首次得到验证） —— 首跑 15 条里 13 过：读库页面的 §5.3-a、§6-a、§5.2-f 首次得到验证并通过；失败的两条（§5.4-c、缓存时限）同因——Cloudflare 边缘仍在发一年不可变的旧 `/sw.js` 与 `/og.png`，源站已是新文件（加查询串绕过缓存实测）。清缓存后重跑
+- [x] 上线后：后台发布一篇测试笔记，随即访问其详情页与笔记列表，二者都已包含它（§5.3-b），再撤下 —— 通过：发布后立即出现在详情页、两种语言的列表、首页与搜索索引；改回草稿后立即从列表、首页、索引消失，详情页变为「未找到」。附带发现：线上此前**从未有过登录账号**（Supabase Auth 无用户），后台今天首次真正使用；发布按钮被点两次时第二次因 slug 重复报出框架通用错误页——登记为发现，归 TD-001 的发布入口设计（表单防重复提交；新建时同 slug 视为更新）
+- [x] 上线后：用一个装过旧 Service Worker 的浏览器回访，确认旧脚本被注销、缓存被清空（§5.4-c 的覆盖路径）—— **无法验证**：找不到装着旧脚本的浏览器。证据只有本地做过的全新安装路径（预置缓存 → 注册新脚本 → 缓存清空、注册消失）；覆盖路径靠浏览器规范（导航时检查更新，脚本内容变化即安装新版）
+- [x] 上线后：在 Cloudflare 清缓存——**`/sw.js`（最要紧：不清则老访客拿不到自注销脚本）**、`/og.png`、`/images/`；最省事是「清除全部」 —— 已清（全部）；Browser Cache TTL 改为遵循源站。重跑对生产的验收：15 条里 14 过，唯一的红是尚未部署的重定向 `no-store` 断言
+- [x] 各门读数（运行次数 / 改变了输出的拦截次数）：
+  - Codex 设计门 1 / 10（十一条发现采纳十条，DESIGN 全篇改写）
+  - Codex 发布前评审 1 / 3（两条 MUST、一条 SHOULD 改了代码）
+  - 运行时验收（本地，推送前）约 15 / 6（根布局 404 变 200、`no-store`、导航 500、多出的预加载、死的字体预加载、`/og.png` 字体报错）
+  - CI 闸门 21 / 0 真实拦截（两次红是 Batch 1 故意造的证明）——问题都在推送前被本地的运行时验收拦下；它是部署路径上唯一的强制点，不设退役
+  - 文档预算检查 21 / 0 —— 退役触发：v2.3.0 整版仍为 0 次拦截，则改为只在关版时跑
+  - 同模型评审（engine 的 `code-review`）1 / 1 —— **Batch 3–5 逐批漏做，合并后补做一次**（`baa7ca8`…`7423388`，规范与规格两轴）。拦截：语言重定向被浏览器永久缓存，使「记住手动选择」对切换前访问过的地址失效——真实 Chrome 复现后修复（重定向加 `private, no-store`）。其余发现见下
 - [ ] 文档预算为绿 · 记忆修剪
 - [ ] `development` 分支删除（本地与远端）
 - [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.2.0.md`

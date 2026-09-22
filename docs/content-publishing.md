@@ -2,7 +2,7 @@
 
 四类内容（专栏、闪念、视觉、实验室）都存放在 Supabase：正文与元数据在 `content_items` 表，标签在 `content_tags` 与 `content_item_tags`，相册图片在 `gallery_images` 表与名为 `gallery` 的公开存储桶，项目链接在 `project_links`。表结构以 `supabase/migrations/` 为准。只有「关于」页仍是仓库里的文件（`src/content/pages/about/`）。
 
-发布不需要重新部署。经站内后台发布的内容立即可见；直接改数据库的内容最长一小时后可见（页面与数据各缓存一小时）。
+发布不需要重新部署。经站内后台发布的内容立即可见；直接改数据库的内容最长一小时后可见（页面与数据各缓存半小时，叠加）。
 
 | 类型 | `content_type` | 发布方式 |
 | ---- | -------------- | -------- |

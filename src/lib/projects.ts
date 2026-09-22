@@ -6,6 +6,7 @@ import {
   getPublishedProjects,
 } from './server/projects-repo';
 import type { Project, ProjectMeta } from './project-types';
+import { DATA_CACHE_SECONDS } from './cache-lifetime';
 
 export type { Project, ProjectMeta } from './project-types';
 
@@ -17,7 +18,7 @@ export const getAllProjectsMeta = unstable_cache(
   getAllProjectsMetaUncached,
   ['projects-meta', 'dynamic-content-v5'],
   {
-    revalidate: 3600,
+    revalidate: DATA_CACHE_SECONDS,
     tags: ['projects'],
   },
 );
@@ -31,7 +32,7 @@ export const getProjectBySlug = cache(
     getProjectBySlugUncached,
     ['project', 'dynamic-content-v5'],
     {
-      revalidate: 3600,
+      revalidate: DATA_CACHE_SECONDS,
       tags: ['projects'],
     },
   ),

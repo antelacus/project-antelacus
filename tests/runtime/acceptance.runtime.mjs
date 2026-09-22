@@ -35,6 +35,8 @@ test('§5.2-b an unprefixed URL is redirected by Accept-Language, en when absent
   assert.equal(locationPath(french), '/fr/posts');
   const none = await get('/posts');
   assert.equal(none.status, 308);
+  // The target depends on the visitor: a cached copy would defeat the remembered choice (§5.2-h).
+  assert.match(none.headers.get('cache-control') ?? '', /no-store/, 'a locale redirect must not be cacheable');
   assert.equal(locationPath(none), '/en/posts');
 });
 
@@ -148,7 +150,7 @@ test('§6-a document metadata is unchanged by the root-layout move', async () =>
   const needsDb = (path) => !['/en/about', '/admin/login'].includes(path);
   // Ruled allowed differences (REQ §6): which pages preload the nav image changed with the layout move,
   // and the two hand-written font preloads pointed at files that never existed (next/font preloads its own).
-  const comparable = (item) => !item.startsWith('link:preload(image)=') && !item.startsWith('link:preload(font)=/fonts/');
+  const comparable = (item) => !item.startsWith('link:preload(image)=') && !item.startsWith('link:preload(font)=/fonts/') && !item.startsWith('link:preconnect=');
   const paths = Object.keys(baseline).filter((path) => WITH_DB || !needsDb(path));
   assert.ok(paths.length >= 2, 'nothing to compare');
   for (const path of paths) {
