@@ -86,10 +86,11 @@
 - 证据：单元 66 全绿（todo 0）；运行时 22 过、todo 1（§5.4-a 待数据库）；浏览器（Playwright）打开关于页与登录页，CSP 零违规；响应头实测含 CSP、HSTS，无 `x-powered-by`；`<head>` 基线按 §5.5-c 更新为 www
 
 ### Batch 7 — 备份与告警
-- 状态：open
+- 状态：done `5250348`（VPS 侧：`DATABASE_URL`、三个 ping 地址进 `.env`、cron 三行——上线时做，见第三区）
 - 范围：`scripts/backup.sh`、`scripts/sync-bucket.mjs`、`scripts/site-check.sh`（新）、`scripts/supabase-keepalive.sh`（ping）、`.env.example`（五个新变量）、`docs/DEPLOYMENT.md` 重写（cron 三行、恢复步骤、注册开关与死人开关的核对位置）· 覆盖 REQ §5.6、§5.7
 - 验收判据：`backup.sh` 对本地 postgres 容器干跑成功（`pg_restore --list` 可读）；`sync-bucket.mjs` 对测试桶跑通；healthchecks.io 三个检查建好、ping 地址进 VPS `.env`；§5.6-a/b、§5.7-a/b/c 上线后验（第三区）
 - 依赖：none（可与 4–6 并行）
+- 证据：本机一次性 postgres 容器上 `backup.sh` 产出可读转储（`pg_restore --list` 5 张表），桶步骤失败时整体 FAILED；`sync-bucket.mjs` 的分页与差量计划有单元测试（68 全绿）
 
 ## 三、门与发布
 
