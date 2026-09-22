@@ -156,17 +156,17 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 **Phase 5**：版本 PR #7（`feat/content-publishing` → `main`），同模型评审与三份登记均已结清；Jason 审结构与范围后合并。
 
 **Phase 6 boxes**（请求 PR 之前写好——合并 ≠ 发布）：
-- [ ] CHANGELOG 条目
+- [x] CHANGELOG 条目
 - [ ] TECHNICAL_DEBT 定稿（已解决的删除，不留墓碑；TD-002、TD-004 留）
-- [ ] 用户文档（`docs/content-publishing.md` 改为按后台发布，SQL 一节退役；关于页一节说明仍是仓库文件）· README 仍然属实
-- [ ] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致；`CLAUDE.md` 的架构节按 TD-011 后的形状改写）
+- [x] 用户文档（`docs/content-publishing.md` 改为按后台发布，SQL 一节退役；关于页一节说明仍是仓库文件）· README 仍然属实
+- [x] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致；`CLAUDE.md` 的架构节按 TD-011 后的形状改写）
 - [ ] tag
-- [ ] 生产部署 + 核对 served SHA
-- [ ] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿
+- [x] 生产部署 + 核对 served SHA —— PR #7 合并提交 `ad96693`；部署运行 35703014555 的日志回显同一 SHA，健康检查 6 秒通过
+- [x] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿 —— 23 过、todo 0；§5.4-a、§5.8-a、§5.9-a 的读库地址首次得到验证；响应头实测含 CSP 与 HSTS、无 `x-powered-by`
 - [ ] 部署前：在 Supabase SQL Editor 依次执行三个新迁移（桶、唯一索引、保存函数）；唯一索引若报错说明生产已有跨语言重复的 slug，先处理再重跑
 - [ ] 上线后：后台发布一篇测试 post / project / gallery 项，随即可见，再撤下（TD-001 的真实输入；同时验证经 PostgREST 以 `service_role` 调用保存函数的权限与回滚——Codex 待核）；在 iPhone 上完成一次上传（§5.3-d、HEIC）
 - [ ] 上线后：在新后台打开 `2025-07-13-llm-note`，把三图并排的 JSX 段改写为一段三张带 `title` 的 Markdown 图片（§5.2-c）
-- [ ] 上线后：`node tests/runtime/list-digest.mjs https://www.antelacus.com` 与 `tests/runtime/fixtures/list-pages-baseline.json` 对比（§5.10-b）
+- [x] 上线后：列表页摘要与基线对比（§5.10-b）—— 差异两类，均可解释：每页少四个导航链接（导航移出 `<main>`，§5.9 的设计）；相册列表多出四个相册链接与标题（相册卡片现在在服务端 HTML 里，基线里没有）。内容条目本身无增减
 - [ ] 上线后：备份实际跑一次，把导出恢复进一个空的测试项目、站点能读出内容（TD-003）；让 keepalive 停跑一个周期，死人开关的告警到达（TD-013）
 - [ ] 各门读数：运行次数 / 改变了输出的拦截次数——含文档预算检查：v2.2.0 定下的退役触发是「v2.3.0 整版仍为 0 次拦截则改为只在关版时跑」
 - [ ] 文档预算为绿 · 记忆修剪（v2.2.0 提请晋升的「按前缀匹配代替按段匹配」教训：核实是否已写入通用记忆）
