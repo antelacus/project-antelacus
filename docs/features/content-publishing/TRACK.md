@@ -65,10 +65,11 @@
 - 证据：单元 66（55 过、11 todo）；三处变异各红 1 条；四份 repo 与语言前缀表达式已消失（§5.10 测试）；运行时 23（15 过、8 todo）
 
 ### Batch 4 — 发布入口：四种类型
-- 状态：open
+- 状态：done `60e01c5`（浏览器全流程待 Phase 4 对真实数据库做）
 - 范围：`supabase/migrations/`（桶 `media`、部分唯一索引、`save_content_item`）、`src/lib/server/media.ts`、`src/app/api/admin/upload/route.ts`、`src/lib/content-slug.ts`、`src/app/admin/(protected)/content/`（列表、编辑器页、`actions.ts`）、`src/components/admin/{ContentEditor,MarkdownEditor,MarkdownPreview,GalleryImagesPanel,ProjectLinksPanel}.tsx`、删 `admin/(protected)/notes/`、`src/app/admin/(protected)/page.tsx` · 覆盖 REQ §5.3、§7
 - 验收判据：§5.3-b（两条）、§5.3 规则 4、§5.3-g、§5.3 标签失效 去掉 todo；`save_content_item` 的集成测试（D-3 定环境）过；§5.3-a/c/d/e 在本地对一个测试用 Supabase 项目走一遍并记录（或上线后对生产，见第三区）；iOS Safari 实测 HEIC 与大图，关闭 DESIGN D-1；`docs/content-publishing.md` 前四节重写
 - 依赖：Batch 3
+- 证据：五条去掉 todo 全绿（单元 65：59 过、6 todo）；`scripts/db-function-check.sh` 18 项全过（本机 postgres 17 容器）；构建与运行时验收绿；未登录上传 401、编辑器页 307 到登录。D-1 关闭（HEIC 直接接受，sharp 解码）、D-3 关闭（本机容器）
 
 ### Batch 5 — 失败处理与真 404
 - 状态：open
