@@ -37,6 +37,8 @@
   - 2026-09-22 · 关于页作为 `content_type` 的新枚举值 `page` 进 `content_items`，不另建表；CSP 取「同源 + 内联」一档，不用 nonce（严格档要放弃公开页面缓存）· Jason · 级联：DESIGN §2、§3（待开）
   - 2026-09-22 · 未知 slug：真 404 + 有界页面缓存（不读库、不留数据缓存、格式不合的在 proxy 层拦下），删除 `[locale]/loading.tsx` · Jason · 级联：REQ §5.4、§6；routing-slimdown REQ §6；DESIGN §3
   - 2026-09-22 · Codex 设计门 18 条：MUST-1 修（保存改为数据库函数一事务写入）；MUST-5 关于页推迟到 v2.4.0，推翻当天「关于页进数据库」的裁定，Batch 5 取消；MUST-2/3/4/6/7/8/9/10 与 SHOULD-11～16、NICE-17 采纳；NICE-18 接受 · Jason · 级联：REQ §1.2、§5.2、§5.3、§5.6；DESIGN §2、§4、§5、§6、§7；`TECHNICAL_DEBT` TD-019
+  - 2026-09-22 · REQ §5.4-b 收窄：可缓存页面生成失败时状态 500、不含数据库原文即可，站点风格错误页限站内导航 · Jason · 级联：REQ §5.4、DESIGN §3
+  - 2026-09-22 · 发布全流程的首次真实测试在生产做（合并部署后发一条测试内容再撤），不另建测试项目 · Jason · 级联：Phase 6 方框
   - 2026-09-22 · TD-013 用外部死人开关服务：脚本成功即 ping，缺席即告警；不在 VPS 上自建 · Jason · 级联：DESIGN 外部约束（待开）
 
 ## 二、批次
@@ -72,7 +74,7 @@
 - 证据：五条去掉 todo 全绿（单元 65：59 过、6 todo）；`scripts/db-function-check.sh` 18 项全过（本机 postgres 17 容器）；构建与运行时验收绿；未登录上传 401、编辑器页 307 到登录。D-1 关闭（HEIC 直接接受，sharp 解码）、D-3 关闭（本机容器）
 
 ### Batch 5 — 失败处理与真 404
-- 状态：done `5a502f0`（§5.4-b 的措辞待裁：DESIGN D-4）
+- 状态：done `5a502f0`
 - 范围：`src/app/[locale]/error.tsx`、`src/app/admin/error.tsx`（新）、删 `src/app/[locale]/loading.tsx`、四个详情页（`generateMetadata` 与页面体都经 slug 集合 → `notFound()`）、`src/i18n/route-decision.ts` 与 `routing.ts`（详情路径的 slug 格式判定）、`src/app/api/search-index/route.ts`、`content/actions.ts`（`revalidateTag` 抛错后的 `stale=1`）· 覆盖 REQ §5.4
 - 验收判据：§5.4-d（单元）、§5.4 占位删除、运行时 §5.4-b/c/d 去掉 todo；§5.4-a 上线后对生产跑；本地假环境下 20 个格式合规的未知 slug 不产生 `.next/cache` 数据条目（构建目录计数）
 - 依赖：Batch 3
