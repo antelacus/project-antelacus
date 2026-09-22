@@ -13,27 +13,6 @@ Update this file when:
 
 ## Active Items
 
-### TD-001 - Supabase-only cutover lacks admin workflows for all migrated content types
-
-- Status: `Open`
-- Severity: `High`
-- Area: `content-management`
-- Identified: `2026-03-19`
-- Context:
-  - The site now relies on Supabase as the source of truth for posts, notes, projects, and gallery.
-  - Only notes currently have an in-product admin CRUD/publish flow.
-  - Posts, projects, and gallery content can be rendered from Supabase, but they cannot yet be managed from the admin UI.
-- Risk:
-  - Editorial operations are incomplete.
-  - Non-note content changes currently require manual database/storage operations.
-- Evidence:
-  - `src/app/admin/(protected)/page.tsx`
-  - `src/app/admin/(protected)/notes/page.tsx`
-  - No new content has been published since the cutover (newest item on the site: 2025-08-31).
-- Ruled (Project Lead): build a publishing entry for posts, projects and gallery in v2.3.0, designed together with TD-006. Open question for its Phase 1: where the writing happens — an in-site editor (works anywhere, phone included), a local file plus a publish command (best for long-form), or both.
-- The note form has no protection against a double submit, and a second submit of a new note with the same slug fails on the unique constraint and shows the framework's generic error page (seen on the first real publish, 2026-09-22). The publishing entry should make saving idempotent by slug.
-- Until then the procedure is `docs/content-publishing.md` §三: SQL in the Supabase console. Its SQL was derived from the schema and the code and has not been executed; the first real use is its verification.
-
 ### TD-003 - No in-repo bootstrap/recovery path for migrated content
 
 - Status: `Open`
