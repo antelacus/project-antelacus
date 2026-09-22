@@ -72,10 +72,11 @@
 - 证据：五条去掉 todo 全绿（单元 65：59 过、6 todo）；`scripts/db-function-check.sh` 18 项全过（本机 postgres 17 容器）；构建与运行时验收绿；未登录上传 401、编辑器页 307 到登录。D-1 关闭（HEIC 直接接受，sharp 解码）、D-3 关闭（本机容器）
 
 ### Batch 5 — 失败处理与真 404
-- 状态：open
+- 状态：done `5a502f0`（§5.4-b 的措辞待裁：DESIGN D-4）
 - 范围：`src/app/[locale]/error.tsx`、`src/app/admin/error.tsx`（新）、删 `src/app/[locale]/loading.tsx`、四个详情页（`generateMetadata` 与页面体都经 slug 集合 → `notFound()`）、`src/i18n/route-decision.ts` 与 `routing.ts`（详情路径的 slug 格式判定）、`src/app/api/search-index/route.ts`、`content/actions.ts`（`revalidateTag` 抛错后的 `stale=1`）· 覆盖 REQ §5.4
 - 验收判据：§5.4-d（单元）、§5.4 占位删除、运行时 §5.4-b/c/d 去掉 todo；§5.4-a 上线后对生产跑；本地假环境下 20 个格式合规的未知 slug 不产生 `.next/cache` 数据条目（构建目录计数）
 - 依赖：Batch 3
+- 证据：单元 66（62 过、4 todo）；运行时 23（18 过、5 todo）：格式不合的 slug 404、搜索接口不回显、读库失败 500 无原文；`generateMetadata` 在边界外的事实与「缓存页生成失败只能裸 500」记入 DESIGN §3
 
 ### Batch 6 — 加固、语言 cookie、跳转链接
 - 状态：open
