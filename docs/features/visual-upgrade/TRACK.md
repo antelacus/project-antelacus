@@ -46,7 +46,45 @@
 
 ## 二、批次
 
-批次在 Phase 2 设计门通过后按 DESIGN 切分，下面的基线发现是切分的输入，每条随所在批次完成而离场。
+验收测试已写红：`tests/acceptance-visual-upgrade.test.ts`（单元）与 `tests/ui/*.ui.mjs`（浏览器），每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。切分待 Codex 设计门后定稿。
+
+### Batch 1 — 界面闸门
+- 状态：open
+- 范围：`supabase/config.toml`、`supabase/seed.sql`、`scripts/ui-check.sh`、`tests/ui/harness.mjs`、`package.json`（playwright、@axe-core/playwright、`test:ui`）、`check.yml` 任务 `ui`、`deploy.yml` 等它 · 覆盖 REQ §5.5
+- 验收判据：§5.5-a 去 todo；本机 `scripts/ui-check.sh` 跑通且拆干净；§5.5-b 在分支上故意造一个无名按钮，闸门红（记运行号）；其余 UI 测试此时照常为 todo
+- 依赖：none
+
+### Batch 2 — 关于页进库
+- 状态：open
+- 范围：迁移 `site_pages` + 五份正文数据迁移、`pages-repo.ts`、`pages.ts`、`page-locale.ts`、`about/page.tsx`、`/admin/pages/**`；删 `src/content/pages/`、`next-mdx-remote`、`gray-matter` · 覆盖 REQ §5.3
+- 验收判据：§5.3-a/c 去 todo；§5.3-b 在本地栈上保存后下一次访问即新；`db-function-check.sh` 仍绿
+- 依赖：Batch 1
+
+### Batch 3 — 材料与三种形态
+- 状态：open
+- 范围：`globals.css` 重写（变量、排印、中文排印、形态类）、`Gate`、`Window`、`CatalogRow`、`PhotoTile`、`EndMark`、`SiteLink`、`home.ts`；首页、列表页、标签页、视觉列表 · 覆盖 REQ §5.1-d、§5.2-a/c/d/f/g
+- 验收判据：上列 §-id 去 todo 且绿；Jason 在本地看首页与一个列表页
+- 依赖：Batch 1
+
+### Batch 4 — 手卷
+- 状态：open
+- 范围：`markdown/`（标题 id、`extractToc`）、`Toc`、`Colophon`、四种详情页与关于页的引首与尾纸、正文容器 `lang`、`PhotoViewer` · 覆盖 REQ §5.2-h、§5.1-c（相册）
+- 验收判据：上列 §-id 去 todo 且绿
+- 依赖：Batch 3
+
+### Batch 5 — 导航、搜索、语言、页面切换
+- 状态：open
+- 范围：`Nav`、`NavLinks`、`SearchDialog`、`search-filter.ts`、`LanguageSwitch`、`SkipLink`、`<ViewTransition>`（关闭 D-1）；删 `UtilityDropdown`、`SearchModal`、`TagList`、四张旧卡片 · 覆盖 REQ §5.1-c/e/g、§5.2-b/e
+- 验收判据：上列 §-id 去 todo 且绿
+- 依赖：Batch 4
+
+### Batch 6 — 收口
+- 状态：open
+- 范围：可访问名称全部走文案、404 与错误页、后台四模板的 AA 修正、`eslint.config.mjs` 去降级、退役 §6-a 与 `head-baseline.json`、`globals.css` 残余清理 · 覆盖 REQ §5.1-a/b/f、§5.4-a
+- 验收判据：全部 todo 去除且绿；后台逐页人工审计记录写进第三区
+- 依赖：Batch 5
+
+下面的基线发现是切分的输入，每条随所在批次完成而离场。
 
 **无障碍基线（2026-09-23，生产公开页面；桌面 / iPad / Pixel 7 / iPhone 15 / 320px / 200%；axe + 键盘 + 代码审读）**
 - 阻断 · 2.1.1：功能菜单（`UtilityDropdown`）在 DOM 中位于按钮之前，打开后 Tab 进不去——纯键盘无法搜索、无法切语言；`role=menu` 误用
