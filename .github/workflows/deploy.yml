@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # 闸门不过就不部署。被调用的工作流不能提升权限，所以在这里（调用方）声明
+  # 闸门不过就不部署：needs 等被调用工作流的全部任务，含界面闸门 ui。被调用的工作流不能提升权限，所以在这里（调用方）声明
   check:
     uses: ./.github/workflows/check.yml
     permissions:

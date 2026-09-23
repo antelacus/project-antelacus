@@ -61,9 +61,11 @@ test('acceptance §5.4-a the three React Compiler rules are no longer downgraded
 
 // ---------- §5.5 the gate ----------
 
-test('acceptance §5.5-a the gate runs the UI checks on every push', { todo: 'Batch 1' }, () => {
+test('acceptance §5.5-a the gate runs the UI checks on every push, and a deploy waits for them', () => {
   const gate = read('.github/workflows/check.yml');
-  assert.match(gate, /scripts\/ui-check\.sh/, 'check.yml does not run the UI gate');
+  assert.match(gate, /^ {2}ui:\n(?: {4}.*\n|\n)*? {6}- run: scripts\/ui-check\.sh$/m, 'check.yml has no ui job running the UI gate');
+  // A called workflow is one unit to its caller: `needs: check` waits for every job in check.yml.
   const deploy = read('.github/workflows/deploy.yml');
-  assert.match(deploy, /\bui\b/, 'deploy.yml does not wait for the UI job');
+  assert.match(deploy, /^ {2}check:\n {4}uses: \.\/\.github\/workflows\/check\.yml$/m, 'deploy.yml does not call the gate');
+  assert.match(deploy, /^ {4}needs: check$/m, 'the deploy job does not wait for the gate');
 });

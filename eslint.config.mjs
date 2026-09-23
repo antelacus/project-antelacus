@@ -4,7 +4,7 @@ import nextTs from 'eslint-config-next/typescript';
 
 // Next 16 removed `next lint`; eslint runs directly and eslint-config-next ships flat configs only.
 export default defineConfig([
-  globalIgnores(['.next/**', 'node_modules/**', 'scripts/tests/**']),
+  globalIgnores(['.next/**', '.next-ui/**', 'node_modules/**', 'scripts/tests/**']),
   ...nextVitals,
   ...nextTs,
   {

@@ -9,8 +9,9 @@ The scripts are in `package.json`. What the names do not tell you:
 - `npm run test` — unit tests on Node's built-in runner (no Jest/Vitest). It preloads `tests/setup/stub-server-only.mjs` so modules that import `server-only` can be tested; one file: `node --import tsx --import ./tests/setup/stub-server-only.mjs --test tests/posts-repo.test.ts`. Database-touching code is tested against `tests/fakes/supabase.ts`.
 - `npm run test:runtime` — acceptance checks against a **running** server; needs `BASE_URL`. How to build and start a local server without a database is in the header of `tests/runtime/acceptance.runtime.mjs`.
 - `npm run build` must succeed without reaching Supabase; the gate builds with placeholder env vars to prove it.
+- `npm run test:ui` — the UI gate, `scripts/ui-check.sh`: a local Supabase stack (Docker; on a Mac it starts colima if needed) seeded from `supabase/seed.sql`, a build against it, then `tests/ui/` and the runtime suite with the database. It tears down everything it started and refuses any address off this machine. Takes a few minutes.
 
-**The gate** is `.github/workflows/check.yml`: every push and PR runs it, and `.github/workflows/deploy.yml` deploys only after it passes. Before pushing, run what it runs first: `npm run lint && npx tsc --noEmit && npm run test`. At a version close, also `python3 scripts/check_doc_budget.py` (retired from the gate, still the budget).
+**The gate** is `.github/workflows/check.yml` (jobs `check` and `ui`): every push and PR runs it, and `.github/workflows/deploy.yml` deploys only after it passes. Before pushing, run what it runs first: `npm run lint && npx tsc --noEmit && npm run test`. At a version close, also `python3 scripts/check_doc_budget.py` (retired from the gate, still the budget).
 
 ## Architecture
 

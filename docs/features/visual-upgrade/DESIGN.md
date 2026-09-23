@@ -81,10 +81,10 @@
 - **目录锚点**：`id` 在服务端随标题生成，页面不在浏览器里扫描标题。
 
 ### 2.5 界面闸门
-- **流程**（`scripts/ui-check.sh`，本机与 CI 同一份）：先装好清理（`trap` 覆盖正常退出、中断、终止；保留原失败码）→ Docker 不在时本机 `colima start`，并记下是本次启动的 → `supabase start`（CLI 版本钉死；`config.toml` 固定项目 id 与端口；只运行 db、auth、rest、kong）→ 迁移与 `seed.sql` 自动应用 → **后端边界**：环境变量只取自 `supabase status -o env`，清掉继承的 Supabase 变量，断言 API 地址是 `127.0.0.1` 后才建管理员 → 经 auth 管理接口建合成管理员 → 构建到独立目录（`next.config.ts` 的 `distDir` 可由环境变量覆盖）并启动 → 各步都有就绪期限 → 跑测试 → 清理：停应用进程、`supabase stop --no-backup`（不留卷，下次从空库重放迁移与种子）、只停本次启动的 colima。
+- **流程**（`scripts/ui-check.sh`，本机与 CI 同一份）：先装好清理（`trap` 覆盖正常退出、中断、终止；保留原失败码）→ Docker 不在时本机 `colima start`，并记下是本次启动的 → `supabase start`（CLI 为钉死版本的开发依赖；`config.toml` 固定项目 id 与端口；只运行 db、auth、rest、kong）→ 迁移与 `seed.sql` 自动应用 → **后端边界**：环境变量只取自 `supabase status -o env`，清掉继承的 Supabase 变量，断言 API 地址是 `127.0.0.1` 后才建管理员 → 经 auth 管理接口建合成管理员 → 构建到独立目录（`next.config.ts` 的 `distDir` 由 `NEXT_DIST_DIR` 覆盖）并在 `localhost` 上启动 → 各步都有就绪期限 → 跑测试 → 清理：停应用进程、`supabase stop --no-backup`（不留卷，下次从空库重放迁移与种子）、只停本次启动的 colima。
 - **种子**（合成内容，走与后台同一的 `save_content_item`；`site_pages` 先清空再插入合成行）：带封面、标签与 ≥3 个 `h2` 的中文专栏；只有 2 个 `h2` 的英文闪念；带封面与两个链接的项目；两张图的相册；一篇草稿；关于页 `en`、`zh-CN` 已发布、`es` 为草稿。图片取 `public/images/` 已提交的文件。关于页回退到「任意」与「一个都没有」两种情形由单元与 IO 测试负责。
-- **测试**：Playwright 作库、跑在 `node:test` 下，显式列出文件运行（`*.ui.mjs` 不在 Node 的默认发现规则里）。环境：桌面 Chromium、触屏 WebKit（iPhone）、触屏 Chromium（Pixel）、平板 WebKit（触屏 820 宽）、320px、200% 放大（桌面 640 宽）。`manifest.mjs` 列出「模板 × 环境 × 状态」（状态含搜索打开、查看器打开、目录展开、悬停、聚焦）；harness 记录每个实际检查到的组合，最后一个测试与清单逐项对账，缺一项即失败（§5.5-a）。审计前先断言页面身份：`h1` 等于种子标题、标签非空、图片已加载、对话框已打开、后台页面已登录。
-- **§5.5-b 的做法**：Batch 1 在一个临时分支上推一个无名按钮，记下变红的运行号，再删分支。
+- **测试**：Playwright 作库、跑在 `node:test` 下，显式列出文件、同一进程运行（`*.ui.mjs` 不在 Node 的默认发现规则里；对账要读其他文件记下的结果）。环境：桌面 Chromium、触屏 WebKit（iPhone）、触屏 Chromium（Pixel）、平板 WebKit（触屏 820 宽）、320px、200% 放大（桌面 640 宽）。`manifest.mjs` 列出「模板 × 环境 × 状态」：状态（搜索打开、查看器打开、目录展开、悬停、聚焦）是模板的变体，遍历模板的检查因此自动覆盖各状态；静止即载入完成的一刻，不另等待（首载）。每次 axe 运行记下它判定的组合，`coverage.ui.mjs` 排在最后与清单逐项对账，缺一项即失败（§5.5-a）：静止部分自 Batch 1 起生效，状态部分在状态的入口都存在后（Batch 5）生效。检查前先断言页面身份：状态码、有 `<main>`、种子标题在 `<main>` 里、没有破图、状态已进入（入口不存在即刻失败，不等超时）、后台页面已登录。`h1` 的个数与层级是 §5.1-g 自己的判据，不作身份条件。
+- **不空转**：每次运行都在四种环境里各植入一个无名按钮，axe 须报出它——检查失灵时闸门变红。§5.5-b 的分支实验（源码里造一个无名按钮、记下变红的运行号、删分支）要在 §5.1-a 去掉 todo 之后才可能变红，故在 Batch 6 做。
 - 脚本拒绝 `BASE_URL` 不在本机回环地址白名单的运行——界面闸门永不对生产。合成管理员的凭据只在脚本进程内，不进构建产物与日志。
 - CI：`check.yml` 新增任务 `ui`，与现有任务并行；它也以 `RUNTIME_DB=1` 对本地栈跑 `tests/runtime/`；`deploy.yml` 等它通过。
 
@@ -101,7 +101,10 @@
 - **中文排印 CSS**：`text-autospace` 默认关闭、须显式开启（Chrome 140 / Safari 18.4 / Firefox 145）；`text-justify: inter-character` Safari 不支持，且用在西文上会拉开词内字母——只作用于 `:lang(zh)`；`text-spacing-trim` 仅 Chrome；`hanging-punctuation` 仅 Safari；`line-break: strict` 全支持。不支持处一律被忽略。这些规则靠 `lang` 生效，故正文容器必须带条目的写作语言。
 - **PhotoSwipe 5.4.4 自带样式**：`.pswp--touch` 下隐藏左右箭头；计数器有文字阴影；黑底；加载指示是无限旋转动画。只在脚本里开按钮不够，须由站点样式覆盖。默认把焦点还给打开前的活动元素，不一定是所点的照片。
 - **Supabase CLI 本地栈**：`-x` 排除的镜像仍会被拉取；`[realtime] enabled=false` 才真正不拉 realtime。`[storage]` 关掉时迁移 `20260922100000_media_bucket.sql` 失败（它只判断 `storage` schema 存在，空 schema 由 postgres 镜像自带、表由 storage-api 建）——因此 `[storage]` 保持开启并 `-x storage-api`，多拉约 244 MB；不改这条已在生产执行过的迁移。Kong 必须保留（它把 `sb_` 密钥换成角色）。本地栈用 ES256 与 `sb_` 密钥，生产可能用旧的 HS256——登录行为不与生产逐位相同。`NEXT_PUBLIC_*` 与 CSP 在构建时定型，换后端必须重新构建。冷启动约 150 秒（含拉镜像），热启动约 25 秒（本机 colima 2 核 4 GB）；CI 用时 Batch 1 实测。
-- **Node 测试运行器**：`node --test <目录>` 只发现默认命名规则的文件，`*.ui.mjs` 不在其中。
+- **Node 测试运行器**：`node --test <目录>` 只发现默认命名规则的文件，`*.ui.mjs` 不在其中。默认每个文件一个子进程，文件间不共享模块状态；`--test-isolation=none` 才在同一进程里按列出的顺序运行。
+- **`next start` 与本机地址**：代理对未知路径的 404 由服务器向 `localhost:<端口>/404/unmatched` 自取；绑在 `127.0.0.1` 时，Mac 上 `localhost` 先解析为 `::1`，这类请求挂起约 30 秒后 500。故界面闸门绑定并访问 `localhost`。
+- **`distDir`**：换了目录，`next build` 会把 `<distDir>/types` 写进 `tsconfig.json` 的 `include`；这两行随仓库提交，否则每次闸门运行都弄脏工作区。
+- **Playwright WebKit**：与 Safari 一样，Tab 跳过链接，要 `Alt+Tab`。
 - **`@axe-core/playwright`**：须对 `browser.newContext()` 的页面使用，`browser.newPage()` 不行。
 - **Next 图片**：`remotePatterns` 与 `isAllowedImageUrl` 只接受 `https` 的 Supabase 域名，本地栈是 `http://127.0.0.1`——种子图片因此用站内 `/images/` 路径。
 

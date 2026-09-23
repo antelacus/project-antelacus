@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "node --import tsx --import ./tests/setup/stub-server-only.mjs --test tests/*.test.ts",
     "test:runtime": "node --test tests/runtime/acceptance.runtime.mjs",
+    "test:ui": "scripts/ui-check.sh",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -42,6 +43,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/eslintrc": "^3",
     "@types/mdx": "^2.0.13",
     "@types/node": "^20.19.9",
@@ -49,6 +51,8 @@
     "@types/react-dom": "^19.3.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "playwright": "1.63.0",
+    "supabase": "2.117.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"

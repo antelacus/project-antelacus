@@ -53,3 +53,18 @@ jobs:
           BASE_URL=http://localhost:3917 npm run test:runtime
       # The doc-budget checker was retired from the gate at the close of v2.3.0 (two versions, zero catches:
       # it was always run locally before a commit). It stays as a script, run by hand at each version close.
+
+  # 界面闸门（visual-upgrade DESIGN §2.5）：本地 Supabase 栈 + 合成内容 + 浏览器检查，另以 RUNTIME_DB=1 跑运行时套件。
+  # 拉起与拆除都在脚本里，本机与这里同一份；deploy.yml 调用整个工作流，所以部署也等它
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: scripts/ui-check.sh

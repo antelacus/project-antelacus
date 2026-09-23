@@ -22,6 +22,9 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   // Emit a self-contained server bundle for the VPS Docker image.
   output: 'standalone',
+  // scripts/ui-check.sh builds against its local stack into a directory of its own, so .next keeps
+  // whatever the developer last built.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   poweredByHeader: false,
 
   // Performance optimizations for the "Living Manuscript" aesthetic
