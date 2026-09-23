@@ -46,8 +46,8 @@
 | `src/lib/markdown/`（改） | 标题规整：正文里最高一级标题渲染为 `h2`，其余按相对层级顺延，跳级压平——页面的 `h1` 只属于引首；标题 `id` 稳定且唯一（重名加序号）；`extractToc(source) → {id, text}[]` 只取规整后的 `h2`，与渲染同一管道，二者 id 必然一致 | core |
 | `src/lib/home.ts`（新） | `selectWindows(latestByType) → Entry[]`：每类最新一篇，相册取封面；空类型不出窗、不补位 | core |
 | `src/lib/page-locale.ts`（新） | `pickPageLocale(available, requested) → locale | null`：请求语言 → `en` → 按 `routing.ts` 语言表顺序的第一个；与数据返回顺序无关 | core |
-| `src/lib/server/pages-repo.ts`（新） | `site_pages` 的全部读写：已发布版本（某 slug 的全部语言）、后台按（slug、语言）取、保存（按主键 upsert，`updated_at = now()`，后写覆盖先写）；客户端由调用方传入 | IO |
-| `src/lib/pages.ts`（重写） | 关于页的公开加载器：`getPage(slug, locale) → { lang, title, body } | null`，`lang` 是选中版本的语言、与 URL 无关；匿名、无 cookie 的客户端；一条缓存（该 slug 全部已发布版本）、标签 `pages`、半小时，与其他加载器同一方式 | IO |
+| `src/lib/server/pages-repo.ts`（新） | `site_pages` 的全部读写：已发布版本（某 slug 的全部语言）、后台的语言列表与按（slug、语言）取、保存（按主键 upsert，后写覆盖先写；`updated_at` 由触发器写）；客户端由调用方传入 | IO |
+| `src/lib/pages.ts`（重写） | 关于页的公开加载器：`getPage(slug, locale) → { lang, title, body } | null`，`lang` 是选中版本的语言、与 URL 无关；`hasPublishedPage(slug)` 供 sitemap；匿名、无 cookie 的客户端；一条缓存（该 slug 全部已发布版本）、标签 `PAGES_TAG`、半小时，与其他加载器同一方式；`PAGE_SLUGS` 是后台认得的页面清单 | IO |
 | `src/lib/sitemap-entries.ts`（改） | 关于页只在至少一个版本已发布时列入（经 `pages.ts`） | core |
 | `src/app/admin/(protected)/pages/**`（新） | 关于页的语言列表与编辑器：`MarkdownEditor` 的纯文字模式（`onUpload` 变为可选，缺省时不接受粘贴图片）+ `MarkdownPreview`；动作：zod 校验（slug 只许 `about`，语言只许 `routing.ts` 中的）→ 管理员校验 → `pages-repo.save` → `updateTag('pages')`；标签失效失败沿用上一版「已保存、最迟半小时更新」的提示 | IO |
 | `src/app/[locale]/**/page.tsx`（改） | 按 §2.1 的形态组装；正文容器 `lang` = 条目写作语言，并带 `data-content`；每页恰一个 `h1`；详情页输出面包屑结构化数据 | UI |
@@ -89,9 +89,9 @@
 - CI：`check.yml` 新增任务 `ui`，与现有任务并行；它也以 `RUNTIME_DB=1` 对本地栈跑 `tests/runtime/`；`deploy.yml` 等它通过。
 
 ### 2.6 持久化数据
-- 新表 `site_pages`：`slug text`、`locale text`、`title text not null`、`body_markdown text not null`、`status content_status_enum not null default 'draft'`、`updated_at timestamptz not null default now()`；主键 `(slug, locale)`；RLS：匿名只读 `published`；插入与更新只授予服务端角色。语言与 slug 的取值由后台动作校验，不在库里约束（语言表的唯一来源是 `routing.ts`）。并发编辑后写覆盖先写，接受。
+- 新表 `site_pages`：`slug text`、`locale text`、`title text not null`、`body_markdown text not null`、`status content_status_enum not null default 'draft'`、`updated_at timestamptz not null default now()`（更新时由与 `content_items` 同一个触发器写）；主键 `(slug, locale)`；RLS：匿名只读 `published`；匿名与登录角色只有 `select` 权限，写入只授予服务端角色（它绕过 RLS）。语言与 slug 的取值由后台动作校验，不在库里约束（语言表的唯一来源是 `routing.ts`）。并发编辑后写覆盖先写，接受。
   - 不把关于页作为 `page` 类型放进 `content_items`：须加一个删不掉的枚举值、放宽同类型 slug 唯一约束，并在搜索索引、sitemap、栏目一致性测试等六处加特例。
-- 上线顺序：两条迁移按运维文档先在 Supabase 执行，跑核对查询（五行、全部 `published`、正文非空、渲染无报错），通过后再合并部署；数据迁移遇冲突保留已有行、核对查询把它列出来由 Jason 看。
+- 上线顺序：两条迁移按运维文档先在 Supabase 执行，跑核对查询（五行、全部 `published`、标题与正文非空），通过后再合并部署；「渲染无报错」由单元测试对迁移文件里的五份正文判定。数据迁移遇冲突保留已有行、核对查询把它列出来由 Jason 看。
 
 ## 3 外部系统约束
 上两版 §8 / §3 全部仍然成立，以下为本版新学到的（Phase 2 实测与查证，对象 Next 16.3.5、React 19.3、Supabase CLI 2.117.0、PhotoSwipe 5.4.4）：

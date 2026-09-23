@@ -56,7 +56,7 @@
 - 依赖：none
 
 ### Batch 2 — 关于页进库
-- 状态：open
+- 状态：代码完成（本机闸门与 `db-function-check.sh` 皆绿）；待 Jason 审中英文正文，待在 Supabase 执行两条迁移并核对——二者都在合并之前
 - 范围：两条迁移（表、改写后的五份正文）、`db-function-check.sh` 角色检查、`sitemap-entries.ts`、`pages-repo.ts`、`pages.ts`、`page-locale.ts`、`about/page.tsx`、`/admin/pages/**`；删 `src/content/pages/`、`next-mdx-remote`、`gray-matter` · 覆盖 REQ §5.3
 - 验收判据：§5.3-a/b/c 去 todo；上线前在 Supabase 执行迁移并跑核对查询；Jason 审中英文正文；`db-function-check.sh` 仍绿
 - 依赖：Batch 1
@@ -119,6 +119,7 @@
 
 **Batch 证据**：
 - Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
+- Batch 2：§5.3-a、§5.3-b、§5.3-c 去 todo 且绿；本机界面闸门 axe 56/56、有库运行时套件 23/23；`db-function-check.sh` 全过（含 `site_pages` 角色与迁移重跑保留后台修改）。CI：（待填）
 
 **Phase 4 证据**：（Phase 4 起）
 

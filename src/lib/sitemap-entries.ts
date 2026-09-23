@@ -4,6 +4,7 @@ import { getAllNotesMeta } from '@/lib/notes';
 import { getAllProjectsMeta } from '@/lib/projects';
 import { getAllPhotosMeta } from '@/lib/gallery';
 import { getAllTags } from '@/lib/tags';
+import { hasPublishedPage } from '@/lib/pages';
 import { SITE_ORIGIN } from '@/lib/site';
 
 type SitemapEntry = {
@@ -52,6 +53,8 @@ export type SitemapData = {
   photos: SitemapContent[];
   projects: SitemapContent[];
   tags: string[];
+  /** Whether the about page has a published version in any language; without one it is a 404. */
+  about: boolean;
 };
 
 // Pure: every locale gets the home page, every section, every content page and every tag page, and
@@ -63,7 +66,10 @@ export function buildSitemapEntries(data: SitemapData): SitemapEntry[] {
   const sectionPriority: Partial<Record<(typeof localizedSections)[number], number>> = { posts: 0.8, notes: 0.7, gallery: 0.7, projects: 0.7 };
   for (const l of locales) {
     entries.push(page(`/${l}`, undefined, 1.0));
-    for (const section of localizedSections) entries.push(page(`/${l}/${section}`, undefined, sectionPriority[section] ?? 0.6));
+    for (const section of localizedSections) {
+      if (section === 'about' && !data.about) continue;
+      entries.push(page(`/${l}/${section}`, undefined, sectionPriority[section] ?? 0.6));
+    }
   }
 
   const contentPriority: [string, SitemapContent[], number][] = [
@@ -89,14 +95,15 @@ export function buildSitemapEntries(data: SitemapData): SitemapEntry[] {
 // Deliberately not `app/sitemap.ts`: a file of that name is itself a route generated at build time,
 // which would make the build need the database.
 export async function getSitemapEntries(): Promise<SitemapEntry[]> {
-  const [posts, notes, photos, projects, tags] = await Promise.all([
+  const [posts, notes, photos, projects, tags, about] = await Promise.all([
     getAllPostsMeta(),
     getAllNotesMeta(),
     getAllPhotosMeta(),
     getAllProjectsMeta(),
     getAllTags(),
+    hasPublishedPage('about'),
   ]);
-  return buildSitemapEntries({ posts, notes, photos, projects, tags });
+  return buildSitemapEntries({ posts, notes, photos, projects, tags, about });
 }
 
 function escapeXml(input: string): string {

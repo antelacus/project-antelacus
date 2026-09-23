@@ -46,3 +46,25 @@ select public.save_content_item($${
   "content_type":"post","slug":"seed-draft","title":"Seed draft","body_markdown":"Draft.",
   "locale":"en","status":"draft"
 }$$::jsonb);
+
+-- The about page. The data migration wrote the real text; the gate judges synthetic text only, so it goes.
+-- English and Chinese published, Spanish a draft, French absent: /fr/about falls back to English.
+delete from public.site_pages;
+insert into public.site_pages (slug, locale, title, body_markdown, status) values
+('about', 'en', 'Seed about', $md$A synthetic about page.
+
+## The motto
+
+**Ante Lacus, Pax Mentis**
+
+## Contact
+
+- [Email](mailto:seed@example.com)
+$md$, 'published'),
+('about', 'zh-CN', '种子关于页', $md$一篇合成的关于页。
+
+## 格言
+
+**Ante Lacus, Pax Mentis**——临湖之前，心境平和。
+$md$, 'published'),
+('about', 'es', 'Borrador', $md$Un borrador que nadie debe ver.$md$, 'draft');

@@ -222,6 +222,19 @@ test('acceptance §5.3 rule 6 every admin save expires the type registry\'s tag 
   }
 });
 
+// Invariant 17 as revised by visual-upgrade DESIGN §4: a page save expires the pages tag, the same way.
+test('acceptance §5.3 rule 6 every admin page save expires the pages tag so the next visit is fresh', () => {
+  const path = 'src/app/admin/(protected)/pages/actions.ts';
+  const source = ts.createSourceFile(path, read(path), ts.ScriptTarget.Latest, true);
+  const calls: string[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isCallExpression(node) && ['updateTag', 'revalidateTag', 'revalidatePath'].includes(node.expression.getText())) calls.push(node.getText());
+    node.forEachChild(visit);
+  };
+  visit(source);
+  assert.deepEqual(calls, ['updateTag(PAGES_TAG)']);
+});
+
 test('acceptance §5.10 the four repos are one', () => {
   for (const gone of ['posts-repo', 'notes-repo', 'gallery-repo', 'projects-repo']) {
     assert.equal(existsSync(join(ROOT, `src/lib/server/${gone}.ts`)), false, `${gone}.ts still exists`);

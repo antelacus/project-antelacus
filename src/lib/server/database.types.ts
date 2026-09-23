@@ -137,6 +137,19 @@ export interface Database {
         Update: Partial<ProjectLinkInsert>;
         Relationships: [];
       };
+      site_pages: {
+        Row: {
+          slug: string;
+          locale: string;
+          title: string;
+          body_markdown: string;
+          status: ContentStatus;
+          updated_at: string;
+        };
+        Insert: { slug: string; locale: string; title: string; body_markdown: string; status?: ContentStatus };
+        Update: Partial<{ slug: string; locale: string; title: string; body_markdown: string; status: ContentStatus }>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

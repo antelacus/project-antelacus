@@ -15,6 +15,7 @@ export const SEED = {
   galleryTitle: 'Seed album',
   tag: 'seed',
   draftTitle: 'Seed draft',
+  aboutTitle: 'Seed about', // English; /fr/about falls back to it
   // Post and project covers belong on the detail page only (REQ §5.2-f).
   coverFiles: ['2025-07-13-llm-note.png', '2025-07-22-goodman.png'],
 };
@@ -49,7 +50,7 @@ export const TEMPLATES = [
   { name: 'note', kind: 'detail', path: p(`/notes/${SEED.note}`), text: SEED.noteTitle },
   { name: 'project', kind: 'detail', path: p(`/projects/${SEED.project}`), text: SEED.projectTitle },
   { name: 'album', kind: 'detail', path: p(`/gallery/${SEED.gallery}`), text: SEED.galleryTitle },
-  { name: 'about', kind: 'about', path: p('/about') },
+  { name: 'about', kind: 'about', path: p('/about'), text: SEED.aboutTitle },
   { name: '404', kind: '404', path: p('/no-such-section'), status: 404, text: 'Page not found' },
   { name: 'search open', kind: 'state', path: p(''), state: 'search' },
   { name: 'viewer open', kind: 'state', path: p(`/gallery/${SEED.gallery}`), state: 'viewer' },

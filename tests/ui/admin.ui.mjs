@@ -13,7 +13,7 @@ test('acceptance §5.1-b the four admin templates have zero axe violations', { t
   assert.deepEqual(failures, []);
 });
 
-test('acceptance §5.3-b after a save the next anonymous visit shows it, fallback languages included', { todo: 'Batch 2' }, async () => {
+test('acceptance §5.3-b after a save the next anonymous visit shows it, fallback languages included', async () => {
   const { anonymousHtml, visitAdmin, BASE } = await h();
   const marker = `marker-${Date.now()}`;
   // Warm the caches: English directly, French through the fallback to English.

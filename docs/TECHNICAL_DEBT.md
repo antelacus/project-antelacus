@@ -19,12 +19,6 @@ Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build
 
 v2.3.0 resolved every finding of that scan except the ones below; the scope note above still says what the scan did not examine.
 
-### TD-019 - The about page is the last repo-file content and the last MDX user
-
-- Status: `Open` · Severity: `Low` · Area: `content-management` · Identified: `2026-09-22`
-- Context: `/about` reads `src/content/pages/about/*.mdx`, five per-language files written as JSX (sections, a contact grid, inline SVG icons), rendered by `next-mdx-remote`. It cannot be edited from the admin, and it is the one page the Markdown-only renderer of v2.3.0 does not cover. Converting it to Markdown changes its appearance, which v2.3.0 forbids.
-- Ruled (Project Lead, 2026-09-22): v2.4.0 — the visual upgrade redesigns the about page, and it moves into the database as Markdown (per-language rows with fallback to English, then any) in the same version; `next-mdx-remote` leaves with it.
-
 ### TD-020 - Three React hook rules run as warnings, not errors
 
 - Status: `Open` · Severity: `Low` · Area: `lint` · Identified: `2026-09-22`

@@ -1,6 +1,8 @@
-import { MDXRemote } from 'next-mdx-remote/rsc';
+import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
-import { getAboutMdx } from '@/lib/pages';
+
+import { renderMarkdown } from '@/lib/markdown';
+import { getPage } from '@/lib/pages';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -18,18 +20,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const mdx = await getAboutMdx(locale);
-  if (!mdx) {
-    return null;
-  }
+  const page = await getPage('about', locale);
+  if (!page) notFound();
+
+  // The version shown may be another language than the URL's (the fallback): it says so itself.
   return (
     <div className="content-container content-container-standard">
-      <div className="about-content">
-        <article>
-          <MDXRemote source={mdx.content} />
-        </article>
-      </div>
+      <article lang={page.lang} data-content>
+        <h1>{page.title}</h1>
+        <div className="prose">{renderMarkdown(page.body)}</div>
+      </article>
     </div>
   );
 }
-

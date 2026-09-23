@@ -29,7 +29,9 @@ What differs between the four content types (cache tag, section, relation, mappe
 
 Writes go through `/admin/content/<type>/<slug>` → `src/app/admin/(protected)/content/actions.ts` → `save_content_item`, a database function (in `supabase/migrations/`) that writes the row and its relations in one transaction; `scripts/db-function-check.sh` exercises it on a throwaway Postgres. After a save the action invalidates the type's tag; every page showing that content reads it through the tag, so nothing is revalidated by path. Images upload through `POST /api/admin/upload` into the `media` bucket.
 
-Bodies are Markdown, never executed: raw HTML and JSX render as text, links are http(s)/mailto only. The about page is the one exception (repo MDX files, TD-019).
+The about page is not content: one row per language in `site_pages`, read through `src/lib/pages.ts` (tag `pages`; the language fallback is `src/lib/page-locale.ts`) and edited, text only, at `/admin/pages/about`.
+
+Bodies are Markdown, never executed: raw HTML and JSX render as text, links are http(s)/mailto only.
 
 ### Routing and languages
 

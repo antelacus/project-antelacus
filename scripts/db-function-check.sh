@@ -15,12 +15,12 @@ for _ in $(seq 1 30); do docker exec "$NAME" pg_isready -U postgres -d app >/dev
 
 psql() { docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d app -q -t -A "$@"; }
 
-# Supabase's roles, so the grants in the migrations resolve.
+# Supabase's roles, so the grants in the migrations resolve; like Supabase's, the service role bypasses RLS.
 psql <<'SQL'
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon; end if;
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated; end if;
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role; end if;
+  if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role bypassrls; end if;
 end $$;
 SQL
 for f in supabase/migrations/*.sql; do psql < "$f"; done
@@ -71,4 +71,17 @@ check "and leaves no parent row behind" "0" "$(psql -c "select count(*) from pub
 
 check "slug unique per type across locales" "1" "$( psql -c "insert into public.content_items (content_type, slug, title, body_markdown, locale) values ('note','renamed','x','','fr');" >/dev/null 2>&1 && echo 0 || echo 1 )"
 check "anon cannot call the function" "1" "$( psql -c "set role anon; select public.save_content_item('{}'::jsonb);" >/dev/null 2>&1 && echo 0 || echo 1 )"
+# site_pages: the about migration's rows, who may read and write, and a re-run that must not overwrite.
+check "the about page is in five languages, all published, none empty" "5" "$(psql -c "select count(*) from public.site_pages where slug='about' and status='published' and length(trim(body_markdown)) > 0 and length(trim(title)) > 0")"
+psql -c "insert into public.site_pages (slug, locale, title, body_markdown, status) values ('check','en','T','B','draft'), ('check','fr','T','B','published');" >/dev/null
+check "anon reads the published version only" "fr" "$(psql -c "set role anon; select string_agg(locale, ',') from public.site_pages where slug='check';" | tail -1)"
+check "anon cannot write a page" "1" "$( psql -c "set role anon; insert into public.site_pages (slug, locale, title, body_markdown) values ('check','es','T','B');" >/dev/null 2>&1 && echo 0 || echo 1 )"
+check "authenticated cannot update a page" "1" "$( psql -c "set role authenticated; update public.site_pages set title='x' where slug='check';" >/dev/null 2>&1 && echo 0 || echo 1 )"
+before=$(psql -c "select updated_at from public.site_pages where slug='check' and locale='en'")
+psql -c "set role service_role; insert into public.site_pages (slug, locale, title, body_markdown, status) values ('check','en','T2','B2','published') on conflict (slug, locale) do update set title=excluded.title, body_markdown=excluded.body_markdown, status=excluded.status;" >/dev/null
+check "the service role upserts by page and language" "1:T2:published" "$(psql -c "select count(*)||':'||max(title)||':'||max(status::text) from public.site_pages where slug='check' and locale='en'")"
+check "an update moves updated_at" "true" "$(psql -c "select (updated_at > '$before'::timestamptz)::text from public.site_pages where slug='check' and locale='en'")"
+psql -c "update public.site_pages set title='Edited in the admin' where slug='about' and locale='en';" >/dev/null
+psql < supabase/migrations/20260923100100_about_content.sql >/dev/null
+check "re-running the about migration keeps an admin edit" "Edited in the admin" "$(psql -c "select title from public.site_pages where slug='about' and locale='en'")"
 echo "all checks passed"

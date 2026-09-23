@@ -33,7 +33,7 @@ test('acceptance §5.2-g the home windows are the newest item of each type, an e
 
 // ---------- §5.3 about page in the database ----------
 
-test('acceptance §5.3-a the about page falls back: requested language, then English, then any', { todo: 'Batch 2' }, async () => {
+test('acceptance §5.3-a the about page falls back: requested language, then English, then any', async () => {
   const { pickPageLocale } = await load('../src/lib/page-locale.js');
   assert.equal(pickPageLocale(['en', 'zh-CN', 'fr'], 'fr'), 'fr');
   assert.equal(pickPageLocale(['en', 'zh-CN'], 'fr'), 'en');
@@ -42,12 +42,29 @@ test('acceptance §5.3-a the about page falls back: requested language, then Eng
   assert.equal(pickPageLocale([], 'fr'), null);
 });
 
-test('acceptance §5.3-c no MDX renderer and no repo-file pages remain', { todo: 'Batch 2' }, () => {
+test('acceptance §5.3-c no MDX renderer and no repo-file pages remain', () => {
   const pkg = JSON.parse(read('package.json'));
   const deps = { ...pkg.dependencies, ...pkg.devDependencies };
   assert.equal(deps['next-mdx-remote'], undefined, 'next-mdx-remote is still a dependency');
   assert.equal(deps['gray-matter'], undefined, 'gray-matter is still a dependency');
   assert.ok(!existsSync(join(ROOT, 'src/content/pages')), 'src/content/pages still exists');
+});
+
+// The pre-launch check of DESIGN §2.6 that SQL cannot make: each migrated body renders, with no
+// leftover markup from the MDX it came from, and every link is one the renderer keeps.
+test('acceptance §5.3 the about migration holds five languages whose bodies render cleanly', async () => {
+  const sql = read('supabase/migrations/20260923100100_about_content.sql');
+  const rows = [...sql.matchAll(/\('about', '([^']+)', '[^']+', \$md\$([\s\S]*?)\$md\$, 'published'\)/g)];
+  assert.deepEqual(rows.map(([, locale]) => locale).sort(), ['en', 'es', 'fr', 'zh-CN', 'zh-HK']);
+  const { renderMarkdown } = await load('../src/lib/markdown/index.js');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  for (const [, locale, body] of rows) {
+    const html = renderToStaticMarkup(renderMarkdown(body));
+    assert.doesNotMatch(body, /<[a-z]|className=/i, `${locale}: MDX markup left in the body`);
+    assert.doesNotMatch(html, /<h1/, `${locale}: a second h1`);
+    assert.equal((html.match(/<a /g) ?? []).length, 4, `${locale}: the four contact links`);
+    assert.match(html, /Ante Lacus, Pax Mentis/, `${locale}: the motto`);
+  }
 });
 
 // ---------- §5.4 hook rules ----------

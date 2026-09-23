@@ -7,11 +7,12 @@ import { markdown } from '@codemirror/lang-markdown';
 import { basicSetup } from 'codemirror';
 
 // The narrow interface (DESIGN §2.1): Markdown in, Markdown out, one upload function. CodeMirror is an
-// implementation detail behind it; swapping the widget touches nothing else.
+// implementation detail behind it; swapping the widget touches nothing else. Without `onUpload` the editor
+// is text only: pasted or dropped images are ignored and there is no image button.
 export type MarkdownEditorProps = {
   value: string;
   onChange(next: string): void;
-  onUpload(file: File): Promise<string>;
+  onUpload?(file: File): Promise<string>;
   onError?(message: string): void;
 };
 
@@ -29,9 +30,11 @@ export default function MarkdownEditor({ value, onChange, onUpload, onError }: M
     if (!host.current) return;
 
     const insertUploads = async (files: File[], editor: EditorView) => {
+      const upload = latest.current.onUpload;
+      if (!upload) return;
       for (const file of files) {
         try {
-          const url = await latest.current.onUpload(file);
+          const url = await upload(file);
           const at = editor.state.selection.main.head;
           const text = `![${file.name.replace(/\.[^.]+$/, '')}](${url})`;
           editor.dispatch({ changes: { from: at, insert: text }, selection: { anchor: at + text.length } });
@@ -55,14 +58,14 @@ export default function MarkdownEditor({ value, onChange, onUpload, onError }: M
           EditorView.domEventHandlers({
             paste(event, editorView) {
               const files = Array.from(event.clipboardData?.files ?? []).filter(isImage);
-              if (files.length === 0) return false;
+              if (files.length === 0 || !latest.current.onUpload) return false;
               event.preventDefault();
               void insertUploads(files, editorView);
               return true;
             },
             drop(event, editorView) {
               const files = Array.from(event.dataTransfer?.files ?? []).filter(isImage);
-              if (files.length === 0) return false;
+              if (files.length === 0 || !latest.current.onUpload) return false;
               event.preventDefault();
               void insertUploads(files, editorView);
               return true;
@@ -99,7 +102,7 @@ export default function MarkdownEditor({ value, onChange, onUpload, onError }: M
     <div style={{ display: 'grid', gap: '0.5rem' }}>
       <div ref={host} />
       {/* The file picker is how a phone inserts an image; paste and drop are for desks. */}
-      <label className="admin-button" style={{ justifySelf: 'start' }}>
+      {onUpload && <label className="admin-button" style={{ justifySelf: 'start' }}>
         Insert image from device
         <input
           type="file"
@@ -112,7 +115,7 @@ export default function MarkdownEditor({ value, onChange, onUpload, onError }: M
             event.target.value = '';
           }}
         />
-      </label>
+      </label>}
     </div>
   );
 }
