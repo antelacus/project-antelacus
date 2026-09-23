@@ -102,7 +102,7 @@
 - MUST-6 写作语言没有贯通：相册与项目的映射丢了 `locale`，搜索索引缺 `lang`；窗与目录行未显示语言 —— status: fixed `8ef2e28`（DESIGN）
 - MUST-7 REQ §7 仍写「存于既有内容表」；`updateTag('pages')` 违反继承的不变量 17 —— status: fixed `8ef2e28`（DESIGN）
 - MUST-8 §5.3-b「下一次访问即新」没有决定性的测试 —— status: fixed `8ef2e28`（DESIGN）
-- MUST-9 搜索的加载、失败、无结果没有状态播报（4.1.3）—— status: open
+- MUST-9 搜索的加载、失败、无结果没有状态播报（4.1.3）—— status: fixed `8ef2e28`（DESIGN）
 - MUST-10 PhotoSwipe 自带样式在触屏隐藏箭头、有文字阴影与无限转圈 —— status: fixed `8ef2e28`（DESIGN）
 - SHOULD-1 缺 200% 放大、平板、文字间距（1.4.12）、焦点遮挡的检查 —— status: fixed `8ef2e28`（DESIGN），焦点遮挡检查不做：导航静止后无固定元素
 - SHOULD-2 本机地址不等于本地后端：须断言后端来自新起的栈 —— status: fixed `8ef2e28`（DESIGN）
