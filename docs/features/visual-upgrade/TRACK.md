@@ -122,3 +122,28 @@
 **Phase 6 boxes**：Phase 4 收尾时写入。
 
 ## 四、Session-end pickup
+
+### Session-end pickup (2026-09-23)
+
+**Working tree state at session close**:
+- Branch: `feat/visual-upgrade`（已推送）。HEAD（本 `/pause` 提交的父提交）：`1fca3ef`（TRACK 第一区措辞随《临湖》更名）
+- Working tree: clean
+
+**Where work stands**:
+- Phase 0–2：✅ done。Phase 1 产出 `docs/aesthetic-thesis.md`（《临湖》）与 REQ；Phase 2 产出 DESIGN，Codex 设计门 10 MUST / 11 SHOULD / 1 NICE 全部在 DESIGN 中处置（第三区登记）；验收测试已写红（第二区开头）
+- Phase 3：🔲 未开始 —— 当前批次 Batch 1（界面闸门），范围与判据见第二区
+- 会话 scratchpad 里有 Phase 2 实测留下的草稿（本地栈 `config.toml`、`seed.sql`、`pw/a11y.mjs`、基线审计 `a11y/audit.mjs`），随会话消失，不可依赖；实测得到的约束已写进 DESIGN §3
+
+**Test / lint state**: `npm test` 76 条：71 过、0 败、5 todo；`tsc` 净；lint 0 错误 31 警告（TD-020 的降级规则与几处未用 import，Batch 6 清）
+
+**Reconciliation (对账)**: 本会话无上一份 pickup（v2.4.0 首个会话）。
+
+**First action for next session**: 开 Batch 1——按 DESIGN §2.5 写 `supabase/config.toml`（项目 id、只开 db/auth/rest/kong、`[realtime] enabled=false`、`[storage]` 开启）与 `supabase/seed.sql`，再写 `scripts/ui-check.sh` 与 `tests/ui/harness.mjs`、`manifest.mjs`（API 以 `tests/ui/*.ui.mjs` 里的调用为准：`visit`、`visitAdmin`、`axe`、`anonymousHtml`、`TEMPLATES`、`ADMIN_TEMPLATES`、`CONTEXTS`、`SEED`、`BASE`）；本机跑通后接 `check.yml` 任务 `ui`。
+
+**Decisions awaiting Project Lead**:
+1. 无阻塞项。Jason 对 Codex 处置表未逐条表态，按「无异议」记入裁定；他可随时推翻其中任一条。
+
+**Reference state** (verify before relying on):
+- Relevant memory items: `feedback-aesthetic-consulting.md` —— 审美问题以顾问式对话、真实内容的对照图来谈；`feedback-push-without-asking.md` —— 推送无须确认
+- Suite size at the last green run: 71 passed（5 todo）
+- 外部状态：colima 已停，本地栈镜像约 3.4 GB 缓存在 colima 磁盘里（Jason 可要求清理）；Claude artifacts：字体对照页 https://claude.ai/artifact/MZUWx8i4xDDwGronL6755P、首页构图画布 https://claude.ai/artifact/3ZRrUNaYaA2wAMD6Dy36m2（Batch 3 的构图参照为其方案 B）；Supabase CLI 实测版本 2.117.0（Batch 1 钉版本前再核）
