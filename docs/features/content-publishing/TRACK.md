@@ -160,7 +160,7 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
 - [x] TECHNICAL_DEBT 定稿 —— TD-002、004 已在 Phase 1 删除（非债务）；TD-001、005、006、011、012、014、016、017、018 随生产验证删除；TD-003、013 待 VPS 三步后删除；TD-019、020 留
 - [x] 用户文档（`docs/content-publishing.md` 改为按后台发布，SQL 一节退役；关于页一节说明仍是仓库文件）· README 仍然属实
 - [x] 常新文档扫尾（REQ / DESIGN / `CLAUDE.md` 与交付一致；`CLAUDE.md` 的架构节按 TD-011 后的形状改写）
-- [ ] tag
+- [x] tag `v2.3.0` = `2f1b32f`（关版 PR #8 的合并提交；部署运行 35708638467 回显同一 SHA，生产运行时验收 23 过）
 - [x] 生产部署 + 核对 served SHA —— PR #7 合并提交 `ad96693`；部署运行 35703014555 的日志回显同一 SHA，健康检查 6 秒通过
 - [x] 上线后：`BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` 全绿 —— 23 过、todo 0；§5.4-a、§5.8-a、§5.9-a 的读库地址首次得到验证；响应头实测含 CSP 与 HSTS、无 `x-powered-by`
 - [x] 三个新迁移在 Supabase SQL Editor 执行完成（合并后、首次发布前）；唯一索引无冲突；保存函数第一版被编辑器拒绝（FOR 查询含字面量），改后通过——约束记入 DESIGN §3
@@ -170,7 +170,8 @@ Codex 部署前评审（只读，xhigh，任务 `task-mucbmhfo-z5ahht`，会话 
   - [x] iPhone 上传（§5.3-d）：相册原图经 Safari 上传时已由系统转为 JPEG（`image/jpeg`，3.8 MB），HEIC 没有到达服务端；但正文图片是普通 `<img>`、不经 Next 图片优化，3.8 MB 原图会原样送到访客——照片类上传时改为 sharp 转 ≤ 2400px JPEG（`31987ad`，随关版 PR 部署）
 - [x] 上线后：`2025-07-13-llm-note` 的三图 JSX 段在新后台改写为一段三张带 `title` 的 Markdown 图片；页面上一个 `image-row`、三张图各带图注、无 JSX 残留、11 处公式仍在（§5.2-c）
 - [x] 上线后：列表页摘要与基线对比（§5.10-b）—— 差异两类，均可解释：每页少四个导航链接（导航移出 `<main>`，§5.9 的设计）；相册列表多出四个相册链接与标题（相册卡片现在在服务端 HTML 里，基线里没有）。内容条目本身无增减
-- [ ] 上线后：备份实际跑一次，把导出恢复进一个空的测试项目、站点能读出内容（TD-003）；让 keepalive 停跑一个周期，死人开关的告警到达（TD-013）
+- [x] 上线后（TD-003）：VPS 上 `backup.sh` 两次成功（第二次 24 个文件全部复用、0 下载）；`pg_restore --list` 5 张表；演练——空的 postgres 17 容器整体恢复：17 条内容、32 条标签关联、保存函数在。**演练抓到两处**：第一版转储带上了 Supabase 全部 44 张表（含 `auth.users` 与 `vault`），改为只转 `public`；先套迁移再灌数据让 `content_item_tags` 撞外键，恢复步骤改为整体恢复（PR #9）。cron 三行已装，旧的每日 keepalive 条目删除
+- [ ] 上线后（TD-013）：`/fail` 上报已发出，待确认告警邮件到达、三个检查转绿
 - [x] 各门读数（运行次数 / 改变了输出的拦截次数）：
   - Codex 设计门 1 / 16（18 条，16 条改了 REQ 或 DESIGN，含关于页推迟一版）
   - 同模型 `/code-review` 1 / 9（10 条，9 条改了代码，1 条按惯例归关版）

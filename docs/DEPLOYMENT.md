@@ -26,7 +26,7 @@ Database changes ship as files in `supabase/migrations/`; apply them in the Supa
 */10 * * * * /home/deploy/antelacus/scripts/site-check.sh
 ```
 
-- **keepalive**: one small query every six hours so the free-tier project is never idle for a week (idle a week, it pauses).
+- **keepalive**: one small query every six hours so the free-tier project is never idle for a week (idle a week, it pauses). Only this line — an older daily entry for the same script was removed when these were installed.
 - **backup**: a `pg_dump` of the whole database (custom format) plus a mirror of the `media` and `gallery` buckets, into `ANTELACUS_DATA_DIR` (outside the repository; it holds unpublished drafts, so it never leaves the VPS). Dumps older than `BACKUP_KEEP_DAYS` are deleted. `pg_dump` runs from the official `postgres:$PG_MAJOR` image; its major must be the server's or newer. `DATABASE_URL` is the **session pooler** string from the dashboard (Connect → Session pooler): the direct address is IPv6-only.
 - **site-check**: fetches `/en/about` from the public address every ten minutes.
 
@@ -41,7 +41,7 @@ Setup, once: create three checks (keepalive: period 6 h, grace 1 h · backup: pe
 The dump holds the `public` schema whole — types, tables, the save function, data — so it restores into an empty database **without** applying the migrations first (applying them first puts foreign keys in place before the data and the restore fails on `content_item_tags`).
 
 1. Create the target: a fresh Supabase project, or any Postgres 17+ with the roles `anon`, `authenticated`, `service_role` (a Supabase project has them; a plain Postgres needs `create role …` for each).
-2. From a `postgres:$PG_MAJOR` container: `pg_restore --no-owner --no-privileges --clean --if-exists -d "$TARGET_URL" antelacus-<stamp>.dump` (`--clean --if-exists` lets it be re-run; on a brand-new database it only prints notices).
+2. From a `postgres:$PG_MAJOR` container: `pg_restore --no-owner --no-privileges --clean --if-exists -d "$TARGET_URL" antelacus-<stamp>.dump` (`--clean --if-exists` lets it be re-run). One error is expected and harmless: `schema "public" already exists` — every database has it; pg_restore reports it and carries on ("errors ignored on restore: 1").
 3. Check: `select content_type, status, count(*) from public.content_items group by 1, 2;` should match the admin dashboard's counts, and `select count(*) from public.content_item_tags;` must not be zero.
 4. Upload `ANTELACUS_DATA_DIR/storage/<bucket>/…` into buckets of the same names (public read), keeping the paths. Restoring into a *different* project changes the storage host: search and replace the old project host in `content_items.cover_image_url`, `content_items.body_markdown` and `gallery_images.public_url`.
 5. Point `.env` at the new project, `docker compose up -d --build`, run `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`. Auth is not in the dump: create the admin user again in Authentication → Users.
