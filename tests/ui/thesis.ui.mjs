@@ -1,0 +1,87 @@
+// REQ visual-upgrade §5.2 — the machine-decidable rules of docs/aesthetic-thesis.md.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+const h = () => import('./harness.mjs');
+const SEAL = 'rgb(180, 42, 30)'; // 朱砂 #B42A1E
+
+test('acceptance §5.2-a vermilion appears only on the end mark, at most once per page', { todo: 'Batch 3' }, async () => {
+  const { visit, TEMPLATES } = await h();
+  await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
+    const users = await page.$$eval('body *', (els, seal) => els.filter((el) => {
+      const s = getComputedStyle(el);
+      return [s.color, s.backgroundColor, s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor, s.outlineColor]
+        .some((c) => c === seal) && (s.color === seal || s.backgroundColor === seal || s.borderStyle !== 'none' || s.outlineStyle !== 'none');
+    }).map((el) => el.hasAttribute('data-end-mark') ? 'end-mark' : el.tagName), SEAL);
+    assert.ok(users.every((u) => u === 'end-mark'), `${t.name}: vermilion on ${users.filter((u) => u !== 'end-mark')}`);
+    assert.ok(users.length <= 1, `${t.name}: ${users.length} end marks`);
+  });
+});
+
+test('acceptance §5.2-b nothing moves while the reader does nothing', { todo: 'Batch 5' }, async () => {
+  const { visit, TEMPLATES } = await h();
+  await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
+    await page.waitForTimeout(1500);
+    const running = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length);
+    assert.equal(running, 0, `${t.name}: ${running} animations running at rest`);
+  });
+});
+
+test('acceptance §5.2-c no element casts a shadow', { todo: 'Batch 3' }, async () => {
+  const { visit, TEMPLATES } = await h();
+  await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
+    const shadowed = await page.$$eval('body *', (els) => els.filter((el) => {
+      const s = getComputedStyle(el);
+      return s.boxShadow !== 'none' || s.textShadow !== 'none';
+    }).map((el) => el.tagName));
+    assert.deepEqual(shadowed, [], `${t.name}: shadows on ${shadowed}`);
+  });
+});
+
+test('acceptance §5.2-d Cormorant Garamond is used only inside the gate', { todo: 'Batch 3' }, async () => {
+  const { visit, TEMPLATES } = await h();
+  await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
+    const outside = await page.$$eval('body *', (els) => els.filter((el) =>
+      /cormorant/i.test(getComputedStyle(el).fontFamily.split(',')[0]) && !el.closest('[data-gate]') && el.textContent?.trim()).map((el) => el.tagName));
+    assert.deepEqual(outside, [], `${t.name}: Cormorant outside the gate`);
+  });
+});
+
+test('acceptance §5.2-e the navigation scrolls away with the page', { todo: 'Batch 5' }, async () => {
+  const { visit, SEED } = await h();
+  await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }], async (page) => {
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const box = await page.locator('[data-site-nav]').boundingBox();
+    assert.ok(box === null || box.y + box.height <= 0, 'the navigation is still in the viewport');
+  });
+});
+
+test('acceptance §5.2-f no post or project cover on the home or list pages', { todo: 'Batch 3' }, async () => {
+  const { visit, TEMPLATES, SEED } = await h();
+  const lists = TEMPLATES.filter((t) => t.kind === 'home' || t.kind === 'list');
+  await visit(['desktop'], lists, async (page, ctx, t) => {
+    const srcs = await page.$$eval('img', (imgs) => imgs.map((i) => i.currentSrc || i.src));
+    const covers = srcs.filter((s) => SEED.coverFiles.some((f) => s.includes(f)));
+    assert.deepEqual(covers, [], `${t.name}: cover images shown`);
+  });
+});
+
+test('acceptance §5.2-h the tail carries date, tags and language and ends on the end mark; the TOC starts closed', { todo: 'Batch 4' }, async () => {
+  const { visit, SEED } = await h();
+  await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }, { name: 'short note', path: `/en/notes/${SEED.note}` }], async (page, ctx, t) => {
+    const tail = page.locator('[data-colophon]');
+    for (const part of ['written', 'tags', 'language']) assert.equal(await tail.locator(`[data-meta="${part}"]`).count(), 1, `${t.name}: no ${part}`);
+    assert.ok(await tail.evaluate((el) => el.querySelector('[data-end-mark]') !== null && el.lastElementChild?.matches('[data-end-mark], :has(> [data-end-mark])')), `${t.name}: tail does not end on the end mark`);
+  });
+  await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }], async (page) => {
+    const toc = page.locator('details[data-toc]');
+    assert.equal(await toc.count(), 1, 'a post with three h2 has no TOC');
+    assert.equal(await toc.getAttribute('open'), null, 'the TOC starts open');
+    await toc.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    assert.notEqual(await toc.getAttribute('open'), null, 'Enter did not open the TOC');
+  });
+  await visit(['desktop'], [{ name: 'short note', path: `/en/notes/${SEED.note}` }], async (page) => {
+    assert.equal(await page.locator('details[data-toc]').count(), 0, 'a note with fewer than three h2 has a TOC');
+  });
+});
