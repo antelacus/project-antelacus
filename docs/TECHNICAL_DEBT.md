@@ -13,34 +13,11 @@ Update this file when:
 
 ## Active Items
 
-### TD-003 - No in-repo bootstrap/recovery path for migrated content
-
-- Status: `Open`
-- Severity: `Medium`
-- Area: `operations`
-- Identified: `2026-03-19`
-- Context:
-  - The legacy content source files and import tooling were removed after the hard Supabase cutover.
-  - The repository no longer contains the original migrated content bodies for posts, notes, projects, or gallery.
-- Risk:
-  - If the Supabase project is reset, misconfigured, or replaced, there is no repository-contained recovery path.
-  - A wrong environment or empty project can make the site appear empty without a built-in backfill workflow.
-- Evidence:
-  - `package.json`
-  - deleted legacy content under `src/content/posts`, `src/content/notes`, `src/content/projects`, `src/content/gallery`
-- Ruled (Project Lead, 2026-09-22): in v2.3.0 — a cron on the VPS runs `pg_dump` plus a storage-bucket sync into the VPS data directory; the database password becomes a new secret in the VPS `.env`.
-
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
 
 v2.3.0 resolved every finding of that scan except the ones below; the scope note above still says what the scan did not examine.
-
-### TD-013 - The keepalive alert has no reader
-
-- Status: `Open` · Severity: `Low` · Area: `operations`
-- Context: `scripts/supabase-keepalive.sh` writes `ALERT` to a log file on the VPS after three failed runs; nothing reads that file. Together with TD-003 (no backup/export), a paused or lost Supabase project would be noticed by a visitor first.
-- Ruled (Project Lead, 2026-09-22): in v2.3.0, as an external dead-man's-switch service — the script pings on success, a missing ping alerts; nothing self-hosted on the VPS, since a monitor must not share a machine with what it watches.
 
 ### TD-019 - The about page is the last repo-file content and the last MDX user
 
