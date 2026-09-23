@@ -71,4 +71,4 @@ A push to `main` deploys: gate → SSH to the VPS → `docker compose up -d --bu
 
 ## Documentation
 
-Feature docs live in `docs/features/<feature>/` as `REQ.md`, `DESIGN.md` and the live `TRACK.md`; the `custom-conventions` skill governs what goes where. Open debt: `docs/TECHNICAL_DEBT.md`. `docs/versions/` is the archive from before that convention.
+Feature docs live in `docs/features/<feature>/` as `REQ.md`, `DESIGN.md` and the live `TRACK.md`; the `custom-conventions` skill governs what goes where. Open debt: `docs/TECHNICAL_DEBT.md`. Cross-feature vocabulary: `docs/GLOSSARY.md`. `docs/versions/` is the archive from before that convention.
