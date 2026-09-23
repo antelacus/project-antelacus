@@ -26,15 +26,18 @@ trap 'fail "step exited with $?"' ERR
 [[ -n "${DATABASE_URL:-}" ]] || fail "DATABASE_URL is not set"
 mkdir -p "$DATA_DIR/db" "$DATA_DIR/storage"
 
-# Database: custom format (compressed, restorable table by table with pg_restore).
+# Database: the public schema only, custom format (compressed; pg_restore rebuilds tables, data and
+# constraints in the right order). Supabase's own schemas (auth, storage, realtime, vault) belong to the
+# platform: they would collide with a fresh project's, and auth's password hashes have no place on disk.
 DUMP="$DATA_DIR/db/antelacus-$STAMP.dump"
 docker run --rm --network host "postgres:$PG_MAJOR" \
-  pg_dump --format=custom --no-owner --no-privileges "$DATABASE_URL" > "$DUMP.part"
+  pg_dump --format=custom --schema=public --no-owner --no-privileges "$DATABASE_URL" > "$DUMP.part"
 mv "$DUMP.part" "$DUMP"
 [[ -s "$DUMP" ]] || fail "empty dump"
 
 # Storage: every object of both buckets, mirrored under storage/<bucket>/ (see sync-bucket.mjs).
-docker run --rm -v "$REPO_DIR/scripts:/scripts:ro" -v "$DATA_DIR/storage:/data" \
+# Runs as the invoking user so the mirror in the data directory is owned by it, not by root.
+docker run --rm --user "$(id -u):$(id -g)" -v "$REPO_DIR/scripts:/scripts:ro" -v "$DATA_DIR/storage:/data" \
   -e NEXT_PUBLIC_SUPABASE_URL -e SUPABASE_SERVICE_ROLE_KEY \
   node:24-slim node /scripts/sync-bucket.mjs /data media gallery
 
