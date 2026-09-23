@@ -50,9 +50,9 @@
 验收测试已写红：`tests/acceptance-visual-upgrade.test.ts`（单元）与 `tests/ui/*.ui.mjs`（浏览器），每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。切分已随 Codex 设计门的处置定稿。
 
 ### Batch 1 — 界面闸门
-- 状态：open
+- 状态：done（`d56ce65`，CI 35874205263）
 - 范围：`supabase/config.toml`、`supabase/seed.sql`、`scripts/ui-check.sh`、`tests/ui/harness.mjs` 与 `manifest.mjs`、`next.config.ts`（`distDir` 可覆盖）、`tests/runtime/` 有库断言移入、`package.json`（playwright、@axe-core/playwright、`test:ui`）、`check.yml` 任务 `ui`、`deploy.yml` 等它 · 覆盖 REQ §5.5
-- 验收判据：§5.5-a 去 todo；本机 `scripts/ui-check.sh` 跑通且拆干净；§5.5-b 在分支上故意造一个无名按钮，闸门红（记运行号）；其余 UI 测试此时照常为 todo
+- 验收判据：§5.5-a 去 todo；本机 `scripts/ui-check.sh` 跑通且拆干净；每次运行植入的无名按钮在四种环境里都被 axe 报出；其余 UI 测试此时照常为 todo。§5.5-b 的分支实验移到 Batch 6（待 Jason 确认）：§5.1-a 在那之前是 todo，源码里的违例让闸门变红无从发生
 - 依赖：none
 
 ### Batch 2 — 关于页进库
@@ -82,7 +82,7 @@
 ### Batch 6 — 收口
 - 状态：open
 - 范围：可访问名称全部走文案、404 与错误页、后台四模板的 AA 修正、`eslint.config.mjs` 去降级、退役 §6-a 与 `head-baseline.json`、`globals.css` 残余清理 · 覆盖 REQ §5.1-a/b/f/i、§5.4-a
-- 验收判据：全部 todo 去除且绿；后台逐页人工审计记录写进第三区
+- 验收判据：全部 todo 去除且绿；后台逐页人工审计记录写进第三区；§5.5-b 在临时分支上造一个无名按钮，闸门红（记运行号）后删分支
 - 依赖：Batch 5
 
 ### 基线审计的余项
@@ -116,6 +116,9 @@
 - SHOULD-10 朱砂与动效检查要覆盖悬停、聚焦、展开等状态与首载瞬间 —— status: fixed `8ef2e28`（DESIGN），只扩到悬停、聚焦、展开、对话框各状态与首载
 - SHOULD-11 关于页编辑器复用 `MarkdownEditor` 时上传接口不认 `page` —— status: fixed `8ef2e28`（DESIGN）
 - NICE-1 关于页原文描述了已删除的功能菜单与旧美学 —— status: fixed `8ef2e28`（Batch 2 改写，Jason 审）
+
+**Batch 证据**：
+- Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
 
 **Phase 4 证据**：（Phase 4 起）
 
