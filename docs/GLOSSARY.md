@@ -1,6 +1,6 @@
 # GLOSSARY
 
-跨版本、跨 feature 都会用到的词。只在一个 feature 里用的词留在该 feature 的 REQ §1.4；活手稿的美学词汇（纸、墨、朱砂、静默展开……）的归宿是 `docs/aesthetic-thesis.md`。
+跨版本、跨 feature 都会用到的词。只在一个 feature 里用的词留在该 feature 的 REQ §1.4；美学词汇（纸、墨、朱砂、引首、尾纸、终止符、框景……）的归宿是 `docs/aesthetic-thesis.md`。
 
 ## 无障碍
 
