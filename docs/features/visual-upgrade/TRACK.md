@@ -119,7 +119,7 @@
 
 **Batch 证据**：
 - Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
-- Batch 2：§5.3-a、§5.3-b、§5.3-c 去 todo 且绿；本机界面闸门 axe 56/56、有库运行时套件 23/23；`db-function-check.sh` 全过（含 `site_pages` 角色与迁移重跑保留后台修改）。CI：（待填）
+- Batch 2：§5.3-a、§5.3-b、§5.3-c 去 todo 且绿；本机界面闸门 axe 56/56、有库运行时套件 23/23；`db-function-check.sh` 全过（含 `site_pages` 角色与迁移重跑保留后台修改）。CI：运行 35878664909，`check` 与 `ui` 皆绿
 
 **Phase 4 证据**：（Phase 4 起）
 
