@@ -92,7 +92,29 @@
 
 ## 三、门与发布
 
-**评审发现登记**：（Phase 2 起）
+**评审发现登记**（Codex 设计门，xhigh，DESIGN + REQ；全文 `codex resume 01a0cdaf-3b88-7542-b16b-b37c6e0c2a38`；引文已逐条对源核实）：
+- MUST-1 `node --test tests/ui/` 不发现 `*.ui.mjs`，空跑可能通过 —— status: open
+- MUST-2 「页面数非零」不证明覆盖矩阵；种子未保证标签与项目封面；§5.5-b 无流程 —— status: open
+- MUST-3 关于页数据迁移把真实内容带进合成库，回退判据失效；`save_content_item` 写不了 `site_pages` —— status: open
+- MUST-4 删除计划漏了三个消费者：`check.yml` 读 `head-baseline.json`、无库运行时套件要 `/about` 返回 200、CLAUDE.md 点名 `SearchModal` —— status: open
+- MUST-5 语言链接的 `next` 若为当前路径，会写入新语言却回到旧语言 —— status: open
+- MUST-6 写作语言没有贯通：相册与项目的映射丢了 `locale`，搜索索引缺 `lang`；窗与目录行未显示语言 —— status: open
+- MUST-7 REQ §7 仍写「存于既有内容表」；`updateTag('pages')` 违反继承的不变量 17 —— status: open
+- MUST-8 §5.3-b「下一次访问即新」没有决定性的测试 —— status: open
+- MUST-9 搜索的加载、失败、无结果没有状态播报（4.1.3）—— status: open
+- MUST-10 PhotoSwipe 自带样式在触屏隐藏箭头、有文字阴影与无限转圈 —— status: open
+- SHOULD-1 缺 200% 放大、平板、文字间距（1.4.12）、焦点遮挡的检查 —— status: open
+- SHOULD-2 本机地址不等于本地后端：须断言后端来自新起的栈 —— status: open
+- SHOULD-3 拆除的归属：独立项目 id、只关自己启动的 colima、保留原失败码 —— status: open
+- SHOULD-4 `site_pages` 的 `updated_at`、语言校验、授权与角色测试 —— status: open
+- SHOULD-5 数据迁移须先于部署执行并核对五份齐全，再删仓库文件 —— status: open
+- SHOULD-6 正文里的 `#` 会造成第二个 `h1`、跳级；目录 id 须唯一 —— status: open
+- SHOULD-7 目录行等共享组件需要统一的呈现类型与适配器；标题与标签链接不可嵌套 —— status: open
+- SHOULD-8 面包屑 JSON-LD 的去留；关于页全撤回时 sitemap 仍列出它 —— status: open
+- SHOULD-9 对话框需可见的关闭按钮、背景点击判定、查看器焦点回到所点照片 —— status: open
+- SHOULD-10 朱砂与动效检查要覆盖悬停、聚焦、展开等状态与首载瞬间 —— status: open
+- SHOULD-11 关于页编辑器复用 `MarkdownEditor` 时上传接口不认 `page` —— status: open
+- NICE-1 关于页原文描述了已删除的功能菜单与旧美学 —— status: open
 
 **Phase 4 证据**：（Phase 4 起）
 
