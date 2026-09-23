@@ -64,3 +64,20 @@ test('acceptance §5.1-g every public page has exactly one h1 and no skipped hea
     levels.forEach((l, i) => i > 0 && assert.ok(l <= levels[i - 1] + 1, `${t.name}: h${levels[i - 1]} → h${l}`));
   });
 });
+
+test('acceptance §5.1-i tablet and 200% zoom do not scroll sideways; WCAG 1.4.12 spacing clips no text', { todo: 'Batch 6' }, async () => {
+  const { visit, TEMPLATES } = await h();
+  await visit(['tablet', 'zoom200'], TEMPLATES, async (page, ctx, t) => {
+    const [scroll, client] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+    assert.ok(scroll <= client, `${ctx} ${t.name}: scrollWidth ${scroll} > ${client}`);
+  });
+  await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
+    await page.addStyleTag({ content: '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }' });
+    const clipped = await page.$$eval('body *', (els) => els.filter((el) => {
+      const s = getComputedStyle(el);
+      const hides = [s.overflow, s.overflowX, s.overflowY].some((o) => o === 'hidden' || o === 'clip');
+      return hides && el.textContent?.trim() && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1);
+    }).map((el) => el.tagName));
+    assert.deepEqual(clipped, [], `${t.name}: text clipped under 1.4.12 spacing`);
+  });
+});
