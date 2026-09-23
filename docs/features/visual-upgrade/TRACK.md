@@ -43,32 +43,33 @@
   - 2026-09-23 · 新论文《临湖》定稿，含起草时补入的七处（三原则并入正文、悬停不藏信息、触屏按下反馈、照片细墨框、拒绝清单增项、审查顺序、格言一节）· Jason · 级联：`docs/aesthetic-thesis.md`
   - 2026-09-23 · REQ 定稿，Phase 1 关闭：目录门槛为 3 个及以上二级标题；闸门每次临时拉起 Docker 数据库并填入合成内容，查完即删，后台审计共用此环境 · Jason · 级联：REQ §5.2、§5.5
   - 2026-09-23 · Phase 2 三刀：关于页存新表（每行 = 页面 × 语言），不进 `content_items`（推翻 v2.3.0「作 `page` 类型进 `content_items`」：该法须加不可删的枚举值并放宽同类型 slug 唯一约束）；公开组件按三种形态重切（窗、目录行、照片格），服务端渲染、悬停交给 CSS、功能菜单删除、目录由渲染器生成、样式回 `globals.css`；闸门新增任务：本地 Supabase CLI 四服务 + 合成种子 + Playwright（作库，跑在 node:test 下）+ axe，另有同流程本地脚本 · Jason · 级联：DESIGN（待写）
+  - 2026-09-23 · Codex 设计门处置：MUST 全修，SHOULD 全采纳（SHOULD-1 不做焦点遮挡检查、SHOULD-10 只扩到状态与首载），Jason 对处置表未提异议；窗与目录行显示写作语言；关于页编辑器纯文字、不上传图片；关于页五种语言的正文由 Claude 改写（删过时描述、加格言释义），Jason 审 · Jason · 级联：DESIGN §2、§4；REQ §5.1-i、§5.3、§7
 
 ## 二、批次
 
-验收测试已写红：`tests/acceptance-visual-upgrade.test.ts`（单元）与 `tests/ui/*.ui.mjs`（浏览器），每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。切分待 Codex 设计门后定稿。
+验收测试已写红：`tests/acceptance-visual-upgrade.test.ts`（单元）与 `tests/ui/*.ui.mjs`（浏览器），每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。切分已随 Codex 设计门的处置定稿。
 
 ### Batch 1 — 界面闸门
 - 状态：open
-- 范围：`supabase/config.toml`、`supabase/seed.sql`、`scripts/ui-check.sh`、`tests/ui/harness.mjs`、`package.json`（playwright、@axe-core/playwright、`test:ui`）、`check.yml` 任务 `ui`、`deploy.yml` 等它 · 覆盖 REQ §5.5
+- 范围：`supabase/config.toml`、`supabase/seed.sql`、`scripts/ui-check.sh`、`tests/ui/harness.mjs` 与 `manifest.mjs`、`next.config.ts`（`distDir` 可覆盖）、`tests/runtime/` 有库断言移入、`package.json`（playwright、@axe-core/playwright、`test:ui`）、`check.yml` 任务 `ui`、`deploy.yml` 等它 · 覆盖 REQ §5.5
 - 验收判据：§5.5-a 去 todo；本机 `scripts/ui-check.sh` 跑通且拆干净；§5.5-b 在分支上故意造一个无名按钮，闸门红（记运行号）；其余 UI 测试此时照常为 todo
 - 依赖：none
 
 ### Batch 2 — 关于页进库
 - 状态：open
-- 范围：迁移 `site_pages` + 五份正文数据迁移、`pages-repo.ts`、`pages.ts`、`page-locale.ts`、`about/page.tsx`、`/admin/pages/**`；删 `src/content/pages/`、`next-mdx-remote`、`gray-matter` · 覆盖 REQ §5.3
-- 验收判据：§5.3-a/c 去 todo；§5.3-b 在本地栈上保存后下一次访问即新；`db-function-check.sh` 仍绿
+- 范围：两条迁移（表、改写后的五份正文）、`db-function-check.sh` 角色检查、`sitemap-entries.ts`、`pages-repo.ts`、`pages.ts`、`page-locale.ts`、`about/page.tsx`、`/admin/pages/**`；删 `src/content/pages/`、`next-mdx-remote`、`gray-matter` · 覆盖 REQ §5.3
+- 验收判据：§5.3-a/b/c 去 todo；上线前在 Supabase 执行迁移并跑核对查询；Jason 审中英文正文；`db-function-check.sh` 仍绿
 - 依赖：Batch 1
 
 ### Batch 3 — 材料与三种形态
 - 状态：open
-- 范围：`globals.css` 重写（变量、排印、中文排印、形态类）、`Gate`、`Window`、`CatalogRow`、`PhotoTile`、`EndMark`、`SiteLink`、`home.ts`；首页、列表页、标签页、视觉列表 · 覆盖 REQ §5.1-d、§5.2-a/c/d/f/g
+- 范围：`globals.css` 重写（变量、排印、中文排印、形态类）、`Gate`、`Window`、`CatalogRow`、`PhotoTile`、`EndMark`、`SiteLink`、`entry.ts`、相册与项目映射带 `lang`、搜索索引带 `lang`、`home.ts`；首页、列表页、标签页、视觉列表 · 覆盖 REQ §5.1-d、§5.2-a/c/d/f/g
 - 验收判据：上列 §-id 去 todo 且绿；Jason 在本地看首页与一个列表页
 - 依赖：Batch 1
 
 ### Batch 4 — 手卷
 - 状态：open
-- 范围：`markdown/`（标题 id、`extractToc`）、`Toc`、`Colophon`、四种详情页与关于页的引首与尾纸、正文容器 `lang`、`PhotoViewer` · 覆盖 REQ §5.2-h、§5.1-c（相册）
+- 范围：`markdown/`（标题 id、`extractToc`）、`Toc`、`Colophon`、四种详情页与关于页的引首与尾纸、正文容器 `lang`、面包屑结构化数据、`PhotoViewer` 与其样式覆盖 · 覆盖 REQ §5.2-h、§5.1-c（相册）
 - 验收判据：上列 §-id 去 todo 且绿；查看器有上一张 / 下一张按钮
 - 依赖：Batch 3
 
@@ -80,7 +81,7 @@
 
 ### Batch 6 — 收口
 - 状态：open
-- 范围：可访问名称全部走文案、404 与错误页、后台四模板的 AA 修正、`eslint.config.mjs` 去降级、退役 §6-a 与 `head-baseline.json`、`globals.css` 残余清理 · 覆盖 REQ §5.1-a/b/f、§5.4-a
+- 范围：可访问名称全部走文案、404 与错误页、后台四模板的 AA 修正、`eslint.config.mjs` 去降级、退役 §6-a 与 `head-baseline.json`、`globals.css` 残余清理 · 覆盖 REQ §5.1-a/b/f/i、§5.4-a
 - 验收判据：全部 todo 去除且绿；后台逐页人工审计记录写进第三区
 - 依赖：Batch 5
 
@@ -93,28 +94,28 @@
 ## 三、门与发布
 
 **评审发现登记**（Codex 设计门，xhigh，DESIGN + REQ；全文 `codex resume 01a0cdaf-3b88-7542-b16b-b37c6e0c2a38`；引文已逐条对源核实）：
-- MUST-1 `node --test tests/ui/` 不发现 `*.ui.mjs`，空跑可能通过 —— status: open
-- MUST-2 「页面数非零」不证明覆盖矩阵；种子未保证标签与项目封面；§5.5-b 无流程 —— status: open
-- MUST-3 关于页数据迁移把真实内容带进合成库，回退判据失效；`save_content_item` 写不了 `site_pages` —— status: open
-- MUST-4 删除计划漏了三个消费者：`check.yml` 读 `head-baseline.json`、无库运行时套件要 `/about` 返回 200、CLAUDE.md 点名 `SearchModal` —— status: open
-- MUST-5 语言链接的 `next` 若为当前路径，会写入新语言却回到旧语言 —— status: open
-- MUST-6 写作语言没有贯通：相册与项目的映射丢了 `locale`，搜索索引缺 `lang`；窗与目录行未显示语言 —— status: open
-- MUST-7 REQ §7 仍写「存于既有内容表」；`updateTag('pages')` 违反继承的不变量 17 —— status: open
-- MUST-8 §5.3-b「下一次访问即新」没有决定性的测试 —— status: open
+- MUST-1 `node --test tests/ui/` 不发现 `*.ui.mjs`，空跑可能通过 —— status: fixed `8ef2e28`（DESIGN）
+- MUST-2 「页面数非零」不证明覆盖矩阵；种子未保证标签与项目封面；§5.5-b 无流程 —— status: fixed `8ef2e28`（DESIGN）
+- MUST-3 关于页数据迁移把真实内容带进合成库，回退判据失效；`save_content_item` 写不了 `site_pages` —— status: fixed `8ef2e28`（DESIGN）
+- MUST-4 删除计划漏了三个消费者：`check.yml` 读 `head-baseline.json`、无库运行时套件要 `/about` 返回 200、CLAUDE.md 点名 `SearchModal` —— status: fixed `8ef2e28`（DESIGN）
+- MUST-5 语言链接的 `next` 若为当前路径，会写入新语言却回到旧语言 —— status: fixed `8ef2e28`（DESIGN）
+- MUST-6 写作语言没有贯通：相册与项目的映射丢了 `locale`，搜索索引缺 `lang`；窗与目录行未显示语言 —— status: fixed `8ef2e28`（DESIGN）
+- MUST-7 REQ §7 仍写「存于既有内容表」；`updateTag('pages')` 违反继承的不变量 17 —— status: fixed `8ef2e28`（DESIGN）
+- MUST-8 §5.3-b「下一次访问即新」没有决定性的测试 —— status: fixed `8ef2e28`（DESIGN）
 - MUST-9 搜索的加载、失败、无结果没有状态播报（4.1.3）—— status: open
-- MUST-10 PhotoSwipe 自带样式在触屏隐藏箭头、有文字阴影与无限转圈 —— status: open
-- SHOULD-1 缺 200% 放大、平板、文字间距（1.4.12）、焦点遮挡的检查 —— status: open
-- SHOULD-2 本机地址不等于本地后端：须断言后端来自新起的栈 —— status: open
-- SHOULD-3 拆除的归属：独立项目 id、只关自己启动的 colima、保留原失败码 —— status: open
-- SHOULD-4 `site_pages` 的 `updated_at`、语言校验、授权与角色测试 —— status: open
-- SHOULD-5 数据迁移须先于部署执行并核对五份齐全，再删仓库文件 —— status: open
-- SHOULD-6 正文里的 `#` 会造成第二个 `h1`、跳级；目录 id 须唯一 —— status: open
-- SHOULD-7 目录行等共享组件需要统一的呈现类型与适配器；标题与标签链接不可嵌套 —— status: open
-- SHOULD-8 面包屑 JSON-LD 的去留；关于页全撤回时 sitemap 仍列出它 —— status: open
-- SHOULD-9 对话框需可见的关闭按钮、背景点击判定、查看器焦点回到所点照片 —— status: open
-- SHOULD-10 朱砂与动效检查要覆盖悬停、聚焦、展开等状态与首载瞬间 —— status: open
-- SHOULD-11 关于页编辑器复用 `MarkdownEditor` 时上传接口不认 `page` —— status: open
-- NICE-1 关于页原文描述了已删除的功能菜单与旧美学 —— status: open
+- MUST-10 PhotoSwipe 自带样式在触屏隐藏箭头、有文字阴影与无限转圈 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-1 缺 200% 放大、平板、文字间距（1.4.12）、焦点遮挡的检查 —— status: fixed `8ef2e28`（DESIGN），焦点遮挡检查不做：导航静止后无固定元素
+- SHOULD-2 本机地址不等于本地后端：须断言后端来自新起的栈 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-3 拆除的归属：独立项目 id、只关自己启动的 colima、保留原失败码 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-4 `site_pages` 的 `updated_at`、语言校验、授权与角色测试 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-5 数据迁移须先于部署执行并核对五份齐全，再删仓库文件 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-6 正文里的 `#` 会造成第二个 `h1`、跳级；目录 id 须唯一 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-7 目录行等共享组件需要统一的呈现类型与适配器；标题与标签链接不可嵌套 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-8 面包屑 JSON-LD 的去留；关于页全撤回时 sitemap 仍列出它 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-9 对话框需可见的关闭按钮、背景点击判定、查看器焦点回到所点照片 —— status: fixed `8ef2e28`（DESIGN）
+- SHOULD-10 朱砂与动效检查要覆盖悬停、聚焦、展开等状态与首载瞬间 —— status: fixed `8ef2e28`（DESIGN），只扩到悬停、聚焦、展开、对话框各状态与首载
+- SHOULD-11 关于页编辑器复用 `MarkdownEditor` 时上传接口不认 `page` —— status: fixed `8ef2e28`（DESIGN）
+- NICE-1 关于页原文描述了已删除的功能菜单与旧美学 —— status: fixed `8ef2e28`（Batch 2 改写，Jason 审）
 
 **Phase 4 证据**：（Phase 4 起）
 
