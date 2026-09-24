@@ -48,6 +48,7 @@
   - 2026-09-24 · 搜索只保留一个输入框（标题、标签、摘要依次加权），删去类型、标签、年份、语言筛选器与三种排序；标签与类型由标签页与栏目承担 · Jason · 级联：DESIGN §2.2 SearchDialog
   - 2026-09-24 · Codex 发布前审查处置：P-1…P-5、P-3、C-1…C-11、C-13、C-19、C-20、C-S2 修；C-12、C-14…C-18、C-21、C-22 记为一条 TECHNICAL_DEBT；C-S1 接受（640 CSS 像素即 1280×200% 的重排检查标准做法）；修后对标题与搜索两个任务重跑 Codex · Jason · 级联：本 TRACK 第三区、TECHNICAL_DEBT、DESIGN §2.5
   - 2026-09-24 · 标题 id 不加前缀（Codex 复审 SHOULD：id 可成为 window 上的命名属性）予以接受：内容只由管理员撰写；命名属性不遮蔽 window 既有属性；站内脚本不读未声明的全局；目录链接保持可读 · Jason · 级联：`src/lib/markdown/headings.ts` 注释
+  - 2026-09-24 · 搜索复审的 MUST 修复后不再重跑 Codex（新测试覆盖该情形；避免门→MUST→修→再门的无尽尾巴）；Codex 门至此关闭 · Jason · 级联：本 TRACK 第三区
 
 ## 二、批次
 
