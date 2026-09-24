@@ -12,6 +12,8 @@ export interface ProjectMeta {
   status?: string;
   demo?: string;
   cover?: string;
+  /** The language it is written in. */
+  lang: string;
 }
 
 export interface Project extends ProjectMeta {
@@ -44,6 +46,7 @@ export function mapProjectRecordToProjectMeta(row: ProjectRecordRow): ProjectMet
     status: stringMetadata(row.extra_metadata, 'status'),
     demo: getProjectLink(row, 'demo') ?? stringMetadata(row.extra_metadata, 'demo'),
     cover: row.cover_image_url ?? undefined,
+    lang: row.locale,
   };
 }
 

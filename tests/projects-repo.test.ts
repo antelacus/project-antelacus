@@ -56,6 +56,7 @@ test('mapProjectRecordToProjectMeta preserves the legacy project interface', () 
     status: 'active',
     demo: 'https://dynamic-project.example.com',
     cover: '/images/projects/dynamic-project.jpg',
+    lang: 'en',
   });
 });
 

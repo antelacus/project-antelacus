@@ -23,6 +23,8 @@ export interface PhotoMeta {
   photoCount: number;
   photos: PhotoInfo[];
   tags?: string[];
+  /** The language it is written in. */
+  lang: string;
 }
 
 export interface Photo extends PhotoMeta {
@@ -79,6 +81,7 @@ export function mapPhotoRecordToPhotoMeta(row: PhotoRecordRow): PhotoMeta {
     photoCount: photos.length,
     photos,
     tags: tagNames(row),
+    lang: row.locale,
   };
 }
 

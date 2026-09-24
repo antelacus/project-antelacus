@@ -17,7 +17,7 @@ interface SearchIndexItem {
   date: string;
   locale: string;
   cover?: string;
-  lang?: string;
+  lang: string;
 }
 
 export async function GET() {
@@ -65,6 +65,7 @@ export async function GET() {
         date: photo.date || '',
         locale,
         cover: photo.coverImage,
+        lang: photo.lang,
       })),
       ...projects.map((project) => ({
         id: `project:${project.slug}`,
@@ -76,6 +77,7 @@ export async function GET() {
         date: project.date || '',
         locale,
         cover: project.cover,
+        lang: project.lang,
       })),
     ];
 

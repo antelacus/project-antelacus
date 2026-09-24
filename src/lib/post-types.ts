@@ -8,7 +8,8 @@ export interface PostMeta {
   tags: string[];
   cover?: string;
   summary?: string;
-  lang?: string;
+  /** The language it is written in. */
+  lang: string;
 }
 
 export interface Post extends PostMeta {

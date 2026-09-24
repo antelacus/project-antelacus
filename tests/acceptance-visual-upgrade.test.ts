@@ -17,7 +17,7 @@ const load = (path: string): Promise<any> => import(path);
 
 // ---------- §5.2 临湖 ----------
 
-test('acceptance §5.2-g the home windows are the newest item of each type, an empty type has none', { todo: 'Batch 3' }, async () => {
+test('acceptance §5.2-g the home windows are the newest item of each type, an empty type has none', async () => {
   const { selectWindows } = await load('../src/lib/home.js');
   const item = (type: string, slug: string, date: string, extra = {}) => ({ type, slug, title: slug, date, tags: [], ...extra });
   const windows = selectWindows({
