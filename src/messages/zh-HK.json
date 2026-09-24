@@ -1,7 +1,6 @@
 {
   "site": {
-    "title": "AnteLacus",
-    "motto": "臨湖之前，心境平和"
+    "title": "AnteLacus"
   },
   "nav": {
     "home": "首頁",
@@ -92,7 +91,8 @@
     "language": "語言",
     "links": "連結",
     "source": "源碼",
-    "demo": "演示"
+    "demo": "演示",
+    "backToTop": "回到頂部"
   },
   "viewer": {
     "close": "關閉",

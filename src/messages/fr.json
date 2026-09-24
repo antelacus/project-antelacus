@@ -1,7 +1,6 @@
 {
   "site": {
-    "title": "AnteLacus",
-    "motto": "Avant le lac, paix de l'esprit"
+    "title": "AnteLacus"
   },
   "nav": {
     "home": "Accueil",
@@ -92,7 +91,8 @@
     "language": "Langue",
     "links": "Liens",
     "source": "Code source",
-    "demo": "Démo"
+    "demo": "Démo",
+    "backToTop": "Retour en haut"
   },
   "viewer": {
     "close": "Fermer",

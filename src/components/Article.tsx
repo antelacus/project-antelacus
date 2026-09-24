@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { extractToc, renderMarkdown } from '@/lib/markdown';
 import Colophon, { type ColophonProps } from './Colophon';
 import PageTransition from './PageTransition';
-import Toc from './Toc';
+import Toc, { TOC_MIN_ITEMS } from './Toc';
 
 type Props = {
   title: string;
@@ -24,6 +24,7 @@ type Props = {
 // long piece, the body undisturbed, and the tail. Everything is present at once and nothing moves.
 export default function Article({ title, lang, body, date, lead, cover, after, colophon }: Props) {
   const day = date?.slice(0, 10);
+  const contents = extractToc(body);
   return (
     <PageTransition>
     <article className="scroll" data-title={title}>
@@ -33,14 +34,14 @@ export default function Article({ title, lang, body, date, lead, cover, after, c
         {lead && <p className="scroll-lead">{lead}</p>}
         {cover && <Image className="scroll-cover" src={cover} alt="" width={1600} height={900} sizes="(min-width: 52rem) 48rem, 100vw" priority />}
       </header>
-      <Toc items={extractToc(body)} lang={lang} />
+      <Toc items={contents} lang={lang} />
       {body.trim() && (
         <div className="prose scroll-body" lang={lang} data-content>
           {renderMarkdown(body)}
         </div>
       )}
       {after}
-      <Colophon {...colophon} />
+      <Colophon {...colophon} hasContents={contents.length >= TOC_MIN_ITEMS} />
     </article>
     </PageTransition>
   );

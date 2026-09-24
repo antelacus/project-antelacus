@@ -33,11 +33,12 @@
 | `src/components/CatalogRow.tsx`（新，共享） | 目录的一行：类型名（混排时）、标题、摘要、日期、语言、标签；标题链接与标签链接各自独立，不嵌套；列表页、标签页、搜索结果共用 | UI |
 | `src/components/PhotoTile.tsx`（新，服务端） | 视觉列表的一格 | UI |
 | `src/components/EndMark.tsx`（新，服务端） | 终止符；全站唯一使用朱砂的元素 | UI |
-| `src/components/Colophon.tsx`（新，服务端） | 尾纸：写于、标签（链接到标签页）、语言，末尾 `EndMark` | UI |
+| `src/components/Colophon.tsx`（新，服务端） | 尾纸：写于、标签（链接到标签页）、语言；末行「回到顶部」（到导航）与有目录时的「目录」（`ContentsLink`，点开即展开），`EndMark` 在这一行末 | UI |
+| `src/lib/page-ids.ts`（新） | 页面自身的固定 id（`main-content`、`site-nav`、`contents`、搜索对话框的两个）的唯一出处；正文标题 id 避开它们 | infra |
 | `src/components/Toc.tsx`（新，服务端） | 折叠目录：`<details>`/`<summary>` + 锚点列表；条目少于 3 个时不渲染 | UI |
 | `src/components/Nav.tsx`（重写，服务端） | 页首导航：五个栏目链接 + 两个客户端小件；静止、不固定；不再渲染面包屑，面包屑的结构化数据移到详情页的服务端输出 | UI |
 | `src/components/NavLinks.tsx`（新，客户端） | 栏目链接的 `aria-current`（`usePathname`） | UI |
-| `src/components/SearchDialog.tsx`（新，客户端，取代 `SearchModal`） | 原生 `<dialog>`：以标题命名、有可见的关闭按钮；内层面板之外的点击才算点背景；一个常驻的 `role="status"` 区播报加载、无结果、失败，失败时另有「重试」按钮（重试不移走焦点）；结果用 `CatalogRow`；关闭后焦点回到触发按钮。只有一个输入框（标题、标签、摘要依次加权），不设类型、标签、年份、语言筛选器——标签与类型由标签页与栏目承担 | UI + core（筛选函数） |
+| `src/components/SearchDialog.tsx`（新，客户端，取代 `SearchModal`） | 原生 `<dialog>`：以标题命名、有可见的关闭按钮；内层面板之外的点击才算点背景；一个常驻的 `role="status"` 区播报加载、无结果、失败，失败时另有「重试」按钮（重试不移走焦点）；结果用 `CatalogRow`；关闭后焦点回到触发按钮。⌘K / Ctrl+K 从页面任何位置打开（带修饰键，合 WCAG 2.1.4），关闭后焦点回到按下时所在的元素。只有一个输入框（标题、标签、摘要依次加权），不设类型、标签、年份、语言筛选器——标签与类型由标签页与栏目承担 | UI + core（筛选函数） |
 | `src/lib/search-filter.ts`（新） | 搜索的纯筛选与排序（从 `SearchModal` 抽出） | core |
 | `src/components/LanguageSwitch.tsx`（新，客户端） | `<details>` 里一组普通链接：`/api/locale?to=<语言>&next=<当前路径把首段换成目标语言>`（`usePathname`）；公开页面不带有意义的查询参数，故不保留查询 | UI |
 | `src/components/SiteLink.tsx`（新，共享） | 站内链接的唯一出口：`next-intl` 的 `Link` + `transitionTypes={['page']}`（§2.4） | infra |

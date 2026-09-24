@@ -2,6 +2,8 @@ import { Fragment } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { isSupportedLocale, languageNames } from '@/i18n/routing';
+import { PAGE_IDS } from '@/lib/page-ids';
+import ContentsLink from './ContentsLink';
 import EndMark from './EndMark';
 import SiteLink from './SiteLink';
 
@@ -10,11 +12,14 @@ export type ColophonProps = {
   tags?: string[];
   lang?: string;
   links?: { label: string; url: string }[];
+  /** The piece has a folded contents list to return to. */
+  hasContents?: boolean;
 };
 
 // The tail of the scroll: when it was written, its tags, its language — gathered here, not scattered
-// around the text — and the author's mark to close it. A page with none of these still ends on the mark.
-export default function Colophon({ date, tags = [], lang, links = [] }: ColophonProps) {
+// around the text — then the way back up (the navigation stays at the top of the page, it does not
+// follow the reader) and, at the end of that line, the author's mark.
+export default function Colophon({ date, tags = [], lang, links = [], hasContents = false }: ColophonProps) {
   const t = useTranslations('article');
   const day = date?.slice(0, 10);
   return (
@@ -52,7 +57,16 @@ export default function Colophon({ date, tags = [], lang, links = [] }: Colophon
           ))}
         </p>
       )}
-      <EndMark />
+      <p className="colophon-return" data-meta="return">
+        <a href={`#${PAGE_IDS.nav}`}>{t('backToTop')}</a>
+        {hasContents && (
+          <>
+            <span aria-hidden="true"> · </span>
+            <ContentsLink>{t('toc')}</ContentsLink>
+          </>
+        )}
+        <EndMark />
+      </p>
     </footer>
   );
 }

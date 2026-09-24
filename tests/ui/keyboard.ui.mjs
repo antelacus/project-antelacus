@@ -63,6 +63,19 @@ test('acceptance §5.1-c search: choosing the page already open takes focus to i
   });
 });
 
+test('acceptance §5.1-c search: Ctrl+K opens it mid-page, and Esc returns the reader to where they were', async () => {
+  const { visit, SEED } = await h();
+  await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }], async (page) => {
+    const link = page.locator('[data-content] a[href^="http"]').first();
+    await link.focus();
+    await page.keyboard.press('Control+K');
+    await page.locator('dialog[open]').waitFor();
+    assert.ok(await page.evaluate(() => document.activeElement?.id === 'search-field'), 'focus did not move into the search field');
+    await page.keyboard.press('Escape');
+    assert.ok(await link.evaluate((el) => el === document.activeElement), 'focus did not return to the reader\'s place');
+  });
+});
+
 test('acceptance §5.1-c search: when the index fails, Retry announces it and keeps focus', async () => {
   const { visit } = await h();
   await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {

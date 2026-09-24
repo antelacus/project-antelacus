@@ -83,6 +83,19 @@ test('acceptance §5.2-h the tail carries date, tags and language and ends on th
     for (const part of ['written', 'tags', 'language']) assert.equal(await tail.locator(`[data-meta="${part}"]`).count(), 1, `${t.name}: no ${part}`);
     assert.ok(await tail.evaluate((el) => el.querySelector('[data-end-mark]') !== null && el.lastElementChild?.matches('[data-end-mark], :has(> [data-end-mark])')), `${t.name}: tail does not end on the end mark`);
   });
+  // The tail's last line leads back up (the navigation does not follow the reader) and carries the mark.
+  await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }], async (page) => {
+    const back = page.locator('[data-colophon] [data-meta="return"]');
+    assert.equal(await back.locator('[data-end-mark]').count(), 1, 'the mark is not on the return line');
+    await back.locator('a[href="#site-nav"]').click();
+    const navTop = await page.locator('[data-site-nav]').boundingBox();
+    assert.ok(navTop && navTop.y >= 0 && navTop.y < 50, 'back to top did not reach the navigation');
+    await back.locator('a[href="#contents"]').click();
+    assert.notEqual(await page.locator('details[data-toc]').getAttribute('open'), null, 'the contents link did not unfold the contents');
+  });
+  await visit(['desktop'], [{ name: 'short note', path: `/en/notes/${SEED.note}` }], async (page) => {
+    assert.equal(await page.locator('[data-colophon] a[href="#contents"]').count(), 0, 'a piece without contents offers a link to them');
+  });
   await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }], async (page) => {
     const toc = page.locator('details[data-toc]');
     assert.equal(await toc.count(), 1, 'a post with three h2 has no TOC');

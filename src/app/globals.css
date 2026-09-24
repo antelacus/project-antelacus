@@ -316,7 +316,8 @@ button { font: inherit; color: inherit; }
 }
 .colophon p { margin: 0; overflow-wrap: anywhere; }
 .colophon-label { display: inline-block; min-width: 5.5em; }
-.colophon .end-mark { margin-top: var(--space-4); }
+.colophon .colophon-return { margin-top: var(--space-3); display: flex; align-items: center; flex-wrap: wrap; gap: 0 var(--space-1); }
+.colophon-return .end-mark { margin-left: var(--space-3); }
 
 /* An album's photos, each framed in a thin ink line. */
 .album-photos {

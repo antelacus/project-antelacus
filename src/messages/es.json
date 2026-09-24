@@ -1,7 +1,6 @@
 {
   "site": {
-    "title": "AnteLacus",
-    "motto": "Antes del lago, paz mental"
+    "title": "AnteLacus"
   },
   "nav": {
     "home": "Inicio",
@@ -92,7 +91,8 @@
     "language": "Idioma",
     "links": "Enlaces",
     "source": "Código",
-    "demo": "Demo"
+    "demo": "Demo",
+    "backToTop": "Volver arriba"
   },
   "viewer": {
     "close": "Cerrar",

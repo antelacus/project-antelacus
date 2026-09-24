@@ -58,9 +58,13 @@ test('acceptance §5.1-f English pages name no interface element in Chinese; the
       assert.equal(await page.getAttribute('[data-content]', 'lang'), lang, `${path}: body language`);
     });
   }
-  await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
-    assert.equal(await page.getAttribute('[data-gate] [lang]', 'lang'), 'la', 'the motto is not marked Latin');
-  });
+  // The motto is Latin under every language, and marked so.
+  for (const locale of ['en', 'zh-CN', 'zh-HK', 'es', 'fr']) {
+    await visit(['desktop'], [{ name: `home ${locale}`, path: `/${locale}` }], async (page) => {
+      const motto = page.locator('[data-gate] [lang="la"]');
+      assert.equal((await motto.textContent())?.trim(), 'Ante Lacus, Pax Mentis', `/${locale}: the motto is not the Latin`);
+    });
+  }
 });
 
 test('acceptance §5.1-g every public page has exactly one h1 and no skipped heading level', async () => {

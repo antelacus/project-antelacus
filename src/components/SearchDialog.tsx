@@ -82,13 +82,30 @@ export default function SearchDialog() {
     document.getElementById(PAGE_IDS.main)?.focus();
   }, [pathname]);
 
-  const open = (event: React.MouseEvent<HTMLButtonElement>) => {
-    trigger.current = event.currentTarget;
+  // `from` is where focus returns on close: the button, or whatever the reader was on when they pressed
+  // the shortcut (nothing, mid-page) — never the button at the top of a page they were reading.
+  const open = (from: HTMLElement | null) => {
+    trigger.current = from;
     after.current = 'trigger';
     dialog.current?.showModal();
     input.current?.focus();
     if (load === 'idle' || load === 'failed') void fetchIndex();
   };
+
+  // ⌘K / Ctrl+K opens search from anywhere on the page: the navigation stays at the top and does not
+  // follow the reader. A modifier, not a bare character (WCAG 2.1.4). Re-subscribed on each render so the
+  // handler sees the current load state.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+      if (dialog.current?.open) return;
+      event.preventDefault();
+      const active = document.activeElement;
+      open(active instanceof HTMLElement && active !== document.body ? active : null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  });
 
   const results = load === 'ready' ? searchEntries(entries, query) : [];
   const status =
@@ -99,7 +116,7 @@ export default function SearchDialog() {
 
   return (
     <>
-      <button type="button" className="nav-button" data-open-search onClick={open}>
+      <button type="button" className="nav-button" data-open-search aria-keyshortcuts="Meta+K Control+K" onClick={(event) => open(event.currentTarget)}>
         {t('search')}
       </button>
       <dialog
