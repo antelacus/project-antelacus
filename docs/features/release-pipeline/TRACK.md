@@ -24,9 +24,10 @@
   - 生产数据库的迁移仍由人执行，机器只核对
 - Phase 0 待核（外部约束，结论写进 DESIGN 的外部约束一节）：
   - VPS（已核）：6 核、内存 7.8 GiB（可用 5.0）、磁盘余 103 G、负载 0.5–0.8；Docker 29.8.1、Compose v5.5.1、nginx 1.24.0；端口 3000–3002 已占，3003 空闲；goodman 预发布没有 nginx 站点，只在 127.0.0.1:3001；每个站点只放行 Cloudflare IP（`cloudflare-ips.conf` + `deny all`）；源站证书为通配 `*.antelacus.com`，2040 年到期
-  - 镜像仓库：私有镜像的额度与 VPS 拉取的认证方式
-  - Cloudflare：预发布子域的访问控制在当前套餐是否可用
-  - Supabase：预发布域名下的登录（Auth 的站点地址与回调设置）；没有 service-role 密钥时后台能打开到什么程度
+  - 镜像仓库（已核）：GHCR 的存储与流量目前免费；CI 用 `GITHUB_TOKEN` + `packages: write` 推送；VPS 拉取私有镜像只能用 classic PAT，范围 `read:packages`
+  - Cloudflare（已核）：Access 免费档可保护单个子域（自托管应用，DNS 在 Cloudflare 代理）；未过认证的请求到不了源站；CI 以 service token 的两个请求头通过，策略动作须为 Service Auth
+  - Next（已核）：16.3.5 的 `writeStandaloneDirectory` 把构建时载入的 `.env`、`.env.production` 复制进 standalone；生产容器里确有 `/app/.env` 且含 service-role 那一行（只数了行，没读值）。`NEXT_PUBLIC_*` 构建时定型
+  - Supabase（未定）：后台只用 `signInWithPassword`，文档只对会跳转的流程要求回调地址，推断预发布域名无需配置——以预发布上的一次真实登录为准；没有 service-role 密钥时后台能打开到什么程度，Phase 2 查代码
 - 裁定（一行一条，只记「批了什么」）：
   - 2026-09-24 · 预发布站点放在生产旁边（仿 project-goodman），CI 留在 GitHub · Jason · 级联：本 TRACK 范围 3、明确不做
   - 2026-09-24 · 测试发布机制采用五层（本机 / CI / 预发布 / 生产 / 上线后）、构建一次逐级晋升、迁移先扩后缩、预发布读生产数据不能写 · Jason · 级联：REQ（待开）
