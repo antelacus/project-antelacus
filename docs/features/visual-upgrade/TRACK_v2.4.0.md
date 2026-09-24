@@ -56,6 +56,9 @@
   - 2026-09-24 · 首页终止符与格言整体居中（不把方块挂在居中之外）；§5.1-h 通过 · Jason · 级联：本 TRACK 第三区
   - 2026-09-24 · `/code-review`（PR #11）十条发现全部修复 · Jason · 级联：本 TRACK 第三区
   - 2026-09-24 · 本机 Clash 脚本的 `+.supabase.co` 一行撤回（脚本恢复为备份） · Jason · 级联：memory `reference-mac-proxy-fake-ip`
+  - 2026-09-24 · VPS 上的预发布环境（仿 goodman）列为下一版 Phase 0 候选；它替代的是 Phase 4 的真实内容与真机检查，不是界面闸门 · Jason · 级联：TECHNICAL_DEBT TD-022
+  - 2026-09-24 · 论文色彩表「苔」一行改为「悬停与按下」（原「悬停与选中」与「墨」一行的选中态冲突） · Jason · 级联：`docs/aesthetic-thesis.md`
+  - 2026-09-24 · memory 晋升：「审美问题以对照图讨论」晋升为通用 memory `lesson-aesthetic-consulting`；「推送无须确认」扩为所有项目，写入全局 CLAUDE.md「Git」；「简体中文」「Clash 假 IP」留在本项目 · Jason · 级联：memory、全局 CLAUDE.md
   - 2026-09-24 · README 按治理规则 §7 缩为指路图（这是什么、怎么跑、文档在哪），不复述架构；闸门检查它点名的路径存在；治理规则 Phase 6 的 README 一项改为「仍属实，且只含 §7 允许的内容」 · Jason · 级联：`README.md`、`tests/claude-md.test.ts`、custom-conventions §2
 
 ## 二、批次
@@ -201,46 +204,12 @@
 - [x] README 仍属实，且只含 §7 允许的内容（缩为指路图，路径入闸门）
 - [x] 活文档清点：REQ、DESIGN、`docs/aesthetic-thesis.md`、CLAUDE.md 与上线内容一致——另含旧版 REQ / DESIGN、`docs/content-publishing.md`（front-matter 与标题层级的写法按现状重写）、`docs/DEPLOYMENT.md`
 - [x] 部署后：线上 SHA 与合并提交一致；对生产跑 `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` —— 部署运行 35979268410 日志回显 `eeaad83`，健康检查 6 秒通过；生产运行时验收 24 过
-- [ ] tag `v2.4.0`
-- [ ] 路线图 / 下一版 Phase 0 的输入（本版无 FEEDBACK 登记）
+- [ ] tag `v2.4.0` —— 打在本收尾 PR 的合并提交上，在本 TRACK 冻结之后；是否已打以 `git tag` 为准
+- [x] 路线图 / 下一版 Phase 0 的输入（本版无 FEEDBACK 登记）：TD-022 预发布环境；TD-021 在册
 - [x] 闸门读数：每道闸门的运行次数 / 改变了输出的拦截次数（见上）
 - [x] 文档预算绿（`scripts/check_doc_budget.py`：budgeted 8 · exempt 0 · 0 violation）
-- [ ] memory 清理（晋升提议待 Jason 裁定）
-- [ ] 验收触发登记：线上一次真实访问（读文章、搜索、看相册、切语言）无异常
+- [x] memory 清理：两条晋升、两条留下，无删除（见第一区裁定）
+- [x] 验收触发登记：线上一次真实访问（读文章、搜索、看相册、切语言）无异常——Jason 通过（2026-09-24）
 - [x] 本机清理：`.env.prod-check` 已删除（Jason，2026-09-24）
 - [x] Clash 脚本里 `+.supabase.co` 一行：撤回，脚本恢复为备份（Jason，2026-09-24）
-- [ ] TRACK 关闭——最后一项：未结事项迁出后 `git mv TRACK.md TRACK_v2.4.0.md`
-
-## 四、Session-end pickup
-
-### Session-end pickup (2026-09-24)
-
-**Working tree state at session close**:
-- Branch: `feat/visual-upgrade`（已推送）。HEAD（本 `/pause` 提交的父提交）：`5d141fb`（第三区登记 `/code-review` 十条发现，裁定全部修复）
-- Working tree: clean
-
-**Where work stands**:
-- Phase 0–4：✅ done（Batch 1–6 全部 done；Phase 4 证据齐备，见第三区）
-- Phase 5：🔲 in-progress —— 版本 PR [#11](https://github.com/antelacus/project-antelacus/pull/11) 已开、未合并；`/code-review` 十条发现 R-1…R-10 已登记于第三区「评审发现登记（`/code-review` PR #11）」，Jason 裁定全部修复，尚未动手
-- Phase 6：🔲 清单已写入第三区「Phase 6 boxes」，迁移与 `.env.prod-check` 删除两项已勾
-
-**Test / lint state**: green —— 单元 100 过、0 todo；lint 0 错误 0 警告；本机界面闸门最后一次（`9d5fb6b` 之后）界面 27/27、axe 静止 68/68、有库运行时 23/23；CI 最后一次绿：运行 35963364147（其后提交只增测试与文档、改首页终止符与尾纸，均过本机闸门）
-
-**Reconciliation (对账)** —— 上一份 pickup（2026-09-23，已在 `003686d` 删除）：
-- 首个行动「开 Batch 1」—— ✅ done（`d56ce65`，CI 35874205263）
-- 待定事项「Codex 设计门处置表按无异议记入，可随时推翻」—— ✅ 未被推翻，裁定保留在第一区（2026-09-23 行）
-- scratchpad 里 Phase 2 实测草稿会消失 —— ✅ 约束已在 DESIGN §3，本地栈配置与种子已入库（`d56ce65`）
-- Supabase CLI 2.117.0 钉版本前再核 —— ✅ 已核并钉为开发依赖（`d56ce65`）
-- Claude artifacts（字体对照页、首页构图画布，Batch 3 构图参照方案 B）—— ✅ Batch 3 已按方案 B 实现（`e1e97c3`），链接不再需要
-- colima 磁盘里约 3.4 GB 本地栈镜像缓存（Jason 可要求清理）—— → carried（见 Reference state）
-
-**First action for next session**: 按第三区「评审发现登记（`/code-review` PR #11）」逐条修 R-1…R-10——R-1（`src/components/PhotoViewer.tsx` 在 `beforeOpen` 里改读 `pswp.options.index`，UI 测试改为打开第二张并断言焦点回到它）、R-2（`src/components/admin/ContentEditor.tsx` 写 sessionStorage 时同步更新 `drafts`）、R-3（`src/app/[locale]/tags/[id]/page.tsx` 未知标签 `notFound()`；`tests/runtime/acceptance.runtime.mjs` 里 `/en/tags/seed`、`/zh-HK/tags/seed` 改为从 `/api/search-index` 取一个真实存在的标签）先测试后实现；R-4…R-10 随后；全部改完跑 `npm run lint && npx tsc --noEmit && npm test` 与 `npm run test:ui`，推送等 CI 绿，把各条 status 改为 fixed，再请 Jason 审 PR #11 的结构与范围并由他合并。
-
-**Decisions awaiting Project Lead**:
-1. 不阻塞首个行动：Clash 脚本里 `+.supabase.co` 一行留或删（第三区 Phase 6 boxes 有此项；备份 `sK5xH7G8Nriz.js.bak-2026-09-24`）
-2. PR #11 的审阅与合并（R-1…R-10 修完之后；合并即部署）
-
-**Reference state** (verify before relying on):
-- Relevant memory items: `feedback-reply-in-chinese.md` —— 给 Jason 的说明、步骤与问题用简体中文；`reference-mac-proxy-fake-ip.md` —— 本机代理的假 IP 使本地 Next 图片优化器拒绝 Supabase 图片、局域网访问需绑定 `::` 与防火墙放行；`feedback-aesthetic-consulting.md` —— 审美问题以对照图谈；`feedback-push-without-asking.md` —— 推送无须确认
-- Suite size at the last green run: 100 unit passed；界面闸门 27 + 运行时 23
-- 外部状态：colima 已停（本地栈镜像约 3.4 GB 缓存在其磁盘，Jason 可要求清理）；本机无服务在跑；生产 Supabase 的 `site_pages` 两条迁移已执行并核对；`.env.prod-check` 已删除
+- [x] TRACK 关闭——最后一项：未结事项已迁出（TD-021、TD-022），`git mv TRACK.md TRACK_v2.4.0.md`

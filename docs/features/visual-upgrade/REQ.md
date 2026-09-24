@@ -22,7 +22,7 @@ v2.3.0 之后，站点能发布、能恢复，但从没问过「谁用不了它�
 
 ### 1.3 参考
 - 美学规则：`docs/aesthetic-thesis.md`（《临湖》）——本文件引用它的章节，不重述
-- 裁定：`docs/features/visual-upgrade/TRACK.md` 第一区；基线审计发现：同文件第二区
+- 裁定：`docs/features/visual-upgrade/TRACK_v2.4.0.md` 第一区；基线审计发现：同文件第二区
 - 上一版仍然有效的要求：`docs/features/routing-slimdown/REQ.md` §5.2（语言路由）、§5.3（可缓存）；`docs/features/content-publishing/REQ.md` §5.2（Markdown 渲染与净化）、§5.3（后台发布）
 - WCAG 2.2：https://www.w3.org/TR/WCAG22/
 
