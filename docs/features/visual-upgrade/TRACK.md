@@ -55,6 +55,8 @@
   - 2026-09-24 · §5.2-i 全部模板按审查顺序签收 · Jason · 级联：本 TRACK 第三区
   - 2026-09-24 · 首页终止符与格言整体居中（不把方块挂在居中之外）；§5.1-h 通过 · Jason · 级联：本 TRACK 第三区
   - 2026-09-24 · `/code-review`（PR #11）十条发现全部修复 · Jason · 级联：本 TRACK 第三区
+  - 2026-09-24 · 本机 Clash 脚本的 `+.supabase.co` 一行撤回（脚本恢复为备份） · Jason · 级联：memory `reference-mac-proxy-fake-ip`
+  - 2026-09-24 · README 按治理规则 §7 缩为指路图（这是什么、怎么跑、文档在哪），不复述架构；闸门检查它点名的路径存在；治理规则 Phase 6 的 README 一项改为「仍属实，且只含 §7 允许的内容」 · Jason · 级联：`README.md`、`tests/claude-md.test.ts`、custom-conventions §2
 
 ## 二、批次
 
@@ -185,9 +187,10 @@
 
 **Phase 6 boxes**：
 - [x] 生产 Supabase 执行两条迁移并核对（Batch 2）
-- [ ] 版本 PR：`/code-review` 发现登记并处置完毕 → Jason 审结构与范围 → 合并（即部署）
+- [x] 版本 PR：`/code-review` 发现登记并处置完毕 → Jason 审结构与范围 → 合并（即部署）：PR #11，`eeaad83`
 - [ ] CHANGELOG v2.4.0 条目
-- [ ] TECHNICAL_DEBT 定稿（TD-021 在册）；README 仍属实
+- [ ] TECHNICAL_DEBT 定稿（TD-021 在册）
+- [x] README 仍属实，且只含 §7 允许的内容（缩为指路图，路径入闸门）
 - [ ] 活文档清点：REQ、DESIGN、`docs/aesthetic-thesis.md`、CLAUDE.md 与上线内容一致
 - [ ] 部署后：线上 SHA 与合并提交一致；对生产跑 `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`
 - [ ] tag `v2.4.0`
@@ -196,7 +199,7 @@
 - [ ] 文档预算绿（`scripts/check_doc_budget.py`）；memory 清理
 - [ ] 验收触发登记：线上一次真实访问（读文章、搜索、看相册、切语言）无异常
 - [x] 本机清理：`.env.prod-check` 已删除（Jason，2026-09-24）
-- [ ] Clash 脚本里 `+.supabase.co` 一行的去留（Jason 定；备份 `sK5xH7G8Nriz.js.bak-2026-09-24`）
+- [x] Clash 脚本里 `+.supabase.co` 一行：撤回，脚本恢复为备份（Jason，2026-09-24）
 - [ ] TRACK 关闭——最后一项：未结事项迁出后 `git mv TRACK.md TRACK_v2.4.0.md`
 
 ## 四、Session-end pickup

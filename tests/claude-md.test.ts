@@ -14,9 +14,10 @@ const scripts = (JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as
 const looksLikeRepoPath = (token: string) =>
   token.includes('/') && !/[\s*{}<>]/.test(token) && !token.startsWith('/') && !token.startsWith('@') && !/^https?:/.test(token) && !token.includes('…');
 
+const namedPaths = (text: string) => [...new Set([...text.matchAll(/`([^`\n]+)`/g)].map((match) => match[1]).filter(looksLikeRepoPath))];
+
 test('acceptance §5.5-a CLAUDE.md names only paths and npm scripts that exist', () => {
-  const tokens = [...claudeMd.matchAll(/`([^`\n]+)`/g)].map((match) => match[1]);
-  const paths = [...new Set(tokens.filter(looksLikeRepoPath))];
+  const paths = namedPaths(claudeMd);
   assert.ok(paths.length >= 5, `recognised only ${paths.length} paths — the extraction looks broken`);
   assert.deepEqual(paths.filter((path) => !existsSync(join(ROOT, path))), [], 'paths that do not exist');
 
@@ -31,4 +32,11 @@ test('every CSS class CLAUDE.md names under Styling is still defined in globals.
   const classes = [...new Set([...styling.matchAll(/`\.([a-z][\w-]*)`/g)].map((match) => match[1]))];
   assert.ok(classes.length > 0, 'no class names found under Styling — the extraction looks broken');
   assert.deepEqual(classes.filter((name) => !new RegExp(`\\.${name}(?![\\w-])`).test(css)), [], 'classes that no longer exist');
+});
+
+// The README is a map for a human arriving cold: every place it sends them must exist.
+test('README names only paths that exist', () => {
+  const paths = namedPaths(readFileSync(join(ROOT, 'README.md'), 'utf8'));
+  assert.ok(paths.length >= 5, `recognised only ${paths.length} paths — the extraction looks broken`);
+  assert.deepEqual(paths.filter((path) => !existsSync(join(ROOT, path))), [], 'paths that do not exist');
 });
