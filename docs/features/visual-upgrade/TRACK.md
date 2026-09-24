@@ -185,17 +185,25 @@
 - 键盘走「写一篇并发布」（§5.1-h）：Jason 走过，通过（见 Phase 4 证据）
 
 
+**闸门读数**（运行次数 / 改变了输出的拦截次数）：
+- CI `check` + `ui`（每次推送）：feat 分支 47 次、main 3 次、收尾分支 2 次，失败 0；唯一的红是 §5.5-b 故意植入的探针。拦截 0，但不写退役触发：同样的检查每次都先在本机跑过，拦截发生在本机；CI 这一跑是部署的凭证，不是拦截者
+- 本机界面闸门（同一脚本，次数未记）：Phase 4 用真实内容跑出宽 KaTeX 公式在 320px 撑破页面（已修）；另外两次红是闸门或测试自身的缺陷（Batch 3 构建缓存、R-2 测试选择器写错）
+- Codex 设计门：1 次；MUST 10、SHOULD 11、NICE 1，全部改了 DESIGN
+- Codex 发布前审查：5 个任务 + 2 次复审；P-1、P-2、P-4、P-5 与复审的 1 条 MUST 是真实缺陷；C-1…C-11 补强了测试
+- `/code-review`：1 次；10 条，其中 MUST 3 条（R-1…R-3）是真实缺陷
+- 文档预算：版本末 1 次，绿（已不在闸门里）
+
 **Phase 6 boxes**：
 - [x] 生产 Supabase 执行两条迁移并核对（Batch 2）
 - [x] 版本 PR：`/code-review` 发现登记并处置完毕 → Jason 审结构与范围 → 合并（即部署）：PR #11，`eeaad83`
-- [ ] CHANGELOG v2.4.0 条目
-- [ ] TECHNICAL_DEBT 定稿（TD-021 在册）
+- [x] CHANGELOG v2.4.0 条目
+- [x] TECHNICAL_DEBT 定稿（TD-021 在册；2026-09-21 扫描的发现已全部解决）
 - [x] README 仍属实，且只含 §7 允许的内容（缩为指路图，路径入闸门）
 - [ ] 活文档清点：REQ、DESIGN、`docs/aesthetic-thesis.md`、CLAUDE.md 与上线内容一致
 - [x] 部署后：线上 SHA 与合并提交一致；对生产跑 `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` —— 部署运行 35979268410 日志回显 `eeaad83`，健康检查 6 秒通过；生产运行时验收 24 过
 - [ ] tag `v2.4.0`
 - [ ] 路线图 / 下一版 Phase 0 的输入（本版无 FEEDBACK 登记）
-- [ ] 闸门读数：每道闸门的运行次数 / 改变了输出的拦截次数
+- [x] 闸门读数：每道闸门的运行次数 / 改变了输出的拦截次数（见上）
 - [ ] 文档预算绿（`scripts/check_doc_budget.py`）；memory 清理
 - [ ] 验收触发登记：线上一次真实访问（读文章、搜索、看相册、切语言）无异常
 - [x] 本机清理：`.env.prod-check` 已删除（Jason，2026-09-24）
