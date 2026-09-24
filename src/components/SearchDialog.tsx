@@ -47,7 +47,9 @@ export default function SearchDialog() {
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLElement | null>(null);
-  const leaving = useRef(false);
+  // Where focus goes when the dialog closes: back to its button, to this page's <main> (a result on this
+  // very page), or nowhere yet (a result elsewhere: the navigation effect takes it to the new page).
+  const after = useRef<'trigger' | 'main' | 'navigation'>('trigger');
   const [load, setLoad] = useState<Load>('idle');
   // Once a load has failed, Retry stays mounted through the next attempt: removing a focused button
   // drops focus onto the page.
@@ -75,14 +77,14 @@ export default function SearchDialog() {
 
   // Choosing a result navigates; the dialog stays in the layout, so focus is taken to the new page.
   useEffect(() => {
-    if (!leaving.current) return;
-    leaving.current = false;
+    if (after.current !== 'navigation') return;
+    after.current = 'trigger';
     document.getElementById(PAGE_IDS.main)?.focus();
   }, [pathname]);
 
   const open = (event: React.MouseEvent<HTMLButtonElement>) => {
     trigger.current = event.currentTarget;
-    leaving.current = false;
+    after.current = 'trigger';
     dialog.current?.showModal();
     input.current?.focus();
     if (load === 'idle' || load === 'failed') void fetchIndex();
@@ -105,8 +107,13 @@ export default function SearchDialog() {
         className="search-dialog"
         aria-labelledby={PAGE_IDS.searchTitle}
         onKeyDown={dialogKeys}
+        // The close event arrives after close() returns, so this is the one place focus is decided.
         onClose={() => {
-          if (!leaving.current) trigger.current?.focus();
+          if (after.current === 'trigger') trigger.current?.focus();
+          if (after.current === 'main') {
+            after.current = 'trigger';
+            document.getElementById(PAGE_IDS.main)?.focus();
+          }
         }}
         // Only a click on the backdrop lands on the <dialog> itself; the panel covers the rest of it.
         onClick={(event) => {
@@ -144,13 +151,9 @@ export default function SearchDialog() {
               onClick={(event) => {
                 const link = (event.target as HTMLElement).closest('a');
                 if (!link) return;
-                leaving.current = true;
-                dialog.current?.close();
                 // A result on this very page causes no navigation to wait for.
-                if (new URL(link.href).pathname === window.location.pathname) {
-                  leaving.current = false;
-                  document.getElementById(PAGE_IDS.main)?.focus();
-                }
+                after.current = new URL(link.href).pathname === window.location.pathname ? 'main' : 'navigation';
+                dialog.current?.close();
               }}
             >
               {results.map((entry) => (

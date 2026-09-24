@@ -48,6 +48,21 @@ test('acceptance §5.1-c search: the results are announced, and choosing one tak
   });
 });
 
+test('acceptance §5.1-c search: choosing the page already open takes focus to its content, not back to the button', async () => {
+  const { visit, SEED } = await h();
+  await visit(['desktop'], [{ name: 'note', path: `/en/notes/${SEED.note}` }], async (page) => {
+    await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-open-search]')));
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('seed note');
+    await page.waitForFunction(() => /\d/.test(document.querySelector('dialog[open] [role="status"]')?.textContent ?? ''));
+    await tabTo(page, (p) => p.evaluate(() => document.activeElement?.closest('dialog[open] .catalog [data-meta="title"]') !== null), 10);
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+    await page.waitForTimeout(300);
+    assert.equal(await page.evaluate(() => document.activeElement?.id), 'main-content', 'focus went back to the search button');
+  });
+});
+
 test('acceptance §5.1-c search: when the index fails, Retry announces it and keeps focus', async () => {
   const { visit } = await h();
   await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
