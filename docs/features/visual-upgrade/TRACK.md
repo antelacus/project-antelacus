@@ -45,6 +45,7 @@
   - 2026-09-23 · Phase 2 三刀：关于页存新表（每行 = 页面 × 语言），不进 `content_items`（推翻 v2.3.0「作 `page` 类型进 `content_items`」：该法须加不可删的枚举值并放宽同类型 slug 唯一约束）；公开组件按三种形态重切（窗、目录行、照片格），服务端渲染、悬停交给 CSS、功能菜单删除、目录由渲染器生成、样式回 `globals.css`；闸门新增任务：本地 Supabase CLI 四服务 + 合成种子 + Playwright（作库，跑在 node:test 下）+ axe，另有同流程本地脚本 · Jason · 级联：DESIGN（待写）
   - 2026-09-23 · Codex 设计门处置：MUST 全修，SHOULD 全采纳（SHOULD-1 不做焦点遮挡检查、SHOULD-10 只扩到状态与首载），Jason 对处置表未提异议；窗与目录行显示写作语言；关于页编辑器纯文字、不上传图片；关于页五种语言的正文由 Claude 改写（删过时描述、加格言释义），Jason 审 · Jason · 级联：DESIGN §2、§4；REQ §5.1-i、§5.3、§7
   - 2026-09-24 · §5.5-b 的分支实验移到 Batch 6：§5.1-a 去 todo 之前，源码里的违例无从让闸门变红；此前由每次运行植入的无名按钮证明检查不空转 · Jason · 级联：本 TRACK Batch 1、Batch 6
+  - 2026-09-24 · 搜索只保留一个输入框（标题、标签、摘要依次加权），删去类型、标签、年份、语言筛选器与三种排序；标签与类型由标签页与栏目承担 · Jason · 级联：DESIGN §2.2 SearchDialog
 
 ## 二、批次
 
@@ -81,7 +82,7 @@
 - 范围：`Nav`、`NavLinks`、`SearchDialog`、`search-filter.ts`、`LanguageSwitch`、`SkipLink`、`<ViewTransition>`（关闭 D-1）；删 `UtilityDropdown`、`SearchModal`、`TagList`、四张旧卡片 · 覆盖 REQ §5.1-c/e/g、§5.2-b/e
 - 验收判据：上列 §-id 去 todo 且绿
 - 依赖：Batch 4
-- 执行中的调整：搜索只保留一个输入框，旧的类型、标签、年份、语言筛选器与三种排序删去（待 Jason 确认，可推翻）；原生模态对话框 Tab 会越出、搜索框里 Esc 先被用于清空，二者按 WAI-ARIA 模式手动处理；`use-locale-prefix.ts` 与旧样式的遗留段随使用者一并删除；D-1 关闭（每页包 `PageTransition`）
+- 执行中的调整：搜索只保留一个输入框（见第一区裁定）；原生模态对话框 Tab 会越出、搜索框里 Esc 先被用于清空，二者按 WAI-ARIA 模式手动处理；`use-locale-prefix.ts` 与旧样式的遗留段随使用者一并删除；D-1 关闭（每页包 `PageTransition`）
 
 ### Batch 6 — 收口
 - 状态：open
