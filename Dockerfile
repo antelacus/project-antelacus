@@ -20,7 +20,6 @@ ENV HOSTNAME=0.0.0.0
 # Everything the runtime owns belongs to the unprivileged user: pages are generated on first visit and
 # revalidated, and Next writes them under .next/cache. Copied as root they would fail with EACCES.
 COPY --chown=node:node --from=builder /app/public ./public
-COPY --chown=node:node --from=builder /app/src/content ./src/content
 COPY --chown=node:node --from=builder /app/.next/standalone ./
 COPY --chown=node:node --from=builder /app/.next/static ./.next/static
 RUN mkdir -p .next/cache && chown -R node:node .next/cache

@@ -1,6 +1,7 @@
 import { getAllNotesMeta } from '@/lib/notes';
 import { setRequestLocale } from 'next-intl/server';
-import NoteCard from '@/components/NoteCard';
+import Catalog from '@/components/Catalog';
+import { fromNote } from '@/lib/entry';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -18,18 +19,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function NotesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const notes = await getAllNotesMeta();
-  return (
-    <div className="content-container content-container-standard">
-      {notes.length === 0 && <p>暂无内容。</p>}
-      <div className="content-list">
-        {notes.map((note, index) => (
-          <div key={note.slug} className="content-item" style={{ animationDelay: `${index * 0.1}s` }}>
-            <NoteCard note={note} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const entries = (await getAllNotesMeta()).map(fromNote);
+  return <Catalog title={await getMetaMessage(locale, 'meta.notes_title')} entries={entries} empty={await getMetaMessage(locale, 'list.empty')} />;
 }
-

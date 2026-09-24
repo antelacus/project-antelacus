@@ -1,27 +1,38 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
-const ABOUT_DIR = path.join(process.cwd(), 'src', 'content', 'pages', 'about');
+import { DATA_CACHE_SECONDS } from './cache-lifetime';
+import { pickPageLocale } from './page-locale';
+import { listPublishedPageVersions } from './server/pages-repo';
+import { createSupabasePublicServerClient } from './supabase/public-server';
 
-export async function getAboutMdx(locale: string): Promise<{ content: string; file: string } | null> {
-  const candidates = [
-    `about.${locale}.mdx`,
-    `about.zh-CN.mdx`,
-    `about.en.mdx`,
-  ];
+// The cache tag of every standalone page; the admin's page save expires it.
+export const PAGES_TAG = 'pages';
 
-  for (const name of candidates) {
-    try {
-      const filePath = path.join(ABOUT_DIR, name);
-      const raw = await fs.readFile(filePath, 'utf8');
-      const parsed = matter(raw);
-      return { content: parsed.content, file: filePath };
-    } catch {
-      // try next
-    }
-  }
-  return null;
+// The standalone pages that exist. The database takes any slug; the admin accepts only these.
+export const PAGE_SLUGS = ['about'] as const;
+export type PageSlug = (typeof PAGE_SLUGS)[number];
+
+// One entry per page holding all its published languages, so a save refreshes every language at once —
+// including those that fall back to the saved one.
+const getPublishedVersions = cache(
+  unstable_cache(
+    (slug: string) => listPublishedPageVersions(createSupabasePublicServerClient(), slug),
+    ['page-versions', 'site-pages-v1'],
+    { revalidate: DATA_CACHE_SECONDS, tags: [PAGES_TAG] },
+  ),
+);
+
+export type Page = { lang: string; title: string; body: string };
+
+/** The page in the visitor's language, else the fallback (page-locale.ts); `lang` is the version's own. */
+export async function getPage(slug: string, locale: string): Promise<Page | null> {
+  const versions = await getPublishedVersions(slug);
+  const lang = pickPageLocale(versions.map((v) => v.locale), locale);
+  const version = versions.find((v) => v.locale === lang);
+  return version ? { lang: version.locale, title: version.title, body: version.body_markdown } : null;
 }
 
-
+export async function hasPublishedPage(slug: string): Promise<boolean> {
+  return (await getPublishedVersions(slug)).length > 0;
+}

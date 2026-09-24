@@ -6,6 +6,10 @@ import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
 import { listAdminSummaries } from '@/lib/server/content-repo';
 import { contentTypeSchema } from '@/lib/server/database.types';
 
+export async function generateMetadata({ params }: { params: Promise<{ type: string }> }) {
+  return { title: `${(await params).type}s · Admin` };
+}
+
 export default async function AdminContentListPage({ params }: { params: Promise<{ type: string }> }) {
   const type = contentTypeSchema.safeParse((await params).type);
   if (!type.success) notFound();
@@ -26,7 +30,7 @@ export default async function AdminContentListPage({ params }: { params: Promise
         {rows.map((row) => (
           <li key={row.id} className="admin-card" style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'baseline', flexWrap: 'wrap' }}>
             <Link href={`/admin/content/${type.data}/${encodeURIComponent(row.slug)}`} style={{ borderBottom: 'none' }}>
-              <span style={{ display: 'block', fontWeight: 600 }}>{row.title}</span>
+              <span lang={row.locale} style={{ display: 'block', fontWeight: 600 }}>{row.title}</span>
               <span style={{ fontSize: '0.85rem', opacity: 0.7 }}>/{row.slug} · {row.locale}</span>
             </Link>
             <span style={{ fontSize: '0.85rem', color: row.status === 'published' ? 'var(--color-ink)' : 'var(--color-seal)' }}>

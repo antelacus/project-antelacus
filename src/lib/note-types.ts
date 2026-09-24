@@ -5,7 +5,8 @@ export interface NoteMeta {
   slug: string;
   title: string;
   date: string;
-  lang?: string;
+  /** The language it is written in. */
+  lang: string;
   summary?: string;
   cover?: string;
   tags?: string[];

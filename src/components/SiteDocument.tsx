@@ -2,6 +2,7 @@ import '@/app/globals.css';
 import 'katex/dist/katex.min.css';
 import React from 'react';
 import SkipLink from './SkipLink';
+import { PAGE_IDS } from '@/lib/page-ids';
 import { cormorantGaramond, sourceSerif4, jetbrainsMono, sourceHanSerif } from '@/app/fonts';
 import type { AppLocale } from '@/i18n/routing';
 import { getMetaMessage } from '@/lib/seo';
@@ -71,7 +72,7 @@ export default async function SiteDocument({ lang, children, nav, wrap = (conten
         {wrap(
           <>
             {nav}
-            <main id="main-content" tabIndex={-1}>
+            <main id={PAGE_IDS.main} tabIndex={-1}>
               {children}
             </main>
           </>,

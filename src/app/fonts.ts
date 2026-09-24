@@ -1,14 +1,11 @@
 import { Source_Serif_4, JetBrains_Mono, Noto_Serif_SC, Cormorant_Garamond } from 'next/font/google';
 
-//
-// Defines the Cormorant Garamond font.
-// This is our primary, expressive typeface for headings.
-// A beautiful, classical serif with elegant proportions that embodies
-// the "Living Manuscript" aesthetic.
-//
+// The gate's voice (docs/aesthetic-thesis.md, 三「字」): the name at 500, the motto in italic 400. Nothing
+// else on the site uses it, so only those two cuts are loaded.
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500'],
+  style: ['normal', 'italic'],
   variable: '--font-cormorant-garamond',
   display: 'swap', // Critical for performance: show fallback immediately
   preload: true,   // Prioritize loading for better perceived performance

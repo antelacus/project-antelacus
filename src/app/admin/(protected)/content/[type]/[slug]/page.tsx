@@ -8,6 +8,11 @@ import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
 import { getAdminRow } from '@/lib/server/content-repo';
 import { contentTypeSchema } from '@/lib/server/database.types';
 
+export async function generateMetadata({ params }: { params: Promise<{ type: string; slug: string }> }) {
+  const { type, slug } = await params;
+  return { title: slug === 'new' ? `New ${type} · Admin` : `${slug} · ${type}s · Admin` };
+}
+
 type Props = {
   params: Promise<{ type: string; slug: string }>;
   searchParams: Promise<{ saved?: string; stale?: string }>;

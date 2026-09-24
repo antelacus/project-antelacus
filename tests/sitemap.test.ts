@@ -6,7 +6,7 @@ import { buildSitemapEntries, renderSitemapXml } from '../src/lib/sitemap-entrie
 
 // REQ §5.11-a — the sitemap's locale expansion and XML escaping, on the pure functions.
 
-const data = { posts: [{ slug: 'p', date: '2026-01-02' }], notes: [], photos: [], projects: [{ slug: 'q' }], tags: ['a&b', 'c d'] };
+const data = { posts: [{ slug: 'p', date: '2026-01-02' }], notes: [], photos: [], projects: [{ slug: 'q' }], tags: ['a&b', 'c d'], about: true };
 
 test('acceptance §5.11-a every page exists once per locale and lists every locale as an alternate', () => {
   const entries = buildSitemapEntries(data);
@@ -33,4 +33,10 @@ test('acceptance §5.11-a the XML escapes every value it interpolates', () => {
   assert.match(raw, /href="https:\/\/x\/\?a=1&amp;b=2"/);
   assert.match(raw, /<lastmod>l&lt;m<\/lastmod>/);
   assert.match(raw, /xmlns:xhtml="http:\/\/www\.w3\.org\/1999\/xhtml"/);
+});
+
+test('acceptance visual-upgrade §5.3 the about page is listed only while some language of it is published', () => {
+  const about = (entries: ReturnType<typeof buildSitemapEntries>) => entries.filter((e) => /\/about$/.test(e.url)).length;
+  assert.equal(about(buildSitemapEntries(data)), locales.length);
+  assert.equal(about(buildSitemapEntries({ ...data, about: false })), 0);
 });

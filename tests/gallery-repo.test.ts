@@ -77,6 +77,7 @@ test('mapPhotoRecordToPhotoMeta preserves the legacy gallery interface', () => {
       },
     ],
     tags: ['dynamic-content'],
+    lang: 'en',
   });
 });
 

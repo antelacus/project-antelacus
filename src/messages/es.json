@@ -1,7 +1,6 @@
 {
   "site": {
-    "title": "AnteLacus",
-    "motto": "Antes del lago, paz mental"
+    "title": "AnteLacus"
   },
   "nav": {
     "home": "Inicio",
@@ -55,7 +54,12 @@
     "year": "Año",
     "allYears": "Todos los años",
     "language": "Idioma",
-    "allLanguages": "Todos los idiomas"
+    "allLanguages": "Todos los idiomas",
+    "close": "Cerrar",
+    "results": "{count, plural, one {# resultado} other {# resultados}}",
+    "failed": "No se pudo cargar el índice.",
+    "retry": "Reintentar",
+    "label": "Busca en títulos, resúmenes y etiquetas"
   },
   "meta": {
     "posts_title": "Artículos",
@@ -67,12 +71,43 @@
     "projects_title": "Laboratorio",
     "projects_description": "Experimentos técnicos y proyectos creativos.",
     "about_title": "Acerca de",
-    "about_description": "Acerca del blog AnteLacus y su autor."
+    "about_description": "Acerca del blog AnteLacus y su autor.",
+    "tags_title": "Etiquetas",
+    "tags_description": "Todo el sitio, por etiquetas.",
+    "tag_description": "Todo lo etiquetado «{tag}»."
   },
   "home": {},
   "about": {},
   "posts": {},
   "notes": {},
-  "projects": {}
+  "projects": {},
+  "list": {
+    "empty": "Aún no hay nada."
+  },
+  "article": {
+    "toc": "Índice",
+    "written": "Escrito el",
+    "tags": "Etiquetas",
+    "language": "Idioma",
+    "links": "Enlaces",
+    "source": "Código",
+    "demo": "Demo",
+    "backToTop": "Volver arriba"
+  },
+  "viewer": {
+    "close": "Cerrar",
+    "prev": "Foto anterior",
+    "next": "Foto siguiente",
+    "zoom": "Ampliar",
+    "error": "No se pudo cargar la foto.",
+    "photo": "Foto {n}"
+  },
+  "status": {
+    "notFoundTitle": "Página no encontrada",
+    "notFoundBody": "La página que buscas no existe o se ha movido.",
+    "errorTitle": "Algo salió mal",
+    "errorBody": "Esta página no se puede mostrar ahora. No es cosa tuya; inténtalo de nuevo en un momento.",
+    "retry": "Reintentar",
+    "home": "Volver a la portada"
+  }
 }
-

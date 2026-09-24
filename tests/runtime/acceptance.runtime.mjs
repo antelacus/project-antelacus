@@ -1,6 +1,8 @@
-// Acceptance checks that only a running server can answer (REQ §5.2, §5.3-a, §5.4-c, §6-a).
+// Acceptance checks that only a running server can answer (REQ §5.2, §5.3-a, §5.4-c).
 //   BASE_URL=http://localhost:3000 npm run test:runtime          — a local build; pages that need the database are left out
 //   BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime — production, everything
+//   scripts/ui-check.sh                                          — everything, against the seeded local stack
+// Every public page reads the database; without one, only the proxy, the 404 page and the admin render.
 // A build's route table is not evidence of cacheability; these response headers are.
 //
 // A local server needs no database for this subset. Build and start it with placeholder values:
@@ -9,19 +11,29 @@
 //   npx next build && npx next start -p 3917 &      then   BASE_URL=http://localhost:3917 npm run test:runtime
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { headItems } from './head-items.mjs';
 
 const BASE = process.env.BASE_URL?.replace(/\/$/, '');
 if (!BASE) throw new Error('BASE_URL is required — refusing to report a green run that checked nothing');
 const WITH_DB = process.env.RUNTIME_DB === '1';
+// A post in production and in supabase/seed.sql alike.
 const POST_SLUG = '2025-07-13-llm-note';
+// A page in the site's own document without the database: the 404.
+const SHELL = '/essays';
 
 const get = (path, headers = {}) => fetch(BASE + path, { redirect: 'manual', headers });
+// A tag in use wherever the suite runs (production has no `seed`), plain enough to need no encoding.
+const someTag = async () => {
+  const tags = (await (await get('/api/search-index')).json()).flatMap((item) => item.tags);
+  const tag = tags.find((t) => /^[A-Za-z0-9-]+$/.test(t));
+  assert.ok(tag, 'no plain tag in the search index');
+  return tag;
+};
 const locationPath = (res) => new URL(res.headers.get('location'), BASE).pathname;
 const htmlLang = (html) => /<html[^>]*\blang="([^"]*)"/i.exec(html)?.[1] ?? null;
 
 test('§5.2-a the page language is the URL language', async () => {
+  if (!WITH_DB) return;
   for (const locale of ['en', 'zh-CN', 'fr']) {
     const res = await get(`/${locale}/about`);
     assert.equal(res.status, 200, `/${locale}/about`);
@@ -73,21 +85,23 @@ test('only content-hashed files are cached as immutable', async () => {
     assert.doesNotMatch(cacheControl, /immutable/, path);
     assert.ok(Number(/max-age=(\d+)/.exec(cacheControl)?.[1] ?? Infinity) <= 86400, `${path}: ${cacheControl}`);
   }
-  // …and the rule above must not have weakened the hashed assets.
-  const html = await (await get('/en/about')).text();
-  const hashed = /href="(\/_next\/static\/media\/[^"]+\.woff2)"/.exec(html)?.[1];
+  // …and the rule above must not have weakened the hashed assets (the login page names its fonts without a
+  // database; the 404 names none).
+  const html = await (await get('/admin/login')).text();
+  const hashed = /(\/_next\/static\/media\/[^"\\]+\.woff2)/.exec(html)?.[1];
   assert.ok(hashed, 'found no hashed font to check');
   assert.match((await get(hashed)).headers.get('cache-control') ?? '', /immutable/, hashed);
 });
 
 test('no page preloads a file that does not exist', async () => {
-  const html = await (await get('/en/about')).text();
+  const html = await (await get(SHELL)).text();
   const preloads = [...html.matchAll(/<link\b[^>]*rel="preload"[^>]*>/gi)].map(([tag]) => /href="([^"]+)"/.exec(tag)?.[1]).filter(Boolean);
   assert.ok(preloads.length >= 1, 'found no preloads at all — the extraction looks broken');
   for (const href of preloads) assert.equal((await get(href)).status, 200, href);
 });
 
 test('the skip link speaks the page language', async () => {
+  if (!WITH_DB) return;
   for (const [path, label] of [['/en/about', 'Skip to main content'], ['/zh-CN/about', '跳转到主要内容'], ['/fr/about', 'Aller au contenu principal']]) {
     assert.match(await (await get(path)).text(), new RegExp(`class="skip-link"[^>]*>${label}<`), path);
   }
@@ -121,12 +135,12 @@ test('§5.2-h a remembered manual choice beats the browser; opening a link is no
   const garbage = await get('/', { 'accept-language': 'fr', cookie: 'preferred_locale=xx' });
   assert.equal(locationPath(garbage), '/fr');
   const visit = await get('/fr/about', { cookie: 'preferred_locale=zh-CN' });
-  assert.equal(visit.status, 200);
+  if (WITH_DB) assert.equal(visit.status, 200);
   assert.doesNotMatch(visit.headers.get('set-cookie') ?? '', /preferred_locale/, 'visiting a prefixed URL must not record a choice');
 });
 
 test('§5.3-a public pages are cacheable, the admin is not', async () => {
-  const paths = ['/en/about', ...(WITH_DB ? ['/en', '/en/posts', `/en/posts/${POST_SLUG}`] : [])];
+  const paths = WITH_DB ? ['/en/about', '/en', '/en/posts', '/en/notes', '/en/projects', '/en/gallery', '/en/tags', `/en/tags/${await someTag()}`, `/en/posts/${POST_SLUG}`] : [];
   for (const path of paths) {
     await get(path);
     const second = await get(path);
@@ -134,6 +148,11 @@ test('§5.3-a public pages are cacheable, the admin is not', async () => {
     assert.match(second.headers.get('x-nextjs-cache') ?? '', /^(HIT|STALE)$/, `${path} second request`);
   }
   assert.match((await get('/admin/login')).headers.get('cache-control') ?? '', /no-store/);
+});
+
+test('a tag nothing carries is a 404, on every visit', async () => {
+  if (!WITH_DB) return;
+  for (let i = 0; i < 2; i++) assert.equal((await get('/en/tags/no-such-tag-anywhere')).status, 404);
 });
 
 test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
@@ -145,18 +164,23 @@ test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
   assert.match(await res.text(), /registration\.unregister\(\)/);
 });
 
-test('§6-a document metadata is unchanged by the root-layout move', async () => {
-  const baseline = JSON.parse(readFileSync(new URL('./fixtures/head-baseline.json', import.meta.url), 'utf8')).pages;
-  const needsDb = (path) => !['/en/about', '/admin/login'].includes(path);
-  // Ruled allowed differences (REQ §6): which pages preload the nav image changed with the layout move,
-  // and the two hand-written font preloads pointed at files that never existed (next/font preloads its own).
-  const comparable = (item) => !item.startsWith('link:preload(image)=') && !item.startsWith('link:preload(font)=/fonts/') && !item.startsWith('link:preconnect=');
-  const paths = Object.keys(baseline).filter((path) => WITH_DB || !needsDb(path));
-  assert.ok(paths.length >= 2, 'nothing to compare');
-  for (const path of paths) {
-    const res = await fetch(BASE + path);
-    assert.equal(res.status, baseline[path].status, path);
-    assert.deepEqual(headItems(await res.text()).filter(comparable), baseline[path].head.filter(comparable), path);
+// What routing-slimdown §6-a guarded with a frozen copy of production's heads, asserted by meaning so
+// that a redesign can change the page and not break the check (visual-upgrade REQ §6).
+test('every public page names itself, describes itself, and points to its languages and share image', async () => {
+  if (!WITH_DB) return;
+  for (const path of ['/en', '/zh-CN/posts', '/es/gallery', '/fr/projects', '/en/tags', `/zh-HK/tags/${await someTag()}`, `/en/posts/${POST_SLUG}`, '/fr/about']) {
+    const res = await get(path);
+    assert.equal(res.status, 200, path);
+    const items = headItems(await res.text());
+    const values = (prefix) => items.filter((item) => item.startsWith(prefix)).map((item) => item.slice(prefix.length));
+    assert.equal(values('title=').filter(Boolean).length, 1, `${path}: title`);
+    assert.ok(values('meta:description=')[0], `${path}: description`);
+    assert.deepEqual(values('link:canonical='), [`https://www.antelacus.com${path}`], `${path}: canonical`);
+    const rest = path.split('/').slice(2).join('/');
+    for (const locale of ['zh-CN', 'zh-HK', 'en', 'es', 'fr']) {
+      assert.deepEqual(values(`link:alternate[${locale}]=`), [`https://www.antelacus.com/${locale}${rest ? `/${rest}` : ''}`], `${path}: alternate ${locale}`);
+    }
+    assert.match(values('meta:og:image=')[0] ?? '', /^https:\/\/www\.antelacus\.com\/.+/, `${path}: share image`);
   }
 });
 
@@ -196,15 +220,24 @@ test('§5.4-d a malformed slug is a 404 without the database', async () => {
 });
 
 test('§5.5-a security headers are present and x-powered-by is not', async () => {
-  for (const path of ['/en/about', '/admin/login']) {
+  for (const path of [SHELL, '/admin/login']) {
     const res = await get(path);
-    assert.match(res.headers.get('content-security-policy') ?? '', /default-src 'self'/, path);
+    const csp = res.headers.get('content-security-policy') ?? '';
+    assert.match(csp, /default-src 'self'/, path);
+    // Self-hosted everything (REQ §6): the only outside origin any directive names is the image storage
+    // (127.0.0.1 in a build against the local stack).
+    for (const directive of csp.split(';').map((d) => d.trim()).filter(Boolean)) {
+      const [name, ...sources] = directive.split(/\s+/);
+      const outside = sources.filter((src) => /^https?:|^\*|^wss?:/.test(src) && !(name === 'img-src' && /^https:\/\/([a-z0-9-]+\.supabase\.co|127\.0\.0\.1)$/.test(src)));
+      assert.deepEqual(outside, [], `${path}: ${name} admits ${outside}`);
+    }
     assert.match(res.headers.get('strict-transport-security') ?? '', /max-age=\d+/, path);
     assert.equal(res.headers.get('x-powered-by'), null, path);
   }
 });
 
 test('§5.5-c canonical and alternate links use the www origin', async () => {
+  if (!WITH_DB) return;
   const html = await (await get('/en/about')).text();
   const hrefs = [...html.matchAll(/<link[^>]+rel="(?:canonical|alternate)"[^>]+href="([^"]+)"/g)].map((m) => m[1]).filter((h) => h.startsWith('http'));
   assert.ok(hrefs.length > 0);
@@ -225,7 +258,7 @@ test('§5.8-a the language choice is remembered by a server-set cookie for a yea
 });
 
 test('§5.9-a one <main>, and the navigation sits before it', async () => {
-  const paths = ['/en/about', '/admin/login', ...(WITH_DB ? ['/en', '/en/posts', `/en/posts/${POST_SLUG}`] : [])];
+  const paths = ['/admin/login', ...(WITH_DB ? ['/en/about', '/en', '/en/posts', `/en/posts/${POST_SLUG}`] : [])];
   for (const path of paths) {
     const html = await (await get(path)).text();
     assert.equal((html.match(/<main\b/g) ?? []).length, 1, path);

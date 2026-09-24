@@ -1,7 +1,18 @@
-import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
+import PageTransition from '@/components/PageTransition';
 
+import SiteLink from '@/components/SiteLink';
+import { canonicalFor, getMetaMessage, languageAlternates } from '@/lib/seo';
 import { getTagSummaries } from '@/lib/tags';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  return {
+    title: await getMetaMessage(locale, 'meta.tags_title'),
+    description: await getMetaMessage(locale, 'meta.tags_description'),
+    alternates: { canonical: canonicalFor(locale, '/tags'), languages: languageAlternates('/tags') },
+  };
+}
 
 export default async function TagsIndexLocalePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -9,25 +20,21 @@ export default async function TagsIndexLocalePage({ params }: { params: Promise<
   const tags = await getTagSummaries();
 
   return (
-    <div className="content-container content-container-standard">
+    <PageTransition>
+    <div className="page page-narrow">
+      <h1 className="page-title">{await getMetaMessage(locale, 'meta.tags_title')}</h1>
       {tags.length === 0 ? (
-        <p>暂无标签。</p>
+        <p className="page-empty">{await getMetaMessage(locale, 'list.empty')}</p>
       ) : (
-        <div className="content-list">
-          <ul className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {tags.map((tag) => (
-              <li key={tag.id}>
-                <Link className="card-link" href={`/${locale}/tags/${encodeURIComponent(tag.id)}`}>
-                  <div className="card p-3 flex items-center justify-between">
-                    <span>#{tag.id}</span>
-                    <span style={{ opacity: 0.7 }}>{tag.count}</span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="tag-index" data-meta="tags">
+          {tags.map((tag) => (
+            <li key={tag.id}>
+              <SiteLink href={`/tags/${encodeURIComponent(tag.id)}`}>{tag.id}</SiteLink> <span className="tag-count">{tag.count}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
+    </PageTransition>
   );
 }

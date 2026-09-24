@@ -1,7 +1,6 @@
 {
   "site": {
-    "title": "AnteLacus",
-    "motto": "Avant le lac, paix de l'esprit"
+    "title": "AnteLacus"
   },
   "nav": {
     "home": "Accueil",
@@ -55,7 +54,12 @@
     "year": "Année",
     "allYears": "Toutes les années",
     "language": "Langue",
-    "allLanguages": "Toutes les langues"
+    "allLanguages": "Toutes les langues",
+    "close": "Fermer",
+    "results": "{count, plural, one {# résultat} other {# résultats}}",
+    "failed": "L’index n’a pas pu être chargé.",
+    "retry": "Réessayer",
+    "label": "Chercher dans les titres, résumés et étiquettes"
   },
   "meta": {
     "posts_title": "Articles",
@@ -67,12 +71,43 @@
     "projects_title": "Laboratoire",
     "projects_description": "Expériences techniques et projets créatifs.",
     "about_title": "À propos",
-    "about_description": "À propos du blog AnteLacus et de son auteur."
+    "about_description": "À propos du blog AnteLacus et de son auteur.",
+    "tags_title": "Étiquettes",
+    "tags_description": "Tout le site, par étiquette.",
+    "tag_description": "Tout ce qui porte l’étiquette « {tag} »."
   },
   "home": {},
   "about": {},
   "posts": {},
   "notes": {},
-  "projects": {}
+  "projects": {},
+  "list": {
+    "empty": "Rien pour l’instant."
+  },
+  "article": {
+    "toc": "Sommaire",
+    "written": "Écrit le",
+    "tags": "Étiquettes",
+    "language": "Langue",
+    "links": "Liens",
+    "source": "Code source",
+    "demo": "Démo",
+    "backToTop": "Retour en haut"
+  },
+  "viewer": {
+    "close": "Fermer",
+    "prev": "Photo précédente",
+    "next": "Photo suivante",
+    "zoom": "Zoomer",
+    "error": "La photo n’a pas pu être chargée.",
+    "photo": "Photo {n}"
+  },
+  "status": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundBody": "La page que vous cherchez n’existe pas ou a été déplacée.",
+    "errorTitle": "Une erreur est survenue",
+    "errorBody": "Cette page ne peut pas s’afficher pour le moment. Ce n’est pas de votre fait ; réessayez dans un instant.",
+    "retry": "Réessayer",
+    "home": "Retour à l’accueil"
+  }
 }
-

@@ -11,6 +11,15 @@ export type AppLocale = typeof locales[number];
 
 export const defaultLocale: AppLocale = 'en';
 
+// Each language in its own name, whatever the page's language: how the site says what a piece is written in.
+export const languageNames: Record<AppLocale, string> = {
+  'zh-CN': '简体中文',
+  'zh-HK': '繁體中文',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+};
+
 // The first path segments that exist under `/<locale>/`. An unprefixed URL is redirected into a
 // locale only when its first segment is listed here; anything else falls through to a 404.
 // tests/invariants.test.ts keeps this equal to the directories under src/app/[locale].

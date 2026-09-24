@@ -24,3 +24,11 @@ test('acceptance §5.5-a CLAUDE.md names only paths and npm scripts that exist',
   assert.ok(named.length >= 3, `recognised only ${named.length} npm scripts — the extraction looks broken`);
   assert.deepEqual(named.filter((name) => !(name in scripts)), [], 'npm scripts that do not exist');
 });
+
+test('every CSS class CLAUDE.md names under Styling is still defined in globals.css', () => {
+  const css = readFileSync(join(ROOT, 'src/app/globals.css'), 'utf8');
+  const styling = /### Styling\n([\s\S]*?)\n#/.exec(claudeMd)?.[1] ?? '';
+  const classes = [...new Set([...styling.matchAll(/`\.([a-z][\w-]*)`/g)].map((match) => match[1]))];
+  assert.ok(classes.length > 0, 'no class names found under Styling — the extraction looks broken');
+  assert.deepEqual(classes.filter((name) => !new RegExp(`\\.${name}(?![\\w-])`).test(css)), [], 'classes that no longer exist');
+});

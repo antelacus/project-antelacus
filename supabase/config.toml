@@ -1,0 +1,39 @@
+# The local stack the UI gate (scripts/ui-check.sh) builds against — never linked to the hosted project.
+# Only db, auth, rest and kong run; everything omitted here keeps the CLI's default.
+project_id = "antelacus-ui"
+
+# Ports of their own, so a developer's other Supabase projects keep the defaults.
+[api]
+port = 54421
+
+[db]
+port = 54422
+shadow_port = 54420
+major_version = 17
+
+[db.seed]
+sql_paths = ["./seed.sql"]
+
+# `-x realtime` still pulls the image; only this switch does not.
+[realtime]
+enabled = false
+
+# Kept on although `ui-check.sh` excludes the storage-api service: with storage off, the storage schema
+# stays empty and the media-bucket migration fails. The site's images come from public/images.
+[storage]
+enabled = true
+
+[studio]
+enabled = false
+
+[local_smtp]
+enabled = false
+
+[analytics]
+enabled = false
+
+[edge_runtime]
+enabled = false
+
+[auth]
+site_url = "http://localhost:3918"

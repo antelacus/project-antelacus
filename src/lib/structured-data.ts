@@ -141,6 +141,16 @@ export function softwareProjectJsonLd(project: {
   };
 }
 
+// Where a piece sits: home › section › piece, each with its localized URL. Rendered by the page on the
+// server, so it is in the HTML a crawler fetches.
+export function breadcrumbJsonLd(trail: { name: string; path: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: trail.map((step, i) => ({ '@type': 'ListItem', position: i + 1, name: step.name, item: `${SITE_URL}${step.path}` })),
+  };
+}
+
 // JSON inside a <script> ends at the first `</script`, whatever the JSON thinks. `<` as its JSON escape
 // keeps a title such as `</script><script>…` inert; the parsed value is unchanged.
 export function jsonLdScript(value: unknown): string {

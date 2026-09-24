@@ -11,10 +11,12 @@ export const metadata: Metadata = {
 export default function GlobalNotFound() {
   return (
     <SiteDocument lang="en">
-      <div className="content-container content-container-standard" style={{ textAlign: 'center', marginTop: '6rem' }}>
-        <h1>Page not found</h1>
-        <p>The page you are looking for does not exist or has been moved.</p>
-        <Link href="/">Back to the front page</Link>
+      <div className="page page-narrow">
+        <div className="scroll-opening">
+          <h1 className="scroll-title">Page not found</h1>
+          <p className="scroll-lead">The page you are looking for does not exist or has been moved.</p>
+          <p><Link href="/">Back to the front page</Link></p>
+        </div>
       </div>
     </SiteDocument>
   );

@@ -45,3 +45,8 @@ __pycache__/
 
 # Playwright MCP session output (browser checks during development)
 .playwright-mcp/
+
+# the UI gate's build and the Supabase CLI's local state (scripts/ui-check.sh)
+/.next-ui/
+/supabase/.branches/
+/supabase/.temp/

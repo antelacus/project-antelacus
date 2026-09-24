@@ -13,20 +13,14 @@ Update this file when:
 
 ## Active Items
 
+### TD-021 - Runtime acceptance checks from v2.2–v2.3 assert less than their names claim
+
+- Status: `Open` · Severity: `Low` · Area: `tests` · Identified: `2026-09-24` (Codex pre-deploy review of v2.4.0, findings C-12, C-14…C-18, C-21, C-22)
+- Context: in `tests/runtime/acceptance.runtime.mjs`, several checks written for routing-slimdown and content-publishing pass on weaker evidence than their titles: the page language is checked only on `/about` (C-12); the preload check reads only the 404 shell (C-14); "served outside `/<locale>/`" accepts any status but 308 and 404, a 500 included (C-15); the old-URL redirect is not followed to a 200 (C-16); the unknown-slug and malformed-slug 404s accept any HTML 404, not the site's page, and do not show that no database read happened (C-17, C-18); the `<main>`/`<nav>` order check lets a page without `<nav>` pass and does not follow the skip link (C-21). `getSitemapEntries` is tested only through its pure builder, never with a page that has no published version (C-22).
+- Revisit when: the next version that changes routing, the 404 pages or `tests/runtime/` — strengthen each check to fail on the case named above.
+
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
 
 v2.3.0 resolved every finding of that scan except the ones below; the scope note above still says what the scan did not examine.
-
-### TD-019 - The about page is the last repo-file content and the last MDX user
-
-- Status: `Open` · Severity: `Low` · Area: `content-management` · Identified: `2026-09-22`
-- Context: `/about` reads `src/content/pages/about/*.mdx`, five per-language files written as JSX (sections, a contact grid, inline SVG icons), rendered by `next-mdx-remote`. It cannot be edited from the admin, and it is the one page the Markdown-only renderer of v2.3.0 does not cover. Converting it to Markdown changes its appearance, which v2.3.0 forbids.
-- Ruled (Project Lead, 2026-09-22): v2.4.0 — the visual upgrade redesigns the about page, and it moves into the database as Markdown (per-language rows with fallback to English, then any) in the same version; `next-mdx-remote` leaves with it.
-
-### TD-020 - Three React hook rules run as warnings, not errors
-
-- Status: `Open` · Severity: `Low` · Area: `lint` · Identified: `2026-09-22`
-- Context: `eslint-config-next` 16 enables the React Compiler's `react-hooks/set-state-in-effect`, `immutability` and `static-components`. Eighteen existing sites fail them: state set inside effects in the four cards, `Nav`, `SearchModal`, `UtilityDropdown`; ref mutation in `PhotoViewer`; components defined inside `SearchModal`'s render. `eslint.config.mjs` downgrades the three rules to warnings so the gate stays meaningful.
-- Retirement trigger: v2.4.0 rewrites these components for the visual upgrade; that version deletes the override and fixes whatever is left.

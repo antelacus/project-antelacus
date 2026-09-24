@@ -1,7 +1,6 @@
 {
   "site": {
-    "title": "AnteLacus",
-    "motto": "临湖之前，心境平和"
+    "title": "AnteLacus"
   },
   "nav": {
     "home": "首页",
@@ -24,7 +23,7 @@
     "skip_to_content": "跳转到主要内容",
     "menu": "功能与目录",
     "search": "搜索",
-    "language": "语言切换",
+    "language": "语言",
     "langSoon": "语言切换（即将推出）",
     "toc": "文章目录"
   },
@@ -55,7 +54,12 @@
     "year": "年份",
     "allYears": "全部年份",
     "language": "语言",
-    "allLanguages": "全部语言"
+    "allLanguages": "全部语言",
+    "close": "关闭",
+    "results": "共 {count} 条",
+    "failed": "索引未能载入。",
+    "retry": "重试",
+    "label": "搜索标题、摘要与标签"
   },
   "meta": {
     "posts_title": "专栏",
@@ -67,12 +71,43 @@
     "projects_title": "实验室",
     "projects_description": "技术实验与创意项目展示。",
     "about_title": "关于",
-    "about_description": "关于 AnteLacus 博客和站长的介绍。"
+    "about_description": "关于 AnteLacus 博客和站长的介绍。",
+    "tags_title": "标签",
+    "tags_description": "按标签浏览全部内容。",
+    "tag_description": "标签为「{tag}」的全部内容。"
   },
   "home": {},
   "about": {},
   "posts": {},
   "notes": {},
-  "projects": {}
+  "projects": {},
+  "list": {
+    "empty": "暂无内容。"
+  },
+  "article": {
+    "toc": "目录",
+    "written": "写于",
+    "tags": "标签",
+    "language": "语言",
+    "links": "链接",
+    "source": "源码",
+    "demo": "演示",
+    "backToTop": "回到顶部"
+  },
+  "viewer": {
+    "close": "关闭",
+    "prev": "上一张",
+    "next": "下一张",
+    "zoom": "缩放",
+    "error": "照片未能载入。",
+    "photo": "照片 {n}"
+  },
+  "status": {
+    "notFoundTitle": "页面未找到",
+    "notFoundBody": "你要找的页面不存在，或已被移走。",
+    "errorTitle": "出了点问题",
+    "errorBody": "这个页面暂时无法显示。不是你的原因，请稍后再试。",
+    "retry": "重试",
+    "home": "回到首页"
+  }
 }
-

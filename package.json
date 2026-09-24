@@ -1,6 +1,6 @@
 {
   "name": "project-antelacus",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "node --import tsx --import ./tests/setup/stub-server-only.mjs --test tests/*.test.ts",
     "test:runtime": "node --test tests/runtime/acceptance.runtime.mjs",
+    "test:ui": "scripts/ui-check.sh",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -20,11 +21,9 @@
     "@tailwindcss/postcss": "^4.1.11",
     "autoprefixer": "^10.4.21",
     "codemirror": "^6.0.2",
-    "gray-matter": "^4.0.3",
     "katex": "^0.16.22",
     "next": "16.3.5",
     "next-intl": "4.14.6",
-    "next-mdx-remote": "^6.0.0",
     "photoswipe": "^5.4.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -42,13 +41,15 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/eslintrc": "^3",
-    "@types/mdx": "^2.0.13",
     "@types/node": "^20.19.9",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "playwright": "1.63.0",
+    "supabase": "2.117.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
