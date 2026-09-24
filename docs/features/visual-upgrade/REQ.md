@@ -10,8 +10,8 @@ v2.3.0 之后，站点能发布、能恢复，但从没问过「谁用不了它�
 - 做：
   - 公开页面与后台 `/admin` 满足 WCAG 2.2 AA
   - 公开页面按《临湖》重做：首页（门与一窗主景）、列表页（目录；视觉为照片网格）、文章页（手卷三段、折叠目录、尾纸与终止符）、导航、搜索与语言切换、关于页、404
-  - 关于页进数据库、以 Markdown 撰写，可在后台编辑；`next-mdx-remote` 移除（TD-019）
-  - React Compiler 的三条 hook 规则恢复为错误（TD-020）
+  - 关于页进数据库、以 Markdown 撰写，可在后台编辑；`next-mdx-remote` 移除
+  - React Compiler 的三条 hook 规则恢复为错误
   - 无障碍与美学中可机器判定的部分进闸门
 - 明确不做：
   - 暗色模式
@@ -24,7 +24,6 @@ v2.3.0 之后，站点能发布、能恢复，但从没问过「谁用不了它�
 - 美学规则：`docs/aesthetic-thesis.md`（《临湖》）——本文件引用它的章节，不重述
 - 裁定：`docs/features/visual-upgrade/TRACK.md` 第一区；基线审计发现：同文件第二区
 - 上一版仍然有效的要求：`docs/features/routing-slimdown/REQ.md` §5.2（语言路由）、§5.3（可缓存）；`docs/features/content-publishing/REQ.md` §5.2（Markdown 渲染与净化）、§5.3（后台发布）
-- `docs/TECHNICAL_DEBT.md` TD-019、TD-020
 - WCAG 2.2：https://www.w3.org/TR/WCAG22/
 
 ### 1.4 术语

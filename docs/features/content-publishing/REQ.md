@@ -24,10 +24,9 @@
   - 删除条目时连带删除存储桶里的文件（现状保留）；搬迁 `public/images/` 里已有的图片
 
 ### 1.3 参考
-- `docs/TECHNICAL_DEBT.md` TD-001、003、005、006、011、012、013、014、016、017、018
-- `docs/features/content-publishing/TRACK.md` 第一区（裁定）
+- `docs/features/content-publishing/TRACK_v2.3.0.md` 第一区（裁定）
 - 表结构：`supabase/migrations/`；行到领域对象的映射：`src/lib/server/*-repo.ts`
-- 上一版的要求仍然有效并被本版引用：`docs/features/routing-slimdown/REQ.md` §5.2（语言路由）、§5.3（可缓存与新鲜度）、§6（`<head>` 不变）
+- 上一版的要求仍然有效并被本版引用：`docs/features/routing-slimdown/REQ.md` §5.2（语言路由）、§5.3（可缓存与新鲜度）
 - 现行发布手册 `docs/content-publishing.md`（本版重写）
 
 ### 1.4 术语
@@ -75,7 +74,7 @@
   - §5.1-c 故意引入一个 lint 错误的分支，闸门在 lint 步骤失败。
 
 ### 5.2 正文渲染（F2）
-- 规则：正文是 Markdown——CommonMark + GFM（表格、删除线、任务列表、自动链接）+ 数学（`$…$`、`$$…$$`，KaTeX 输出）。原始 HTML、JSX、`import`/`export`、`{…}` 表达式一律不执行、不进入 DOM 结构，原样作为文字显示。四种内容与后台预览用同一个渲染器。关于页是唯一例外：仓库文件、不由管理员在线写入，本版仍以 MDX 渲染但不执行 JS。
+- 规则：正文是 Markdown——CommonMark + GFM（表格、删除线、任务列表、自动链接）+ 数学（`$…$`、`$$…$$`，KaTeX 输出）。原始 HTML、JSX、`import`/`export`、`{…}` 表达式一律不执行、不进入 DOM 结构，原样作为文字显示。四种内容、关于页与后台预览用同一个渲染器。
 - 图片排版规则：一个段落里只有图片（一张或多张）时，多张并排显示，图片的 `title` 文字作为图注——排版是渲染器的事，正文里不写布局。
 - 净化：链接与图片只接受 `http(s)`、站内相对路径与 `mailto`；`javascript:`、`data:`、`blob:` 与协议相对（`//host`）地址一律剥除；KaTeX 的类、属性与内联样式保留；任务列表的复选框保留。
 - 迁移：数据库里唯一使用了 JSX 的正文是一篇专栏（三张并排带图注的插图，用 `<div style={{…}}>` 与 `<img>` 写成），按图片排版规则改写为 Markdown；其余正文只有公式，不需改动。改写后每条正文经新渲染器渲染，与旧渲染结果比对。

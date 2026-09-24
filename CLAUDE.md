@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**antelacus.com** — a multilingual personal blog/portfolio with a "活手稿" (living manuscript) aesthetic. Next.js 15 App Router, Supabase (PostgreSQL), self-hosted on a VPS with Docker + nginx, Cloudflare in front.
+**antelacus.com** — a multilingual personal blog/portfolio with the 《临湖》 (Ante Lacus) aesthetic. Next.js App Router, Supabase (PostgreSQL), self-hosted on a VPS with Docker + nginx, Cloudflare in front.
 
 ## Commands
 
@@ -41,7 +41,7 @@ Bodies are Markdown, never executed: raw HTML and JSX render as text, links are 
 - **Public pages stay cacheable**: nothing rendered under `src/app/[locale]/` reads cookies or headers, and every layout and page there calls `setRequestLocale`. Evidence of cacheability is a running server's response headers — the build's route table is not.
 - A new public section = a directory under `src/app/[locale]/` **and** an entry in `localizedSections`; without the entry its unprefixed URL is a 404 instead of a redirect.
 - A new top-level route or file in `public/` must be registered in `src/i18n/routing.ts` too: the proxy answers 404 for any first segment it does not know, compared by whole segment, never by prefix (a test enforces the registry).
-- The 404 page is `src/app/global-not-found.tsx` (an experimental Next flag in `next.config.ts`). Do not build behaviour on `notFound()` in a root layout.
+- An unknown path gets `src/app/global-not-found.tsx` (an experimental Next flag in `next.config.ts`); an unknown slug or tag, or an about page with no version, gets `src/app/[locale]/not-found.tsx`. Do not build behaviour on `notFound()` in a root layout.
 - Share images (`og.png` routes) keep their unprefixed URLs — external platforms have cached them.
 - UI strings: `src/messages/<locale>.json`; a key missing from a locale falls back to `en`. Content is single-source — every locale shows the same article.
 
@@ -57,7 +57,7 @@ Supabase Auth, cookie sessions (`@supabase/ssr`); admins are the emails in `SUPA
 
 ### Styling
 
-The public site's styles are all in `src/app/globals.css`, never in its components: theme variables, the layout, one section per page form — the gate and its windows, the catalogue (`.catalog`), the handscroll (`.scroll`). The admin has a section there too, plus inline styles. Tailwind 4 for utilities. The design rules the public styles carry out: `docs/aesthetic-thesis.md`.
+The public site's styles are all in `src/app/globals.css`, never in its components: theme variables, the layout, one section per page form — the gate and its windows, the catalogue (`.catalog`), the handscroll (`.scroll`). The admin has a section there too, plus inline styles. Tailwind 4 is imported only for its base reset; no utility classes are used. The design rules the public styles carry out: `docs/aesthetic-thesis.md`.
 
 ## Environment and deployment
 

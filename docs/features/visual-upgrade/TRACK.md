@@ -199,12 +199,13 @@
 - [x] CHANGELOG v2.4.0 条目
 - [x] TECHNICAL_DEBT 定稿（TD-021 在册；2026-09-21 扫描的发现已全部解决）
 - [x] README 仍属实，且只含 §7 允许的内容（缩为指路图，路径入闸门）
-- [ ] 活文档清点：REQ、DESIGN、`docs/aesthetic-thesis.md`、CLAUDE.md 与上线内容一致
+- [x] 活文档清点：REQ、DESIGN、`docs/aesthetic-thesis.md`、CLAUDE.md 与上线内容一致——另含旧版 REQ / DESIGN、`docs/content-publishing.md`（front-matter 与标题层级的写法按现状重写）、`docs/DEPLOYMENT.md`
 - [x] 部署后：线上 SHA 与合并提交一致；对生产跑 `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` —— 部署运行 35979268410 日志回显 `eeaad83`，健康检查 6 秒通过；生产运行时验收 24 过
 - [ ] tag `v2.4.0`
 - [ ] 路线图 / 下一版 Phase 0 的输入（本版无 FEEDBACK 登记）
 - [x] 闸门读数：每道闸门的运行次数 / 改变了输出的拦截次数（见上）
-- [ ] 文档预算绿（`scripts/check_doc_budget.py`）；memory 清理
+- [x] 文档预算绿（`scripts/check_doc_budget.py`：budgeted 8 · exempt 0 · 0 violation）
+- [ ] memory 清理（晋升提议待 Jason 裁定）
 - [ ] 验收触发登记：线上一次真实访问（读文章、搜索、看相册、切语言）无异常
 - [x] 本机清理：`.env.prod-check` 已删除（Jason，2026-09-24）
 - [x] Clash 脚本里 `+.supabase.co` 一行：撤回，脚本恢复为备份（Jason，2026-09-24）

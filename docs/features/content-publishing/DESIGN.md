@@ -20,9 +20,9 @@
 | `src/lib/content-row.ts`（新） | 四个 `*-types.ts` 共用的基础行类型与三个辅助函数（元数据解析、日期择取、标签名提取） | core |
 | `src/lib/{post,note,photo,project}-types.ts` | 四个映射函数，各自差异保留 | core |
 | `src/lib/{posts,notes,gallery,projects}.ts` | 公开加载器，接口不变；每种类型一个缓存标签。专栏加载器的 `cache()` 包装移到模块顶层（现状每次调用新建一个，去重失效）。各加一个**已发布 slug 集合**的缓存读取（单条缓存、同标签） | IO |
-| `src/lib/markdown/`（新） | `renderMarkdown(source)`：unified 管道——解析 → GFM → 数学 → 原始 HTML 节点转为文本节点（不丢不执行）→ 转 HTML 树 → 协议相对地址剥除 → **白名单净化**（`rehype-sanitize` 的默认 GitHub schema，它已含表格、任务列表与 remark-math 的 `math-inline`/`math-display`；`href` 协议只允许 `http`、`https`、`mailto`，`src` 只允许 `http`、`https`，相对路径放行）→ **图片段落规则**（段落里只有图片时转为 `div.image-row` 下的若干 `figure`，`title` 作 `figcaption`）→ KaTeX → React 节点。净化排在 KaTeX 与图片规则**之前**：净化器只看到 Markdown 自己生成的树，KaTeX 的输出与我们自己造的 figure 不必进白名单。不引 `server-only`，浏览器与服务端同一份 | core |
-| `src/app/[locale]/{posts,notes,gallery,projects}/[slug]/page.tsx` | 用 `renderMarkdown`；`generateMetadata` 与页面都先查已发布 slug 集合，不在 → `notFound()`，不按 slug 读库；不再有自带 `<main>` 的「未找到」分支 | IO |
-| `src/app/[locale]/about/page.tsx` | 不变：仓库里的 MDX 文件，`next-mdx-remote` 升到 6（安全通告）且不执行 JS；本版唯一的 MDX 使用者 | IO |
+| `src/lib/markdown/`（新） | `renderMarkdown(source)`：unified 管道——解析 → GFM → 数学 → 原始 HTML 节点转为文本节点（不丢不执行）→ 转 HTML 树 → 协议相对地址剥除 → **白名单净化**（`rehype-sanitize` 的默认 GitHub schema，含表格与任务列表；`code` 上另允许 remark-math 的 `math-inline`/`math-display`；`href` 协议只允许 `http`、`https`、`mailto`，`src` 只允许 `http`、`https`，相对路径放行）→ **图片段落规则**（段落里只有图片时转为 `div.image-row` 下的若干 `figure`，`title` 作 `figcaption`）→ 标题规整（visual-upgrade DESIGN）→ KaTeX → React 节点；`renderMarkdownWithToc` 在同一次运行里另给出目录。净化排在 KaTeX 与图片规则**之前**：净化器只看到 Markdown 自己生成的树，KaTeX 的输出与我们自己造的 figure 不必进白名单。不引 `server-only`，浏览器与服务端同一份 | core |
+| `src/app/[locale]/{posts,notes,gallery,projects}/[slug]/page.tsx` | 正文经 `src/lib/markdown/` 渲染；`generateMetadata` 与页面都先查已发布 slug 集合，不在 → `notFound()`，不按 slug 读库；不再有自带 `<main>` 的「未找到」分支 | IO |
+| `src/app/[locale]/about/page.tsx` | 关于页存于 `site_pages`、用同一渲染器（visual-upgrade DESIGN） | IO |
 | `src/app/[locale]/error.tsx`、`src/app/admin/error.tsx`（新） | 站点风格 / 后台风格的错误页，不显示错误原文 | infra |
 | `src/app/[locale]/loading.tsx` | 删除（§3：它使 `notFound()` 只能给 200） | — |
 | `src/app/admin/(protected)/content/[type]/page.tsx`（新） | 某类型的条目列表 + 「新建」 | IO |
@@ -30,16 +30,15 @@
 | `src/app/admin/(protected)/content/actions.ts`（新） | 服务端动作：保存（zod 校验 → 管理员校验 → repo → `updateTag(tag)` → 回编辑器）、改状态；取代 `notes/actions.ts` | IO |
 | `src/app/api/admin/upload/route.ts`（新） | `POST` 上传图片的路由处理器（服务端动作的请求体上限 1 MB，路由处理器没有）：管理员校验 → `media.ts` → `{ url }` | IO |
 | `src/components/admin/ContentEditor.tsx`（新，客户端） | 表单：核心字段 + 按类型描述表挂的附加面板；提交中禁用按钮；校验错误原位显示 | IO（浏览器实测） |
-| `src/components/admin/MarkdownEditor.tsx`（新，客户端） | **窄接口**：`{ value, onChange, onUpload }`；内部是 CodeMirror 6 + Markdown 语言包，粘贴 / 拖入图片调 `onUpload` 并在光标处插入 `![](url)` | IO |
+| `src/components/admin/MarkdownEditor.tsx`（新，客户端） | **窄接口**：`{ value, label, lang, onChange, onUpload?, onError }`；内部是 CodeMirror 6 + Markdown 语言包，粘贴 / 拖入图片调 `onUpload` 并在光标处插入 `![](url)` | IO |
 | `src/components/admin/MarkdownPreview.tsx`（新，客户端） | 调 `renderMarkdown`，套公开页面同一 `.prose` 样式 | infra |
 | `src/components/admin/{GalleryImagesPanel,ProjectLinksPanel}.tsx`（新） | 附加面板：多图上传 / 排序 / 替代文字 / 选封面；链接列表 | IO |
 | `src/lib/server/media.ts`（新） | 上传到桶 `media`：校验类型与大小（常量在此文件）、路径 `<类型>/<slug>/<随机前缀>-<文件名>`、返回公开 URL；只经管理员校验后的服务端客户端 | IO |
 | `src/lib/structured-data.ts` | 增 `jsonLdScript(obj)`：`JSON.stringify` 后把 `<` 替换为 `\u003c`（JSON 里合法的转义），输出永不含 `</script`；六处 JSON-LD 输出改用它 | core |
-| `src/components/PhotoViewer.tsx` | 详情区用 DOM API 与 `textContent` 构建，不再拼 HTML 字符串 | IO |
 | `src/lib/site.ts`（新） | `SITE_ORIGIN = 'https://www.antelacus.com'`，全部 canonical / alternate / OG / JSON-LD / sitemap 地址由它拼；`src/` 内不再有别的站点域名字面量 | infra |
 | `src/app/api/locale/route.ts`（新） | `GET /api/locale?to=<语言>&next=<站内路径>`：服务端写 `preferred_locale`（一年、`Secure`、`Lax`、`Path=/`），303 到 `next`，响应 `private, no-store`；`next` 经 `getSafeNextPath` 校验 | IO |
 | `src/lib/supabase/{server,middleware}.ts` | 会话 cookie 显式传 `httpOnly: true`、`secure: true`、`sameSite: 'lax'`（站上没有浏览器端 Supabase 客户端，cookie 不需要脚本可读） | infra |
-| `src/components/UtilityDropdown.tsx` | 语言项变成指向 `/api/locale?…` 的普通链接；不再写 `document.cookie` | IO |
+| `src/components/LanguageSwitch.tsx` | 语言项是指向 `/api/locale?…` 的普通链接；不写 `document.cookie` | IO |
 | `src/components/SiteDocument.tsx`、`src/app/[locale]/layout.tsx`、两个 admin 布局 | `SiteDocument` 增 `nav` 插槽渲染在 `<main>` 之前；内层 `<main>` 改 `<div>` | infra |
 | `src/proxy.ts`（由 `src/middleware.ts` 改名） | 内容不变；另对详情路径做 slug 格式判定（`[a-z0-9-]{1,80}`），不合格式的直接判「不存在」 | IO |
 | `next.config.ts` | `poweredByHeader: false`；`headers()` 增 CSP（同源 + 内联）与 HSTS | infra |
@@ -58,7 +57,7 @@
 
 图片：编辑器收到粘贴 / 拖入 / 选择 → `POST /api/admin/upload`（`FormData` 含文件与类型、slug）→ `media.ts` 校验并写桶 → 返回公开 URL → 编辑器在光标处插入 `![](url)`；封面与相册图同一接口，返回值写进各自字段。图片在页面上经 Next 图片优化（Supabase 域名已在 `remotePatterns`）。
 
-渲染：页面 → 加载器（缓存、标签）→ `renderMarkdown` → HTML。详情页的 `generateMetadata` 与页面体都先查**已发布 slug 集合**（单条缓存），不在集合 → `notFound()`，不按 slug 读库、不留按 slug 的数据缓存；在集合 → 按 slug 取（缓存）→ 渲染。
+渲染：页面 → 加载器（缓存、标签）→ `src/lib/markdown/` → HTML。详情页的 `generateMetadata` 与页面体都先查**已发布 slug 集合**（单条缓存），不在集合 → `notFound()`，不按 slug 读库、不留按 slug 的数据缓存；在集合 → 按 slug 取（缓存）→ 渲染。
 
 失败：读库或渲染抛错 → `[locale]/error.tsx`（状态 500）；后台动作抛错 → `admin/error.tsx`；保存已成功而 `revalidateTag` 抛错 → 动作捕获后仍 303 回编辑器带 `saved=…&stale=1`，编辑器提示「已保存，页面最迟半小时更新」。
 
@@ -97,8 +96,8 @@
 - 类型描述表条目：`{ type, tag, section, relations: string, map: (row) => Domain, extras: 'gallery-images' | 'project-links' | null }`。
 - `save_content_item(payload jsonb) returns content_items`：`payload` = 父行字段 + `tags: text[]` + `images: {storage_path, public_url, alt_text, sort_order}[]` + `links: {label, url, link_type}[]`；只对服务端角色授权，匿名角色不可调用。
 - `POST /api/admin/upload`（`multipart/form-data`：`file`、`type`、`slug`）→ `200 { url }` 或 `4xx { error }`（用户可读文案）；未登录 401。
-- `MarkdownEditor` props：`{ value: string; onChange(next: string): void; onUpload(file: File): Promise<string> }`。
-- 缓存标签：`posts`、`notes`、`gallery`、`projects`；写入方在写成功后 `updateTag(tag)`。测试：每个动作使失效的标签 = 类型描述表里该类型的标签；首页、搜索索引、sitemap 只经四个加载器读。
+- `MarkdownEditor` props：`{ value; label; lang; onChange(next); onUpload?(file): Promise<string>; onError(message) }`；没有 `onUpload` 时不接受粘贴图片（关于页编辑器）。
+- 缓存标签：`posts`、`notes`、`gallery`、`projects`；写入方在写成功后 `updateTag(tag)`。测试：每个动作使失效的标签 = 类型描述表里该类型的标签；首页、搜索索引、sitemap 只经四个加载器读；sitemap 另经 `pages.ts` 查关于页有无已发布版本。关于页的动作使 `pages` 失效（visual-upgrade DESIGN §4）。
 - cookie `preferred_locale`：只由 `/api/locale` 写、只由 `proxy` 读（上一版契约不变，写方换了）。
 - 环境变量（VPS `.env` 新增）：`DATABASE_URL`（备份用）、`ANTELACUS_DATA_DIR`、`HC_PING_KEEPALIVE`、`HC_PING_BACKUP`、`HC_PING_SITE`。
 
@@ -123,7 +122,7 @@
 10. `Dockerfile` 基础镜像的 Node 主版本 = `check.yml` 的 `node-version`（测试）。
 11. 站点域名的字面量只出现在 `src/lib/site.ts` 一处，裸域名一处都没有（测试）。
 12. `src/` 内没有 `document.cookie` 写入（测试）。
-13. 每个公开页与后台页恰有一个 `<main>`，`<nav>` 在其外（运行时验收：首页、一个列表页、关于页、登录页；有数据库时再加一个详情页）。
+13. 每个公开页与后台页恰有一个 `<main>`，`<nav>` 在其外（运行时验收：无数据库时登录页；有数据库时另加首页、一个列表页、关于页、一个详情页）。
 14. 响应头：CSP、HSTS 存在，`x-powered-by` 不存在（运行时验收）。
 15. `renderMarkdown` 对含脚本、表达式、JSX、import 的输入不产生 `<script>`、不求值；`[x](javascript:…)` 与 `![](javascript:…)` 不产生带该协议的 `href`/`src`（测试）。
 16. `content-repo.save` 对同一自然键连续两次调用是两次同名 RPC，假客户端里只剩一行（假客户端测试）；`jsonLdScript` 的输出不含 `</script`（测试）。
