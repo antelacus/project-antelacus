@@ -55,8 +55,8 @@ export const TEMPLATES = [
   { name: 'about', kind: 'about', path: p('/about'), text: SEED.aboutTitle },
   { name: '404', kind: '404', path: p('/no-such-section'), status: 404, text: 'Page not found' },
   { name: 'search open', kind: 'state', path: p(''), state: 'search', pending: 'Batch 5' },
-  { name: 'viewer open', kind: 'state', path: p(`/gallery/${SEED.gallery}`), state: 'viewer', pending: 'Batch 4' },
-  { name: 'toc open', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'toc', pending: 'Batch 4' },
+  { name: 'viewer open', kind: 'state', path: p(`/gallery/${SEED.gallery}`), state: 'viewer' },
+  { name: 'toc open', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'toc' },
   { name: 'row hovered', kind: 'state', path: p('/posts'), state: 'hover' },
   { name: 'link focused', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'focus' },
 ];

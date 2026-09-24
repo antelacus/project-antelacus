@@ -66,7 +66,7 @@ test('acceptance §5.2-f no post or project cover on the home or list pages', as
   });
 });
 
-test('acceptance §5.2-h the tail carries date, tags and language and ends on the end mark; the TOC starts closed', { todo: 'Batch 4' }, async () => {
+test('acceptance §5.2-h the tail carries date, tags and language and ends on the end mark; the TOC starts closed', async () => {
   const { visit, SEED } = await h();
   await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }, { name: 'short note', path: `/en/notes/${SEED.note}` }], async (page, ctx, t) => {
     const tail = page.locator('[data-colophon]');

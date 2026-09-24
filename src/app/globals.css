@@ -287,6 +287,61 @@ button { font: inherit; color: inherit; }
 .tag-index li { padding: var(--space-1) 0; }
 .tag-count { color: var(--color-ink-soft); font-size: 0.875rem; }
 
+/* ---------- the handscroll: opening, contents, body, tail ---------- */
+
+.scroll { display: flex; flex-direction: column; }
+.scroll-opening { display: flex; flex-direction: column; gap: var(--space-3); margin: var(--space-4) 0 var(--space-5); }
+.scroll-date { font-size: 0.875rem; color: var(--color-ink-soft); }
+.scroll-title { margin: 0; font-size: clamp(1.75rem, 5vw, 2.25rem); line-height: 1.3; overflow-wrap: anywhere; }
+.scroll-lead { margin: 0; font-size: 1.125rem; line-height: 1.8; }
+.scroll-cover { width: 100%; height: auto; margin-top: var(--space-3); }
+.scroll-body { margin-bottom: var(--space-5); overflow-wrap: anywhere; }
+
+.toc { margin: 0 0 var(--space-5); border-block: 1px solid var(--color-rule); }
+.toc summary { cursor: pointer; padding: var(--space-2) 0; color: var(--color-ink-soft); }
+.toc ol { margin: 0 0 var(--space-3); padding-left: var(--space-4); }
+.toc li { margin: var(--space-1) 0; }
+
+.colophon {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-rule);
+  font-size: 0.875rem;
+  color: var(--color-ink-soft);
+}
+.colophon p { margin: 0; overflow-wrap: anywhere; }
+.colophon-label { display: inline-block; min-width: 5.5em; }
+.colophon .end-mark { margin-top: var(--space-4); }
+
+/* An album's photos, each framed in a thin ink line. */
+.album-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
+  margin: 0 0 var(--space-5);
+}
+.album-photo { display: block; line-height: 0; }
+.album-photo img { width: 100%; height: auto; border: 1px solid var(--color-ink); box-sizing: border-box; }
+
+/* PhotoSwipe in paper and ink: its arrows stay on touch screens (it hides them there), its counter
+ * casts no shadow, and its loading icon stands still instead of spinning forever. */
+:root .pswp {
+  --pswp-bg: var(--color-paper);
+  --pswp-placeholder-bg: var(--color-paper);
+  --pswp-icon-color: var(--color-ink);
+  --pswp-icon-color-secondary: var(--color-paper);
+  --pswp-icon-stroke-color: var(--color-paper);
+  --pswp-error-text-color: var(--color-ink);
+}
+/* PhotoSwipe's stylesheet loads after this one, so each override is one class more specific than its rule. */
+.pswp.pswp--touch .pswp__button--arrow { visibility: visible; }
+.pswp .pswp__button, .pswp .pswp__counter { opacity: 1; }
+.pswp .pswp__counter { text-shadow: none; color: var(--color-ink); }
+.pswp .pswp__preloader .pswp__icn { animation: none; transition: none; }
+
 /* ---------- legacy: components v2.4.0 Batches 4–5 replace; flat and still, until they go ---------- */
 
 .breadcrumb-bar { margin: var(--space-2) 0; }

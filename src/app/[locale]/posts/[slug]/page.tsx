@@ -1,14 +1,11 @@
+import Article from '@/components/Article';
 import { getPostBySlug, getPostSlugs } from '@/lib/posts';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { isNotFoundError } from '@/lib/not-found';
-import { renderMarkdown } from '@/lib/markdown';
-import Link from 'next/link';
-import Image from 'next/image';
-import TagList from '@/components/TagList';
-import { languageAlternates } from '@/lib/seo';
+import { detailTrail, languageAlternates } from '@/lib/seo';
 import { SITE_ORIGIN } from '@/lib/site';
-import { blogPostingJsonLd, jsonLdScript } from '@/lib/structured-data';
+import { blogPostingJsonLd, jsonLdScript, breadcrumbJsonLd } from '@/lib/structured-data';
 
 // Nothing is built ahead of time (the build must not need the database); an empty list is what lets
 // Next cache each page after its first visit instead of rendering it on every request.
@@ -56,49 +53,12 @@ export default async function PostPage({ params }: { params: Promise<{ locale: s
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const jsonLd = blogPostingJsonLd(post);
-
   return (
-    <div className="content-container content-container-standard">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
-      <article data-title={post.title}>
-        <header>
-          <h1>{post.title}</h1>
-          <div className="text-sm" style={{ color: 'rgba(29, 29, 27, 0.6)'}}>
-            <span>{post.date}</span>
-            {post.lang && (
-              <>
-                <span className="mx-2">|</span>
-                <span>{post.lang}</span>
-              </>
-            )}
-            {post.tags && post.tags.length > 0 && (
-              <span className="mx-2">|</span>
-            )}
-            {post.tags && post.tags.length > 0 && (
-              <TagList tags={post.tags} />
-            )}
-          </div>
-        </header>
-
-        {post.cover && (
-          <div className="my-8">
-            <Image
-              src={post.cover}
-              alt={post.title}
-              width={800}
-              height={450}
-              className="w-full h-auto"
-              priority={true}
-            />
-          </div>
-        )}
-
-        <div className="prose">
-          {renderMarkdown(post.content)}
-        </div>
-
-      </article>
+    <div className="page page-narrow">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(blogPostingJsonLd(post)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(await detailTrail(locale, 'posts', slug, post.title))) }} />
+      <Article title={post.title} lang={post.lang} date={post.date} lead={post.summary} cover={post.cover} body={post.content}
+        colophon={{ date: post.date, tags: post.tags, lang: post.lang }} />
     </div>
   );
 }

@@ -33,4 +33,11 @@ export function canonicalFor(locale: string, path: string) {
   return `/${locale}${normalized}`.replace(/\/+/, '/');
 }
 
-
+// The trail a detail page reports in its structured data: home, its section, itself.
+export async function detailTrail(locale: string, section: 'posts' | 'notes' | 'gallery' | 'projects', slug: string, title: string) {
+  return [
+    { name: await getMetaMessage(locale, 'nav.home'), path: `/${locale}` },
+    { name: await getMetaMessage(locale, `meta.${section}_title`), path: `/${locale}/${section}` },
+    { name: title, path: `/${locale}/${section}/${slug}` },
+  ];
+}

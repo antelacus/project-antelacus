@@ -79,5 +79,22 @@
   "projects": {},
   "list": {
     "empty": "暂无内容。"
+  },
+  "article": {
+    "toc": "目录",
+    "written": "写于",
+    "tags": "标签",
+    "language": "语言",
+    "links": "链接",
+    "source": "源码",
+    "demo": "演示"
+  },
+  "viewer": {
+    "close": "关闭",
+    "prev": "上一张",
+    "next": "下一张",
+    "zoom": "缩放",
+    "error": "照片未能载入。",
+    "photo": "照片 {n}"
   }
 }

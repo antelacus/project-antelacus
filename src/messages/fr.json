@@ -79,5 +79,22 @@
   "projects": {},
   "list": {
     "empty": "Rien pour l’instant."
+  },
+  "article": {
+    "toc": "Sommaire",
+    "written": "Écrit le",
+    "tags": "Étiquettes",
+    "language": "Langue",
+    "links": "Liens",
+    "source": "Code source",
+    "demo": "Démo"
+  },
+  "viewer": {
+    "close": "Fermer",
+    "prev": "Photo précédente",
+    "next": "Photo suivante",
+    "zoom": "Zoomer",
+    "error": "La photo n’a pas pu être chargée.",
+    "photo": "Photo {n}"
   }
 }

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 
-import { renderMarkdown } from '@/lib/markdown';
+import Article from '@/components/Article';
 import { getPage } from '@/lib/pages';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
@@ -23,13 +23,11 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const page = await getPage('about', locale);
   if (!page) notFound();
 
-  // The version shown may be another language than the URL's (the fallback): it says so itself.
+  // The version shown may be in another language than the URL's (the fallback): it carries its own.
+  // A page has no date, tags or language line to report, so its tail is the mark alone.
   return (
-    <div className="content-container content-container-standard">
-      <article lang={page.lang} data-content>
-        <h1>{page.title}</h1>
-        <div className="prose">{renderMarkdown(page.body)}</div>
-      </article>
+    <div className="page page-narrow">
+      <Article title={page.title} lang={page.lang} body={page.body} colophon={{}} />
     </div>
   );
 }

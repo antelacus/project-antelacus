@@ -1,0 +1,58 @@
+import { Fragment } from 'react';
+import { useTranslations } from 'next-intl';
+
+import { isSupportedLocale, languageNames } from '@/i18n/routing';
+import EndMark from './EndMark';
+import SiteLink from './SiteLink';
+
+export type ColophonProps = {
+  date?: string;
+  tags?: string[];
+  lang?: string;
+  links?: { label: string; url: string }[];
+};
+
+// The tail of the scroll: when it was written, its tags, its language — gathered here, not scattered
+// around the text — and the author's mark to close it. A page with none of these still ends on the mark.
+export default function Colophon({ date, tags = [], lang, links = [] }: ColophonProps) {
+  const t = useTranslations('article');
+  const day = date?.slice(0, 10);
+  return (
+    <footer className="colophon" data-colophon>
+      {day && (
+        <p data-meta="written">
+          <span className="colophon-label">{t('written')}</span> <time dateTime={day}>{day}</time>
+        </p>
+      )}
+      {tags.length > 0 && (
+        <p data-meta="tags">
+          <span className="colophon-label">{t('tags')}</span>{' '}
+          {tags.map((tag, i) => (
+            <Fragment key={tag}>
+              {i > 0 && ', '}
+              <SiteLink href={`/tags/${encodeURIComponent(tag)}`}>{tag}</SiteLink>
+            </Fragment>
+          ))}
+        </p>
+      )}
+      {lang && (
+        <p data-meta="language">
+          <span className="colophon-label">{t('language')}</span>{' '}
+          <span lang={lang}>{isSupportedLocale(lang) ? languageNames[lang] : lang}</span>
+        </p>
+      )}
+      {links.length > 0 && (
+        <p data-meta="links">
+          <span className="colophon-label">{t('links')}</span>{' '}
+          {links.map((link, i) => (
+            <Fragment key={link.url}>
+              {i > 0 && ', '}
+              <a href={link.url} rel="noopener noreferrer">{link.label}</a>
+            </Fragment>
+          ))}
+        </p>
+      )}
+      <EndMark />
+    </footer>
+  );
+}

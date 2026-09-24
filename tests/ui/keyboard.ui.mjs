@@ -44,7 +44,7 @@ test('acceptance §5.1-c language: switch to another language with the keyboard'
   });
 });
 
-test('acceptance §5.1-c gallery: open the viewer, page through, Esc returns focus to the photo', { todo: 'Batch 4' }, async () => {
+test('acceptance §5.1-c gallery: open the viewer, page through, Esc returns focus to the photo', async () => {
   const { visit, SEED } = await h();
   await visit(['desktop'], [{ name: 'album', path: `/en/gallery/${SEED.gallery}` }], async (page) => {
     await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-photo-index="0"]')));

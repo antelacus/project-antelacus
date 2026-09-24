@@ -79,5 +79,22 @@
   "projects": {},
   "list": {
     "empty": "Aún no hay nada."
+  },
+  "article": {
+    "toc": "Índice",
+    "written": "Escrito el",
+    "tags": "Etiquetas",
+    "language": "Idioma",
+    "links": "Enlaces",
+    "source": "Código",
+    "demo": "Demo"
+  },
+  "viewer": {
+    "close": "Cerrar",
+    "prev": "Foto anterior",
+    "next": "Foto siguiente",
+    "zoom": "Ampliar",
+    "error": "No se pudo cargar la foto.",
+    "photo": "Foto {n}"
   }
 }

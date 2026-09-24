@@ -79,5 +79,22 @@
   "projects": {},
   "list": {
     "empty": "Nothing here yet."
+  },
+  "article": {
+    "toc": "Contents",
+    "written": "Written",
+    "tags": "Tags",
+    "language": "Language",
+    "links": "Links",
+    "source": "Source",
+    "demo": "Demo"
+  },
+  "viewer": {
+    "close": "Close",
+    "prev": "Previous photo",
+    "next": "Next photo",
+    "zoom": "Zoom",
+    "error": "The photo could not be loaded.",
+    "photo": "Photo {n}"
   }
 }
