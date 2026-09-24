@@ -54,6 +54,7 @@
   - 2026-09-24 · 首页终止符从名字旁移到格言右侧（推翻 2026-09-23「首页名字旁与文末各一」中的首页位置）：两处都读作「写完了」 · Jason · 级联：论文「二」「五」、`Gate.tsx`
   - 2026-09-24 · §5.2-i 全部模板按审查顺序签收 · Jason · 级联：本 TRACK 第三区
   - 2026-09-24 · 首页终止符与格言整体居中（不把方块挂在居中之外）；§5.1-h 通过 · Jason · 级联：本 TRACK 第三区
+  - 2026-09-24 · `/code-review`（PR #11）十条发现全部修复 · Jason · 级联：本 TRACK 第三区
 
 ## 二、批次
 
@@ -142,6 +143,18 @@
 - C-12…C-22 MUST 运行时套件的浅断言：C-13 可缓存、C-19 元数据、C-20 CSP 属本版 REQ §6；其余引用的是 routing-slimdown / content-publishing 的 §-id（Codex 按本版 REQ 误读编号），属旧版测试 —— status: C-13、C-19、C-20 fixed（C-13 另查出标签详情页每次请求都渲染、不可缓存，已补空的 `generateStaticParams`）；其余入 TECHNICAL_DEBT TD-021
 - C-S1 SHOULD 200% 放大以 640 宽 + 2 倍像素模拟，非浏览器缩放；C-S2 SHOULD 朱砂与 Cormorant 检查不看伪元素、只看首个字体 —— status: C-S1 accepted（理由写入 DESIGN §2.5），C-S2 fixed
 - 复审（标题）：MUST 无；SHOULD 标题 id 可成 window 命名属性 —— status: accepted（见第一区裁定）。复审（搜索）：MUST 结果即本页时，`dialog.close()` 的 close 事件晚于同步代码到达，`onClose` 又把焦点送回搜索按钮 —— status: fixed（关闭时焦点去向只由 `onClose` 一处决定；新测试覆盖结果即本页）
+
+**评审发现登记**（`/code-review` PR #11，high，同模型整版审查；已逐条对源核实；Jason 裁定全部修复）：
+- R-1 MUST 查看器关闭后焦点总回到第一张：PhotoSwipe 在设置 `currIndex` 之前派发 `beforeOpen`（photoswipe.esm.js 6604 / 6623）—— status: open（改读 `pswp.options.index` 或于 `firstUpdate` 记下；测试打开第二张）
+- R-2 MUST 后台新建稿的草稿缓存只在首次读取时填入：客户端导航回到新建页后恢复空稿并覆盖真稿（TD-020 修法引入）—— status: open（写 sessionStorage 时同步更新缓存）
+- R-3 MUST 任意不存在的标签返回 200 且被缓存（C-13 补缓存后放大）—— status: open（未知标签 404；运行时测试改取真实存在的标签）
+- R-4 SHOULD 按 ⌘/Ctrl 点结果（新标签页打开）也关闭对话框，焦点落空并残留 `navigation` 标记 —— status: open
+- R-5 SHOULD 全局快捷键对无 `key` 的键盘事件调用 `toLowerCase` 会抛错（自动填充）—— status: open
+- R-6 SHOULD `ui-check.sh` 启动与退出时 `supabase stop --no-backup` 会抹掉开发者已在跑的本项目本地栈 —— status: open（已有栈在跑则拒绝运行）
+- R-7 NICE 正文走两遍 Markdown 管道（`extractToc` + `renderMarkdown`）—— status: open（一次运行同时返回正文与目录）
+- R-8 NICE 搜索索引路由另有一套类型映射，并下发无用的 `locale`、`cover` —— status: open（路由直接输出 `Entry`，删 `SearchIndexItem` 与 `fromSearchItem`）
+- R-9 NICE `tags.ts` 的 `getTagStats` 仍用旧 `ContentMeta`，`items` 填了不读 —— status: open（改用 `Entry` 适配器）
+- R-10 SHOULD CLAUDE.md「Styling」仍点名已删除的 `.content-container-wide` 与 `.card` / `.card-link` / `.tag` —— status: open
 
 **Phase 4 证据**（2026-09-24 齐备）：
 - 真实内容：新版本以生产的两个公开值（只读，不含 service-role）本机构建，遍历站点地图 215 页、五种语言，套用闸门全部规则——axe 0、唯一 h1、无跳级、320px 无横向溢出、朱砂只在终止符、目录链接皆有目标、正文带语言，全过。其间发现并修复：宽的 KaTeX 公式在 320px 撑出页面（公式块内部横向滚动；种子文章加入长公式作回归）。相册封面经本机代理的假 IP（198.18.0.0/15）被 Next 图片优化器按 SSRF 防护拒绝——本机网络所致，生产同一图片 200
