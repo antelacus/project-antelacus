@@ -1,6 +1,7 @@
 import { getAllPhotosMeta } from '@/lib/gallery';
 import { setRequestLocale } from 'next-intl/server';
-import PhotoCard from '@/components/PhotoCard';
+import PhotoTile from '@/components/PhotoTile';
+import { fromPhoto } from '@/lib/entry';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -18,33 +19,21 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function GalleryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const photos = await getAllPhotosMeta();
-  
+  const albums = (await getAllPhotosMeta()).map(fromPhoto);
   return (
-    <div className="content-container content-container-wide">
-      {photos.length === 0 ? (
-        <div className="gallery-empty">
-          <p>暂无照片作品。</p>
-        </div>
+    <div className="page">
+      <h1 className="page-title">{await getMetaMessage(locale, 'meta.gallery_title')}</h1>
+      {albums.length === 0 ? (
+        <p className="page-empty">{await getMetaMessage(locale, 'list.empty')}</p>
       ) : (
-        <div className="gallery-content">
-          <div className="interwoven-grid">
-            {photos.map((photo, index) => {
-              const isFeatured = index % 9 === 0 || index % 9 === 5; // curated pattern
-              return (
-                <div
-                  key={photo.slug}
-                  className="interwoven-item"
-                  style={isFeatured ? { gridColumn: 'span 6' } : undefined}
-                >
-                  <PhotoCard photo={photo} layout="gallery" />
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <ul className="tiles">
+          {albums.map((album) => (
+            <li key={album.slug}>
+              <PhotoTile entry={album} />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
 }
-

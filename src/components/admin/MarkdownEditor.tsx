@@ -73,7 +73,7 @@ export default function MarkdownEditor({ value, onChange, onUpload, onError }: M
           }),
           EditorView.theme({
             '&': { fontSize: '1rem', minHeight: '24rem', border: '1px solid rgba(29, 29, 27, 0.18)', borderRadius: '8px', background: 'var(--color-paper)' },
-            '.cm-content': { fontFamily: 'var(--font-mono, ui-monospace, monospace)', padding: '0.75rem 0' },
+            '.cm-content': { fontFamily: 'var(--font-code)', padding: '0.75rem 0' },
             '.cm-scroller': { minHeight: '24rem' },
           }),
         ],

@@ -67,12 +67,17 @@
     "projects_title": "Lab",
     "projects_description": "Technical experiments and creative projects.",
     "about_title": "About",
-    "about_description": "About the AnteLacus blog and its author."
+    "about_description": "About the AnteLacus blog and its author.",
+    "tags_title": "Tags",
+    "tags_description": "Everything on the site, by tag.",
+    "tag_description": "Everything tagged “{tag}”."
   },
   "home": {},
   "about": {},
   "posts": {},
   "notes": {},
-  "projects": {}
+  "projects": {},
+  "list": {
+    "empty": "Nothing here yet."
+  }
 }
-

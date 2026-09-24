@@ -67,12 +67,17 @@
     "projects_title": "Laboratoire",
     "projects_description": "Expériences techniques et projets créatifs.",
     "about_title": "À propos",
-    "about_description": "À propos du blog AnteLacus et de son auteur."
+    "about_description": "À propos du blog AnteLacus et de son auteur.",
+    "tags_title": "Étiquettes",
+    "tags_description": "Tout le site, par étiquette.",
+    "tag_description": "Tout ce qui porte l’étiquette « {tag} »."
   },
   "home": {},
   "about": {},
   "posts": {},
   "notes": {},
-  "projects": {}
+  "projects": {},
+  "list": {
+    "empty": "Rien pour l’instant."
+  }
 }
-

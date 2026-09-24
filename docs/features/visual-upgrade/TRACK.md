@@ -62,10 +62,11 @@
 - 依赖：Batch 1
 
 ### Batch 3 — 材料与三种形态
-- 状态：open
+- 状态：代码完成、闸门绿；待 Jason 看首页与一个列表页（截图已发，`UI_SERVE=1 npm run test:ui` 可本机亲看）
 - 范围：`globals.css` 重写（变量、排印、中文排印、形态类）、`Gate`、`Window`、`CatalogRow`、`PhotoTile`、`EndMark`、`SiteLink`、`entry.ts`、相册与项目映射带 `lang`、搜索索引带 `lang`、`home.ts`；首页、列表页、标签页、视觉列表 · 覆盖 REQ §5.1-d、§5.2-a/c/d/f/g
 - 验收判据：上列 §-id 去 todo 且绿；Jason 在本地看首页与一个列表页
 - 依赖：Batch 1
+- 执行中的调整：§5.2-a/c/d 对全部页面判定，旧导航与详情页因此须先无朱砂、无 Cormorant、无阴影——`SkipLink` 提前在本批重写（原属 Batch 5），旧 `Nav` 只做机械替换（Batch 5 整体重写）；搜索、查看器、目录三个状态的入口尚未建成，清单标 `pending`（Batch 4/5），入口缺失时跳过并在对账输出列出
 
 ### Batch 4 — 手卷
 - 状态：open
@@ -119,6 +120,7 @@
 
 **Batch 证据**：
 - Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
+- Batch 3：§5.1-d、§5.2-a/c/d/f/g 去 todo 且绿；本机界面闸门 axe 静止 56/56、有库运行时 23/23；单元 85 过。修正：闸门构建前清空 `.next-ui`（其中的 Turbopack 构建缓存曾让一次运行判定了上一次的 CSS）。320px 横向溢出 15px 全部来自旧导航，归 Batch 5（§5.1-e）。CI：（待填）
 - Batch 2：§5.3-a、§5.3-b、§5.3-c 去 todo 且绿；本机界面闸门 axe 56/56、有库运行时套件 23/23；`db-function-check.sh` 全过（含 `site_pages` 角色与迁移重跑保留后台修改）。CI：运行 35878664909，`check` 与 `ui` 皆绿
 
 **Phase 4 证据**：（Phase 4 起）

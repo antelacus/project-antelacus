@@ -57,12 +57,18 @@ async function assertIdentity(page, response, t) {
   assert.deepEqual(broken, [], 'broken images');
 }
 
+class MissingTrigger extends Error {}
+
 // A trigger the page does not render fails at once, not after the action's timeout.
 async function present(page, selector) {
   const locator = page.locator(selector).first();
-  assert.ok(await locator.count(), `no ${selector} on the page`);
+  if (!(await locator.count())) throw new MissingTrigger(`no ${selector} on the page`);
   return locator;
 }
+
+const skipped = new Set();
+/** The pending states skipped because their trigger does not exist yet. */
+export const skippedStates = () => [...skipped];
 
 async function enterState(page, state) {
   switch (state) {
@@ -119,6 +125,10 @@ export async function visit(contextNames, templates, check, { storageState, cove
         if (manifestEntries.has(t)) opened.set(page, key(coverageAs ?? ctx, t));
         await check(page, ctx, t);
       } catch (error) {
+        if (t.pending && error instanceof MissingTrigger) {
+          skipped.add(`${t.name} (${t.pending})`);
+          continue;
+        }
         failures.push(`${ctx} ${t.name}: ${error.message.split('\n')[0]}`);
       } finally {
         await context.close();

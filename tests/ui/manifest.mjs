@@ -36,7 +36,9 @@ export const EXTRA_CONTEXTS = {
 
 // `text` is on the page only when it is the seeded page and not an empty shell or an error; `state` is put
 // on the page before the check runs (harness.mjs, `enterState`). A state variant has kind `state`, so
-// checks scoped to a kind of page see each page at rest once.
+// checks scoped to a kind of page see each page at rest once. `pending` names the batch that builds a
+// state's trigger: until then a missing trigger is skipped and reported, and coverage.ui.mjs keeps the
+// version from closing on a skip.
 const p = (path) => `/en${path}`;
 export const TEMPLATES = [
   { name: 'home', kind: 'home', path: p(''), text: SEED.postTitle },
@@ -52,9 +54,9 @@ export const TEMPLATES = [
   { name: 'album', kind: 'detail', path: p(`/gallery/${SEED.gallery}`), text: SEED.galleryTitle },
   { name: 'about', kind: 'about', path: p('/about'), text: SEED.aboutTitle },
   { name: '404', kind: '404', path: p('/no-such-section'), status: 404, text: 'Page not found' },
-  { name: 'search open', kind: 'state', path: p(''), state: 'search' },
-  { name: 'viewer open', kind: 'state', path: p(`/gallery/${SEED.gallery}`), state: 'viewer' },
-  { name: 'toc open', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'toc' },
+  { name: 'search open', kind: 'state', path: p(''), state: 'search', pending: 'Batch 5' },
+  { name: 'viewer open', kind: 'state', path: p(`/gallery/${SEED.gallery}`), state: 'viewer', pending: 'Batch 4' },
+  { name: 'toc open', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'toc', pending: 'Batch 4' },
   { name: 'row hovered', kind: 'state', path: p('/posts'), state: 'hover' },
   { name: 'link focused', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'focus' },
 ];

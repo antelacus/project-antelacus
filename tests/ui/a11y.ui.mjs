@@ -15,11 +15,11 @@ test('acceptance §5.1-a every public template has zero axe violations in all fo
   assert.deepEqual(failures, []);
 });
 
-test('acceptance §5.1-d without hover, every item on the home and list pages shows title, date and tags', { todo: 'Batch 3' }, async () => {
+test('acceptance §5.1-d without hover, every item on the home and list pages shows title, date and tags', async () => {
   const { visit, TEMPLATES } = await h();
   const lists = TEMPLATES.filter((t) => t.kind === 'home' || t.kind === 'list');
   await visit(['touchWebkit', 'touchBlink'], lists, async (page, ctx, t) => {
-    const items = page.locator('[data-window], [data-catalog-row]');
+    const items = page.locator('[data-window], [data-catalog-row], [data-photo-tile]');
     assert.ok((await items.count()) > 0, `${ctx} ${t.name}: no items`);
     for (const item of await items.all()) {
       for (const part of ['title', 'date', 'tags']) {

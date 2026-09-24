@@ -5,14 +5,14 @@ import assert from 'node:assert/strict';
 const h = () => import('./harness.mjs');
 const SEAL = 'rgb(180, 42, 30)'; // 朱砂 #B42A1E
 
-test('acceptance §5.2-a vermilion appears only on the end mark, at most once per page', { todo: 'Batch 3' }, async () => {
+test('acceptance §5.2-a vermilion appears only on the end mark, at most once per page', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
     const users = await page.$$eval('body *', (els, seal) => els.filter((el) => {
       const s = getComputedStyle(el);
       return [s.color, s.backgroundColor, s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor, s.outlineColor]
         .some((c) => c === seal) && (s.color === seal || s.backgroundColor === seal || s.borderStyle !== 'none' || s.outlineStyle !== 'none');
-    }).map((el) => el.hasAttribute('data-end-mark') ? 'end-mark' : el.tagName), SEAL);
+    }).map((el) => el.hasAttribute('data-end-mark') ? 'end-mark' : el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')), SEAL);
     assert.ok(users.every((u) => u === 'end-mark'), `${t.name}: vermilion on ${users.filter((u) => u !== 'end-mark')}`);
     assert.ok(users.length <= 1, `${t.name}: ${users.length} end marks`);
   });
@@ -27,23 +27,23 @@ test('acceptance §5.2-b nothing moves while the reader does nothing', { todo: '
   });
 });
 
-test('acceptance §5.2-c no element casts a shadow', { todo: 'Batch 3' }, async () => {
+test('acceptance §5.2-c no element casts a shadow', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
     const shadowed = await page.$$eval('body *', (els) => els.filter((el) => {
       const s = getComputedStyle(el);
       return s.boxShadow !== 'none' || s.textShadow !== 'none';
-    }).map((el) => el.tagName));
+    }).map((el) => el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')));
     assert.deepEqual(shadowed, [], `${t.name}: shadows on ${shadowed}`);
   });
 });
 
-test('acceptance §5.2-d Cormorant Garamond is used only inside the gate', { todo: 'Batch 3' }, async () => {
+test('acceptance §5.2-d Cormorant Garamond is used only inside the gate', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
     const outside = await page.$$eval('body *', (els) => els.filter((el) =>
-      /cormorant/i.test(getComputedStyle(el).fontFamily.split(',')[0]) && !el.closest('[data-gate]') && el.textContent?.trim()).map((el) => el.tagName));
-    assert.deepEqual(outside, [], `${t.name}: Cormorant outside the gate`);
+      /cormorant/i.test(getComputedStyle(el).fontFamily.split(',')[0]) && !el.closest('[data-gate]') && el.textContent?.trim()).map((el) => el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')));
+    assert.deepEqual(outside, [], `${t.name}: Cormorant outside the gate on ${outside}`);
   });
 });
 
@@ -56,7 +56,7 @@ test('acceptance §5.2-e the navigation scrolls away with the page', { todo: 'Ba
   });
 });
 
-test('acceptance §5.2-f no post or project cover on the home or list pages', { todo: 'Batch 3' }, async () => {
+test('acceptance §5.2-f no post or project cover on the home or list pages', async () => {
   const { visit, TEMPLATES, SEED } = await h();
   const lists = TEMPLATES.filter((t) => t.kind === 'home' || t.kind === 'list');
   await visit(['desktop'], lists, async (page, ctx, t) => {

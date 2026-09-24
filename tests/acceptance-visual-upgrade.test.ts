@@ -31,6 +31,17 @@ test('acceptance §5.2-g the home windows are the newest item of each type, an e
   assert.equal(windows.find((w: { type: string }) => w.type === 'gallery').image, '/images/a.jpg', 'the photo window shows the album cover');
 });
 
+// Invariant 18 (DESIGN §4): vermilion and the gate's typeface are each reachable from exactly one rule,
+// so neither can spread by a stylesheet edit that no browser check happens to look at.
+test('invariant 18 — globals.css uses vermilion only for the end mark and Cormorant only for the gate', () => {
+  const css = read('src/app/globals.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const rulesUsing = (needle: string) => [...css.matchAll(/([^{};]+)\{([^{}]*)\}/g)]
+    .filter(([, , body]) => body.includes(needle)).map(([, selector]) => selector.trim());
+  assert.deepEqual(rulesUsing('var(--color-seal)'), ['.end-mark']);
+  assert.deepEqual(rulesUsing('var(--font-gate)'), ['.gate']);
+  assert.deepEqual(rulesUsing('--font-cormorant-garamond'), [':root'], 'only the --font-gate definition names Cormorant');
+});
+
 // ---------- §5.3 about page in the database ----------
 
 test('acceptance §5.3-a the about page falls back: requested language, then English, then any', async () => {

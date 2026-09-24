@@ -332,15 +332,15 @@ export default function Nav() {
               sessionStorage.setItem('navigatedFromContent', 'true');
             }}
             style={{ 
-              fontFamily: 'var(--font-cormorant-garamond)',
+              fontFamily: 'inherit',
               letterSpacing: '0.02em',
               borderBottom: '1px solid',
-              borderColor: 'var(--color-seal)',
+              borderColor: 'var(--color-ink)',
               paddingBottom: '2px',
               color: 'inherit'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--color-seal)';
+              e.currentTarget.style.color = 'var(--color-ink)';
               e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
@@ -439,7 +439,7 @@ export default function Nav() {
                   {(!hideOnScroll && !tocHintDismissed && /^(\/posts|\/notes|\/projects)\//.test(pathNoLocale)) && (
                     <span style={{ 
                       fontSize: '13px', 
-                      color: 'var(--color-seal)',
+                      color: 'var(--color-ink)',
                       fontWeight: '500',
                       whiteSpace: 'nowrap'
                     }}>
@@ -457,9 +457,9 @@ export default function Nav() {
                     href={link.href}
                     className="text-sm transition-all duration-300 ease-out"
                     style={{
-                      color: isActive(link.href) ? 'var(--color-seal)' : 'inherit',
+                      color: isActive(link.href) ? 'var(--color-ink)' : 'inherit',
                       borderBottom: '1px solid',
-                      borderColor: isActive(link.href) ? 'var(--color-seal)' : 'transparent',
+                      borderColor: isActive(link.href) ? 'var(--color-ink)' : 'transparent',
                       paddingBottom: '2px',
                       transform: 'translateY(0)',
                     }}

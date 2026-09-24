@@ -67,12 +67,17 @@
     "projects_title": "实验室",
     "projects_description": "技术实验与创意项目展示。",
     "about_title": "关于",
-    "about_description": "关于 AnteLacus 博客和站长的介绍。"
+    "about_description": "关于 AnteLacus 博客和站长的介绍。",
+    "tags_title": "标签",
+    "tags_description": "按标签浏览全部内容。",
+    "tag_description": "标签为「{tag}」的全部内容。"
   },
   "home": {},
   "about": {},
   "posts": {},
   "notes": {},
-  "projects": {}
+  "projects": {},
+  "list": {
+    "empty": "暂无内容。"
+  }
 }
-

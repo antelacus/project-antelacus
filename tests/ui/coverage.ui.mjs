@@ -2,7 +2,7 @@
 // what the other files' accessibility checks recorded, so all files run in one process.
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
-import { CONTEXTS, closeBrowsers, judgedCoverage, requiredCoverage, visit, axe } from './harness.mjs';
+import { CONTEXTS, closeBrowsers, judgedCoverage, requiredCoverage, skippedStates, visit, axe } from './harness.mjs';
 
 after(closeBrowsers);
 
@@ -17,7 +17,8 @@ test('acceptance §5.5-a axe judged every template at rest in every context, and
   assert.deepEqual(missing(required), []);
 });
 
-test('acceptance §5.5-a axe judged every template in its interactive state', { todo: 'Batch 5' }, () => {
+test('acceptance §5.5-a axe judged every template in its interactive state', { todo: 'Batch 5' }, (t) => {
+  for (const state of skippedStates()) t.diagnostic(`skipped, trigger not built yet: ${state}`);
   assert.deepEqual(missing(requiredCoverage().filter((c) => c.state)), []);
 });
 

@@ -2,6 +2,7 @@ import { getAllPostsMeta } from './posts';
 import { getAllNotesMeta } from './notes';
 import { getAllPhotosMeta } from './gallery';
 import { getAllProjectsMeta } from './projects';
+import { fromNote, fromPhoto, fromPost, fromProject, type Entry } from './entry';
 
 // 统一的内容元数据类型（用于标签聚合）
 export interface ContentMeta {
@@ -82,42 +83,15 @@ export async function getTagSummaries(): Promise<TagSummary[]> {
     .sort((a, b) => a.id.localeCompare(b.id));
 }
 
-// 根据标签筛选内容
-export async function getContentByTag(tag: string): Promise<ContentMeta[]> {
+/** Every published piece with this tag, newest first, as entries for the catalogue. */
+export async function getEntriesByTag(tag: string): Promise<Entry[]> {
   const [posts, notes, photos, projects] = await Promise.all([
     getAllPostsMeta(),
     getAllNotesMeta(),
     getAllPhotosMeta(),
     getAllProjectsMeta(),
   ]);
-
-  const filteredContent: ContentMeta[] = [];
-
-  // 筛选包含该标签的内容
-  posts.forEach(post => {
-    if (post.tags?.includes(tag)) {
-      filteredContent.push({ ...post, type: 'post' });
-    }
-  });
-
-  notes.forEach(note => {
-    if (note.tags?.includes(tag)) {
-      filteredContent.push({ ...note, type: 'note' });
-    }
-  });
-
-  photos.forEach(photo => {
-    if (photo.tags?.includes(tag)) {
-      filteredContent.push({ ...photo, type: 'photo' });
-    }
-  });
-
-  projects.forEach(project => {
-    if (project.tags?.includes(tag)) {
-      filteredContent.push({ ...project, title: project.name, type: 'project' });
-    }
-  });
-
-  // 按日期排序
-  return filteredContent.sort((a, b) => b.date.localeCompare(a.date));
+  return [...posts.map(fromPost), ...notes.map(fromNote), ...photos.map(fromPhoto), ...projects.map(fromProject)]
+    .filter((entry) => entry.tags.includes(tag))
+    .sort((a, b) => b.date.localeCompare(a.date));
 }

@@ -67,12 +67,17 @@
     "projects_title": "實驗室",
     "projects_description": "技術實驗與創意項目展示。",
     "about_title": "關於",
-    "about_description": "關於 AnteLacus 博客和站長的介紹。"
+    "about_description": "關於 AnteLacus 博客和站長的介紹。",
+    "tags_title": "標籤",
+    "tags_description": "按標籤瀏覽全部內容。",
+    "tag_description": "標籤為「{tag}」的全部內容。"
   },
   "home": {},
   "about": {},
   "posts": {},
   "notes": {},
-  "projects": {}
+  "projects": {},
+  "list": {
+    "empty": "暫無內容。"
+  }
 }
-

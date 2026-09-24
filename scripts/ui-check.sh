@@ -59,7 +59,8 @@ SECRET_KEY="$(stack SECRET_KEY)"
 [[ -n "$PUBLISHABLE_KEY" && -n "$SECRET_KEY" ]] || { echo "ui-check: no keys from supabase status" >&2; exit 1; }
 
 step "creating the synthetic admin"
-# Made up per run, handed only to the test process: never in the build, the logs or argv.
+# Made up per run, handed only to the test process (UI_SERVE prints it, for a login by hand): never in
+# the build or argv.
 ADMIN_PASSWORD="$(openssl rand -hex 16)"
 curl --silent --show-error --fail --output /dev/null -X POST "$API_URL/auth/v1/admin/users" \
   -H "apikey: $SECRET_KEY" -H "Authorization: Bearer $SECRET_KEY" -H 'content-type: application/json' \
@@ -68,6 +69,9 @@ curl --silent --show-error --fail --output /dev/null -X POST "$API_URL/auth/v1/a
 JSON
 
 step "building against the stack"
+# From nothing: the directory keeps Turbopack's build cache and Next's data cache between runs, and a
+# gate that judged the last run's CSS or content would pass on code it never built.
+rm -rf "$DIST_DIR"
 # NEXT_PUBLIC_* and the CSP are fixed at build time: this build serves this stack and nothing else.
 export NEXT_PUBLIC_SUPABASE_URL="$API_URL" NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$PUBLISHABLE_KEY" \
   SUPABASE_SERVICE_ROLE_KEY="$SECRET_KEY" SUPABASE_ADMIN_EMAILS="$ADMIN_EMAIL" NEXT_DIST_DIR="$DIST_DIR"
@@ -78,6 +82,13 @@ node_modules/.bin/next start -H localhost -p "$PORT" >"$DIST_DIR/server.log" 2>&
 app_pid=$!
 if ! curl --silent --fail --output /dev/null --retry 60 --retry-connrefused --retry-delay 1 --max-time 10 "$BASE_URL/og.png"; then
   echo "ui-check: the app did not come up" >&2; tail -40 "$DIST_DIR/server.log" >&2; exit 1
+fi
+
+# UI_SERVE=1: the seeded site to look at by hand; no checks run, and Ctrl-C tears it down.
+if [[ -n "${UI_SERVE:-}" ]]; then
+  step "serving $BASE_URL (admin: $ADMIN_EMAIL / $ADMIN_PASSWORD); Ctrl-C to tear down"
+  wait "$app_pid"
+  exit 0
 fi
 
 npx --no-install playwright install chromium webkit >/dev/null
