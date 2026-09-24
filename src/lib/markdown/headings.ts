@@ -9,6 +9,9 @@ import { PAGE_IDS } from '@/lib/page-ids';
 // element (footnotes). The footnotes section's own heading is the pipeline's and is left as it is.
 // Runs after the sanitizer and before KaTeX, so a heading's contents label is its words and formula
 // source, recorded here, not the rendered maths.
+// Not prefixed like `user-content-`: only the admin writes content, and a contents link should read as
+// the heading does. An id can surface as a window global, but never shadows an existing one, and no
+// script on the site reads an undeclared global.
 
 export type TocItem = { id: string; text: string };
 type HeadingData = { tocText?: string };
