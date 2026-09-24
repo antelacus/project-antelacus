@@ -63,6 +63,9 @@ test('acceptance §5.1-f English pages name no interface element in Chinese; the
     await visit(['desktop'], [{ name: `home ${locale}`, path: `/${locale}` }], async (page) => {
       const motto = page.locator('[data-gate] [lang="la"]');
       assert.equal((await motto.textContent())?.trim(), 'Ante Lacus, Pax Mentis', `/${locale}: the motto is not the Latin`);
+      // The mark closes the motto (a ruling of 2026-09-24), not the name.
+      assert.equal(await page.locator('[data-gate] h1 [data-end-mark]').count(), 0, `/${locale}: the mark is beside the name`);
+      assert.equal(await page.locator('[data-gate] .gate-motto [data-end-mark]').count(), 1, `/${locale}: the mark does not close the motto`);
     });
   }
 });

@@ -205,11 +205,11 @@ button { font: inherit; color: inherit; }
   line-height: 1;
   letter-spacing: -0.01em;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.3em;
 }
 .gate-motto {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
   margin: 0;
   font-size: clamp(1.125rem, 3.2vw, 1.375rem);
   font-style: italic;
