@@ -57,7 +57,7 @@
 - 依赖：none
 
 ### Batch 2 — 关于页进库
-- 状态：done——正文 Jason 已审；两条迁移 2026-09-24 已在 Supabase 执行；核对查询的结果待 Jason 回报（合并前）
+- 状态：done——正文 Jason 已审；两条迁移 2026-09-24 已在 Supabase 执行，核对查询通过（5 行：en、es、fr、zh-CN、zh-HK，全部 published，标题与正文长度皆大于 0）
 - 范围：两条迁移（表、改写后的五份正文）、`db-function-check.sh` 角色检查、`sitemap-entries.ts`、`pages-repo.ts`、`pages.ts`、`page-locale.ts`、`about/page.tsx`、`/admin/pages/**`；删 `src/content/pages/`、`next-mdx-remote`、`gray-matter` · 覆盖 REQ §5.3
 - 验收判据：§5.3-a/b/c 去 todo；上线前在 Supabase 执行迁移并跑核对查询；Jason 审中英文正文；`db-function-check.sh` 仍绿
 - 依赖：Batch 1
