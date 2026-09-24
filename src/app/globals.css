@@ -129,6 +129,9 @@ button { font: inherit; color: inherit; }
 .prose hr { border: 0; border-top: 1px solid var(--color-rule); margin: var(--space-5) 0; }
 
 /* A paragraph of images renders as a row of captioned figures (src/lib/markdown/image-rows.ts). */
+/* A formula wider than the column scrolls inside itself, like a table or code; the page never does. */
+.prose .katex-display { overflow-x: auto; overflow-y: hidden; padding-block: 0.25em; }
+
 .prose .image-row { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: var(--space-4) 0; }
 .prose .image-row figure { flex: 1 1 200px; margin: 0; }
 .prose .image-row img { width: 100%; }

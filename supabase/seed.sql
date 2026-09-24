@@ -4,14 +4,15 @@
 -- hosted storage over https, never the local stack.
 
 -- The production post's slug, so tests/runtime runs unchanged against this stack and against production.
--- Chinese under every URL language; three h2 (a TOC); a cover; two tags.
-select public.save_content_item($${
+-- Chinese under every URL language; three h2 (a TOC); a cover; two tags; a display formula wider than a phone
+-- (the formula contains a double dollar, so this statement uses a tagged dollar quote).
+select public.save_content_item($json${
   "content_type":"post","slug":"2025-07-13-llm-note","title":"湖边的三段笔记",
   "summary":"一篇合成的中文专栏，供界面闸门检查。",
-  "body_markdown":"导语之后的第一段。\n\n## 第一节\n\n正文，带一个[链接](https://example.com)。\n\n## 第二节\n\n![示意图](/images/posts/content/2025-07-13-llm-note/image1.png)\n\n## 第三节\n\n> 一段引用。\n\n```\ncode block\n```",
+  "body_markdown":"导语之后的第一段。\n\n## 第一节\n\n正文，带一个[链接](https://example.com)。\n\n## 第二节\n\n![示意图](/images/posts/content/2025-07-13-llm-note/image1.png)\n\n$$\\mathrm{Attention}(Q, K, V) = \\mathrm{softmax}\\left(\\frac{Q K^{T}}{\\sqrt{d_k}}\\right) V + \\sum_{i=1}^{n} \\alpha_i W_i^{O} \\mathrm{head}_i$$\n\n## 第三节\n\n> 一段引用。\n\n```\ncode block\n```",
   "locale":"zh-CN","status":"published","published_at":"2026-01-05T00:00:00Z",
   "cover_image_url":"/images/posts/covers/2025-07-13-llm-note.png","tags":["seed","湖"]
-}$$::jsonb);
+}$json$::jsonb);
 
 -- Two h2: one short of a TOC.
 select public.save_content_item($${

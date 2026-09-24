@@ -79,6 +79,9 @@ test('acceptance §5.1-i tablet and 200% zoom do not scroll sideways; WCAG 1.4.1
       const s = getComputedStyle(el);
       if (![s.overflow, s.overflowX, s.overflowY].some((o) => o === 'hidden' || o === 'clip')) return false;
       const box = el.getBoundingClientRect();
+      // A box of a pixel or less is text hidden on purpose for screen readers (KaTeX's MathML copy, the
+      // usual visually-hidden pattern) — never meant to be seen, so never clipped in 1.4.12's sense.
+      if (box.width <= 1 || box.height <= 1) return false;
       const texts = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
       for (let node = texts.nextNode(); node; node = texts.nextNode()) {
         if (!node.textContent?.trim()) continue;

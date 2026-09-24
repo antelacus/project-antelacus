@@ -123,6 +123,21 @@
 - SHOULD-11 关于页编辑器复用 `MarkdownEditor` 时上传接口不认 `page` —— status: fixed `8ef2e28`（DESIGN）
 - NICE-1 关于页原文描述了已删除的功能菜单与旧美学 —— status: fixed `8ef2e28`（Batch 2 改写，Jason 审）
 
+**评审发现登记**（Codex 发布前审查，xhigh，五个任务，2026-09-24；引文已逐条对源核实；处置待 Jason 裁定）：
+- 关于页回退与缓存（`pages.ts`、`page-locale.ts`）：无发现。`site_pages` 两条迁移：无发现（角色行为 Codex 沙箱无 Docker 未跑，本机 `db-function-check.sh` 已覆盖）
+- P-1 MUST 标题 id 可能与页面既有 id 重复（脚注 `user-content-*`、搜索对话框的 `search-title` / `search-field`）—— status: open
+- P-2 MUST 只有图片的标题得出空文字的目录链接 —— status: open
+- P-3 SHOULD 含 KaTeX 的标题，目录文字是 MathML 与源码的拼接（如 `x2x^2x2`）—— status: open
+- P-4 MUST 搜索「重试」按下即卸载，焦点落到页面 —— status: open
+- P-5 MUST 选中搜索结果后导航，焦点不随新页面 —— status: open
+- C-1…C-11 MUST 本版验收测试的漏洞：搜索不走到结果（C-1）、相册不验证翻页（C-2）、§5.1-f 不查链接与格言 `lang`（C-3）、状态与后台模板无身份文字（C-4）、§5.2-e 只查文章页（C-5）、§5.2-f 靠两个文件名（C-6）、§5.2-h 不查项目与相册（C-7）、§5.3-a 只测纯函数（C-8）、§5.3-b 不测新增语言（C-9）、§5.4-a 规则被删也过（C-10）、§5.5-a 不查 `push` 触发（C-11）—— status: open
+- C-12…C-22 MUST 运行时套件的浅断言：C-13 可缓存、C-19 元数据、C-20 CSP 属本版 REQ §6；其余引用的是 routing-slimdown / content-publishing 的 §-id（Codex 按本版 REQ 误读编号），属旧版测试 —— status: open
+- C-S1 SHOULD 200% 放大以 640 宽 + 2 倍像素模拟，非浏览器缩放；C-S2 SHOULD 朱砂与 Cormorant 检查不看伪元素、只看首个字体 —— status: open
+
+**Phase 4 证据**（进行中）：
+- 真实内容：新版本以生产的两个公开值（只读，不含 service-role）本机构建，遍历站点地图 215 页、五种语言，套用闸门全部规则——axe 0、唯一 h1、无跳级、320px 无横向溢出、朱砂只在终止符、目录链接皆有目标、正文带语言，全过。其间发现并修复：宽的 KaTeX 公式在 320px 撑出页面（公式块内部横向滚动；种子文章加入长公式作回归）。相册封面经本机代理的假 IP（198.18.0.0/15）被 Next 图片优化器按 SSRF 防护拒绝——本机网络所致，生产同一图片 200
+- 1.4.12 判定再修一处：像素级隐藏的读屏文字（KaTeX 的 MathML 副本）不算截断
+
 **Batch 证据**：
 - Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
 - Batch 6：全部 todo 去除且绿——单元 96 过、0 todo；本机界面闸门 21/21、axe 静止 68/68、有库运行时 23/23；lint 0 错误 0 警告（三条 React Compiler 规则恢复为错误）。CI：运行 35951479538，`check` 与 `ui` 皆绿
