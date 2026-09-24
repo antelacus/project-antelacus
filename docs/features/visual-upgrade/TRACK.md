@@ -192,7 +192,7 @@
 - [ ] TECHNICAL_DEBT 定稿（TD-021 在册）
 - [x] README 仍属实，且只含 §7 允许的内容（缩为指路图，路径入闸门）
 - [ ] 活文档清点：REQ、DESIGN、`docs/aesthetic-thesis.md`、CLAUDE.md 与上线内容一致
-- [ ] 部署后：线上 SHA 与合并提交一致；对生产跑 `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`
+- [x] 部署后：线上 SHA 与合并提交一致；对生产跑 `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime` —— 部署运行 35979268410 日志回显 `eeaad83`，健康检查 6 秒通过；生产运行时验收 24 过
 - [ ] tag `v2.4.0`
 - [ ] 路线图 / 下一版 Phase 0 的输入（本版无 FEEDBACK 登记）
 - [ ] 闸门读数：每道闸门的运行次数 / 改变了输出的拦截次数
