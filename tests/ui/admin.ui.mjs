@@ -53,3 +53,16 @@ test('acceptance §5.3-b a language added in the admin is what the next visit to
   assert.match(html, new RegExp(title), '/fr/about still shows the fallback');
   assert.match(html, /<div class="prose[^"]*" lang="fr"/);
 });
+
+test('a new item\'s unsaved body survives leaving the editor and coming back within the app', async () => {
+  const { visitAdmin } = await h();
+  const marker = `unsaved-${Date.now()}`;
+  await visitAdmin([{ name: 'new post editor', path: '/admin/content/post/new' }], async (page) => {
+    await page.locator('.cm-content').click();
+    await page.keyboard.type(marker);
+    // Client-side both ways: the module, and whatever it cached on the first visit, stays loaded.
+    await Promise.all([page.waitForURL(/\/admin\/content\/post$/), page.getByRole('link', { name: 'posts', exact: true }).click()]);
+    await Promise.all([page.waitForURL(/\/admin\/content\/post\/new$/), page.getByRole('link', { name: 'New post' }).click()]);
+    await page.locator('.cm-content', { hasText: marker }).waitFor({ timeout: 5000 });
+  });
+});

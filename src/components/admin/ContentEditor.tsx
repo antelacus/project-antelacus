@@ -49,9 +49,9 @@ const dateInput = (value: string) => {
   return value.includes('T') ? value.slice(0, 16) : '';
 };
 
-// The body a lost tab left behind, read from this tab's storage once per page load. The server has none,
-// so the first render matches it; the draft arrives on the client's next render (useSyncExternalStore),
-// not through an effect setting state.
+// The body a lost tab left behind, read from this tab's storage once per page load and kept in step with
+// every later backup. The server has none, so the first render matches it; the draft arrives on the
+// client's next render (useSyncExternalStore), not through an effect setting state.
 const drafts = new Map<string, string>();
 const noSubscription = () => () => {};
 function readDraft(key: string): string {
@@ -94,7 +94,11 @@ export default function ContentEditor({ type, initial, notice }: Props) {
       if (notice) {
         sessionStorage.removeItem(draftKey);
         drafts.delete(draftKey);
-      } else if (backingUp) sessionStorage.setItem(draftKey, content);
+      } else if (backingUp) {
+        sessionStorage.setItem(draftKey, content);
+        // The cache outlives this editor when the admin navigates away and back within the app.
+        drafts.set(draftKey, content);
+      }
     } catch { /* storage may be unavailable; the form still works */ }
   }, [draftKey, backingUp, notice, content]);
 

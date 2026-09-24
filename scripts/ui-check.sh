@@ -18,6 +18,7 @@ EXCLUDE="storage-api,imgproxy,postgres-meta,mailpit,studio,edge-runtime,logflare
 supabase() { npx --no-install supabase "$@"; }
 
 started_colima=0
+started_stack=0
 app_pid=""
 cleanup() {
   local status=$?
@@ -25,7 +26,7 @@ cleanup() {
   trap - EXIT INT TERM
   if [[ -n "$app_pid" ]]; then kill "$app_pid" 2>/dev/null; wait "$app_pid" 2>/dev/null; fi
   # --no-backup drops the volumes: the next run replays the migrations and the seed on an empty database.
-  supabase stop --no-backup >/dev/null 2>&1 || echo "ui-check: supabase stop failed" >&2
+  if (( started_stack )); then supabase stop --no-backup >/dev/null 2>&1 || echo "ui-check: supabase stop failed" >&2; fi
   if (( started_colima )); then colima stop >/dev/null 2>&1; fi
   exit "$status"
 }
@@ -43,8 +44,14 @@ if ! docker info >/dev/null 2>&1; then
 fi
 if curl --silent --output /dev/null "$BASE_URL"; then echo "ui-check: port $PORT is already in use" >&2; exit 1; fi
 
+# This project's stack is shared with local development, and the teardown drops its data: whoever runs
+# one decides what happens to it. A run killed before its teardown leaves one behind the same way.
+if supabase status >/dev/null 2>&1; then
+  echo "ui-check: this project's local Supabase stack is already running; stop it first (npx supabase stop --no-backup drops its data)" >&2
+  exit 1
+fi
 step "starting the local stack"
-supabase stop --no-backup >/dev/null 2>&1 || true # a stack an interrupted run left behind
+started_stack=1
 supabase start -x "$EXCLUDE"
 
 # The backend boundary: nothing Supabase-shaped is inherited from the caller's environment, and every

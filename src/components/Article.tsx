@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
-import { extractToc, renderMarkdown } from '@/lib/markdown';
+import { renderMarkdownWithToc } from '@/lib/markdown';
 import Colophon, { type ColophonProps } from './Colophon';
 import PageTransition from './PageTransition';
 import Toc, { TOC_MIN_ITEMS } from './Toc';
@@ -24,7 +24,7 @@ type Props = {
 // long piece, the body undisturbed, and the tail. Everything is present at once and nothing moves.
 export default function Article({ title, lang, body, date, lead, cover, after, colophon }: Props) {
   const day = date?.slice(0, 10);
-  const contents = extractToc(body);
+  const { content, toc: contents } = renderMarkdownWithToc(body);
   return (
     <PageTransition>
     <article className="scroll" data-title={title}>
@@ -37,7 +37,7 @@ export default function Article({ title, lang, body, date, lead, cover, after, c
       <Toc items={contents} lang={lang} />
       {body.trim() && (
         <div className="prose scroll-body" lang={lang} data-content>
-          {renderMarkdown(body)}
+          {content}
         </div>
       )}
       {after}

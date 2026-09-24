@@ -76,6 +76,31 @@ test('acceptance §5.1-c search: Ctrl+K opens it mid-page, and Esc returns the r
   });
 });
 
+test('search: a result opened in a new tab leaves the dialog open, focus where it was', async () => {
+  const { visit } = await h();
+  await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
+    await page.locator('[data-open-search]').click();
+    await page.keyboard.type('seed note');
+    const result = page.locator('dialog[open] .catalog a').first();
+    await result.waitFor();
+    await Promise.all([page.context().waitForEvent('page').then((tab) => tab.close()), result.click({ modifiers: ['ControlOrMeta'] })]);
+    assert.equal(await page.locator('dialog[open]').count(), 1, 'the dialog closed');
+    assert.ok(await result.evaluate((el) => el === document.activeElement), 'focus left the result');
+  });
+});
+
+test('search: a keydown without a key (browser autofill sends one) does not break the shortcut', async () => {
+  const { visit } = await h();
+  await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.evaluate(() => document.dispatchEvent(new Event('keydown')));
+    await page.keyboard.press('Control+K');
+    await page.locator('dialog[open]').waitFor();
+    assert.deepEqual(errors, []);
+  });
+});
+
 test('acceptance §5.1-c search: when the index fails, Retry announces it and keeps focus', async () => {
   const { visit } = await h();
   await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
@@ -108,13 +133,14 @@ test('acceptance §5.1-c language: switch to another language with the keyboard'
 test('acceptance §5.1-c gallery: open the viewer, page through, Esc returns focus to the photo', async () => {
   const { visit, SEED } = await h();
   await visit(['desktop'], [{ name: 'album', path: `/en/gallery/${SEED.gallery}` }], async (page) => {
-    await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-photo-index="0"]')));
+    // The second photo, so a return to the first cannot pass by accident.
+    await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-photo-index="1"]')));
     await page.keyboard.press('Enter');
     await page.waitForSelector('.pswp--open');
-    await page.keyboard.press('ArrowRight');
-    await page.waitForFunction(() => document.querySelector('.pswp__counter')?.textContent?.trim().startsWith('2'));
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(() => document.querySelector('.pswp__counter')?.textContent?.trim().startsWith('1'));
     await page.keyboard.press('Escape');
     await page.waitForSelector('.pswp--open', { state: 'detached' });
-    assert.ok(await page.evaluate(() => document.activeElement?.matches('[data-photo-index="0"]')), 'focus did not return to the photo');
+    assert.ok(await page.evaluate(() => document.activeElement?.matches('[data-photo-index="1"]')), 'focus did not return to the photo that was opened');
   });
 });

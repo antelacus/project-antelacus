@@ -64,8 +64,9 @@ export default function PhotoViewer({ photos }: { photos: PhotoInfo[] }) {
     // transparent part of the photo.
     lightbox.addFilter('placeholderSrc', () => false);
 
+    // Read once PhotoSwipe has settled its starting index: at `beforeOpen` it is still 0 for every photo.
     let opened = -1;
-    lightbox.on('beforeOpen', () => {
+    lightbox.on('afterInit', () => {
       opened = lightbox.pswp?.currIndex ?? -1;
     });
     lightbox.on('destroy', () => {

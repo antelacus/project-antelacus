@@ -57,7 +57,7 @@ Supabase Auth, cookie sessions (`@supabase/ssr`); admins are the emails in `SUPA
 
 ### Styling
 
-Theme variables, the container classes (`.content-container-standard`, `.content-container-wide`) and the card system (`.card`, `.card-link`, `.tag`) are in `src/app/globals.css`; Tailwind 4 for utilities. The aesthetic intent: `docs/aesthetic-thesis.md`.
+The public site's styles are all in `src/app/globals.css`, never in its components: theme variables, the layout, one section per page form — the gate and its windows, the catalogue (`.catalog`), the handscroll (`.scroll`). The admin has a section there too, plus inline styles. Tailwind 4 for utilities. The design rules the public styles carry out: `docs/aesthetic-thesis.md`.
 
 ## Environment and deployment
 

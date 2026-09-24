@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import { fromSearchItem, type Entry, type SearchIndexItem } from '@/lib/entry';
+import type { Entry } from '@/lib/entry';
 import { PAGE_IDS } from '@/lib/page-ids';
 import { searchEntries } from '@/lib/search-filter';
 import CatalogRow from './CatalogRow';
@@ -64,7 +64,7 @@ export default function SearchDialog() {
     try {
       const res = await fetch('/api/search-index');
       if (!res.ok) throw new Error(String(res.status));
-      setEntries(((await res.json()) as SearchIndexItem[]).map(fromSearchItem));
+      setEntries((await res.json()) as Entry[]);
       // A retry that succeeds removes its own button; focus moves on to the field, not the page.
       if (document.activeElement?.hasAttribute('data-search-retry')) input.current?.focus();
       setFailedBefore(false);
@@ -97,7 +97,8 @@ export default function SearchDialog() {
   // handler sees the current load state.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+      // Autofill dispatches a keydown that is no KeyboardEvent and has no key.
+      if (event.key?.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
       if (dialog.current?.open) return;
       event.preventDefault();
       const active = document.activeElement;
@@ -167,7 +168,8 @@ export default function SearchDialog() {
               className="catalog"
               onClick={(event) => {
                 const link = (event.target as HTMLElement).closest('a');
-                if (!link) return;
+                // Opened in a new tab or window: this page stays, and so does the search.
+                if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                 // A result on this very page causes no navigation to wait for.
                 after.current = new URL(link.href).pathname === window.location.pathname ? 'main' : 'navigation';
                 dialog.current?.close();

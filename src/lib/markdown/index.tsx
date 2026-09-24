@@ -50,7 +50,8 @@ export function renderMarkdown(source: string): ReactNode {
   return processor.processSync(source).result as ReactNode;
 }
 
-/** The body's h2 as the renderer ids them: the same pipeline, so a contents link always has its target. */
-export function extractToc(source: string): TocItem[] {
-  return tocOf(processor.runSync(processor.parse(source)));
+/** The body and its contents from one pass: the contents are the rendered h2, so every link has its target. */
+export function renderMarkdownWithToc(source: string): { content: ReactNode; toc: TocItem[] } {
+  const tree = processor.runSync(processor.parse(source));
+  return { content: processor.stringify(tree) as ReactNode, toc: tocOf(tree) };
 }

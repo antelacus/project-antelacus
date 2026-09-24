@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 
 import Catalog from '@/components/Catalog';
@@ -26,5 +27,8 @@ export default async function TagDetailLocalePage({ params }: { params: RoutePar
   const { locale, id } = await params;
   setRequestLocale(locale);
   const tag = decodeURIComponent(id);
-  return <Catalog title={`#${tag}`} entries={await getEntriesByTag(tag)} empty={await getMetaMessage(locale, 'list.empty')} showKind />;
+  // Otherwise any made-up tag would be a page, and cached.
+  const entries = await getEntriesByTag(tag);
+  if (!entries.length) notFound();
+  return <Catalog title={`#${tag}`} entries={entries} empty={await getMetaMessage(locale, 'list.empty')} showKind />;
 }

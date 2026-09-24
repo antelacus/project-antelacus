@@ -46,22 +46,3 @@ export const fromProject = (project: ProjectMeta): Entry => ({
   type: 'project', slug: project.slug, href: href('project', project.slug), title: project.name, summary: project.description || undefined,
   date: project.date, tags: project.tags ?? [], lang: project.lang, cover: project.cover,
 });
-
-/** One item of /api/search-index as the route serves it; `photo` is the index's historical name for an album. */
-export type SearchIndexItem = {
-  id: string;
-  type: 'post' | 'note' | 'photo' | 'project';
-  slug: string;
-  title: string;
-  summary?: string;
-  tags: string[];
-  date: string;
-  locale: string;
-  cover?: string;
-  lang: string;
-};
-
-export const fromSearchItem = (item: SearchIndexItem): Entry => {
-  const type: ContentType = item.type === 'photo' ? 'gallery' : item.type;
-  return { type, slug: item.slug, href: href(type, item.slug), title: item.title, summary: item.summary, date: item.date, tags: item.tags, lang: item.lang };
-};

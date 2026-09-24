@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { renderToStaticMarkup } from 'react-dom/server';
 
-import { extractToc, renderMarkdown } from '../src/lib/markdown';
+import { renderMarkdown, renderMarkdownWithToc } from '../src/lib/markdown';
 import { PAGE_IDS } from '../src/lib/page-ids';
 
 // visual-upgrade DESIGN §2.2, invariant 20 — the page's h1 belongs to its opening, so a body's headings
@@ -11,7 +11,9 @@ import { PAGE_IDS } from '../src/lib/page-ids';
 // h2 of the very same pipeline.
 
 const html = (source: string) => renderToStaticMarkup(renderMarkdown(source));
-const headings = (source: string) => [...html(source).matchAll(/<h([1-6]) id="([^"]*)">([\s\S]*?)<\/h\1>/g)].map(([, level, id, text]) => ({ level: Number(level), id, text }));
+const contentsOf = (source: string) => renderMarkdownWithToc(source).toc;
+const headingsIn = (markup: string) => [...markup.matchAll(/<h([1-6]) id="([^"]*)">([\s\S]*?)<\/h\1>/g)].map(([, level, id, text]) => ({ level: Number(level), id, text }));
+const headings = (source: string) => headingsIn(html(source));
 
 test('invariant 20 — the body\'s top heading renders as h2 and levels close up instead of skipping', () => {
   assert.deepEqual(headings('# One\n\n### Deep\n\n# Two\n\n###### Deeper').map((h) => h.level), [2, 3, 2, 3]);
@@ -29,17 +31,16 @@ test('invariant 20 — every heading id is unique, readable, and never the page\
 });
 
 test('invariant 20 — the table of contents is the rendered h2, id for id', () => {
-  const source = '# A\n\n## sub\n\n# A\n\n# B *em*\n\n### deep';
-  const toc = extractToc(source);
-  const h2 = headings(source).filter((h) => h.level === 2);
+  const { content, toc } = renderMarkdownWithToc('# A\n\n## sub\n\n# A\n\n# B *em*\n\n### deep');
+  const h2 = headingsIn(renderToStaticMarkup(content)).filter((h) => h.level === 2);
   assert.deepEqual(toc.map((item) => item.id), h2.map((h) => h.id));
   assert.deepEqual(toc.map((item) => item.text), ['A', 'A', 'B em']);
 });
 
 test('the table of contents counts h2 only, so two sections stay two and three stay three', () => {
-  assert.equal(extractToc('## a\n\n## b\n\n### c').length, 2);
-  assert.equal(extractToc('## a\n\n## b\n\n## c').length, 3);
-  assert.equal(extractToc('no headings').length, 0);
+  assert.equal(contentsOf('## a\n\n## b\n\n### c').length, 2);
+  assert.equal(contentsOf('## a\n\n## b\n\n## c').length, 3);
+  assert.equal(contentsOf('no headings').length, 0);
 });
 
 // Codex pre-deploy P-1, P-2, P-3 and the footnote ids they led to.
@@ -59,16 +60,16 @@ test('footnotes work: every in-page link and reference has its target, and their
   const all = new Set(ids(markup));
   for (const [, target] of markup.matchAll(/href="#([^"]+)"/g)) assert.ok(all.has(target), `link to #${target} has no target`);
   for (const [, target] of markup.matchAll(/aria-describedby="([^"]+)"/g)) assert.ok(all.has(target), `aria-describedby ${target} has no target`);
-  assert.deepEqual(extractToc(source).map((item) => item.text), ['Intro'], 'the footnotes heading is not a section of the piece');
+  assert.deepEqual(contentsOf(source).map((item) => item.text), ['Intro'], 'the footnotes heading is not a section of the piece');
   assert.deepEqual(headings(source).map((h) => h.level), [2, 3], 'body levels are unaffected by the footnotes heading');
   assert.match(markup, /<h2 class="sr-only" id="footnote-label">/, 'the footnotes heading keeps its level and the id its references point to');
 });
 
 test('a contents line always has words: an image heading reads its alt text, a heading with none is left out', () => {
-  const toc = extractToc('## ![Architecture diagram](/d.png)\n\n## ![](/e.png)\n\n## Context\n\n## Result');
+  const toc = contentsOf('## ![Architecture diagram](/d.png)\n\n## ![](/e.png)\n\n## Context\n\n## Result');
   assert.deepEqual(toc.map((item) => item.text), ['Architecture diagram', 'Context', 'Result']);
 });
 
 test('a heading with a formula reads as its source in the contents, not as the rendered maths twice over', () => {
-  assert.deepEqual(extractToc('## Scaling by $\\sqrt{d_k}$\n\n## b\n\n## c').map((item) => item.text)[0], 'Scaling by \\sqrt{d_k}');
+  assert.deepEqual(contentsOf('## Scaling by $\\sqrt{d_k}$\n\n## b\n\n## c').map((item) => item.text)[0], 'Scaling by \\sqrt{d_k}');
 });

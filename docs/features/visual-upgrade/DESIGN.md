@@ -27,7 +27,7 @@
 |-------------|---------|----------|
 | `src/lib/entry.ts`（新） | 呈现类型 `Entry = { type, slug, href, title, summary, date, tags, lang, image? }` 与四个适配器（专栏、闪念、相册、项目各自的领域对象 → `Entry`）及搜索索引项的适配器；形态组件只认 `Entry` | core |
 | `src/lib/{photo,project}-types.ts`（改） | 映射带上 `lang`（取行的 `locale`），与专栏、闪念一致 | core |
-| `src/app/api/search-index/route.ts`（改） | 四类条目都带 `lang`；其余字段与 `type: 'photo'` 的命名不变（适配器负责换成 `gallery`） | IO |
+| `src/app/api/search-index/route.ts`（改） | 直接输出 `Entry`（经四个适配器），去掉封面；搜索对话框不再另做映射 | IO |
 | `src/components/Gate.tsx`（新，服务端） | 首页的门：名字（Cormorant）、终止符、格言（`lang="la"`） | UI |
 | `src/components/Window.tsx`（新，共享） | 首页的一扇窗：类型名、标题、摘要、日期、语言、标签；`photo` 变体带一张照片 | UI |
 | `src/components/CatalogRow.tsx`（新，共享） | 目录的一行：类型名（混排时）、标题、摘要、日期、语言、标签；标题链接与标签链接各自独立，不嵌套；列表页、标签页、搜索结果共用 | UI |
@@ -44,7 +44,7 @@
 | `src/components/SiteLink.tsx`（新，共享） | 站内链接的唯一出口：`next-intl` 的 `Link` + `transitionTypes={['page']}`（§2.4） | infra |
 | `src/components/SkipLink.tsx`（重写，服务端） | 普通 `<a href="#main-content">`，无脚本 | infra |
 | `src/components/PhotoViewer.tsx`（改） | 上一张 / 下一张按钮在触屏上也显示（覆盖 PhotoSwipe 在 `.pswp--touch` 下的隐藏）；纸墨配色、去文字阴影、静态的加载提示（覆盖其无限转圈）；关闭后焦点回到打开它的那张照片（自存引用）；辅助函数先声明后使用；可访问名称走文案 | UI |
-| `src/lib/markdown/`（改） | 标题规整：正文里最高一级标题渲染为 `h2`，其余按相对层级顺延，跳级压平——页面的 `h1` 只属于引首；标题 `id` 稳定且唯一（重名加序号）；`extractToc(source) → {id, text}[]` 只取规整后的 `h2`，与渲染同一管道，二者 id 必然一致 | core |
+| `src/lib/markdown/`（改） | 标题规整：正文里最高一级标题渲染为 `h2`，其余按相对层级顺延，跳级压平——页面的 `h1` 只属于引首；标题 `id` 稳定且唯一（重名加序号）；`renderMarkdownWithToc(source) → {content, toc}` 一次运行同时给出正文与目录，目录只取规整后的 `h2`，二者 id 必然一致 | core |
 | `src/lib/home.ts`（新） | `selectWindows(latestByType) → Entry[]`：每类最新一篇，相册取封面；空类型不出窗、不补位 | core |
 | `src/lib/page-locale.ts`（新） | `pickPageLocale(available, requested) → locale | null`：请求语言 → `en` → 按 `routing.ts` 语言表顺序的第一个；与数据返回顺序无关 | core |
 | `src/lib/server/pages-repo.ts`（新） | `site_pages` 的全部读写：已发布版本（某 slug 的全部语言）、后台的语言列表与按（slug、语言）取、保存（按主键 upsert，后写覆盖先写；`updated_at` 由触发器写）；客户端由调用方传入 | IO |
@@ -68,7 +68,7 @@
 依赖方向：页面 → 加载器（`posts|notes|gallery|projects|pages`）→ repo → Supabase；页面 → `entry.ts` 适配 → 形态组件 → `SiteLink`；`markdown/`、`entry.ts`、`home.ts`、`page-locale.ts`、`search-filter.ts` 无内部依赖。形态组件不读数据、不持状态。
 
 ### 2.3 业务流程
-- **读文章**：目录行 → 详情页。引首只有日期、标题、导语与封面；`extractToc` 得到 ≥3 条时，引首之后出现折叠目录；尾纸列出写于、标签、语言，以终止符结束。
+- **读文章**：目录行 → 详情页。引首只有日期、标题、导语与封面；目录 ≥3 条时，引首之后出现折叠目录；尾纸列出写于、标签、语言，以终止符结束。
 - **搜索**：「搜索」按钮 → `showModal()`：背景惰性、焦点落在输入框、Esc 或关闭按钮关闭；状态区依次播报「加载中」「共 N 条 / 无结果」或「载入失败」+ 重试。关闭 → 焦点回到按钮（显式保存触发元素，Safari 点击按钮时不给按钮焦点）；选中结果则导航，焦点随新页面。
 - **切换语言**：「语言」`<details>` → 选一种 → `/api/locale` 写 cookie、303 到目标语言的同一路径。
 - **相册**：照片格 → 详情页 → 查看器：方向键、按钮、滑动三种翻页；Esc 或关闭后焦点回到所点的照片。
@@ -114,12 +114,12 @@
 - **不变量（接 content-publishing §7 编号）**：
   18. 朱砂色只出现在终止符上、Cormorant 只出现在门里——由界面闸门在静止、悬停、聚焦、展开、对话框打开各状态下的计算样式判定（含伪元素）；`globals.css` 里二者的变量各只被一条规则引用（测试）。
   19. 公开组件里没有 `onMouseEnter`/`onMouseLeave`，没有带颜色的内联样式（测试，读源码）。
-  20. 同一源文里，`extractToc` 的每个 `id` 恰对应渲染结果里一个 `h2`，且全文 `id` 唯一；渲染结果没有 `h1`、没有跳级（测试：多个 `#`、跳级、重名、只有标点的标题、两个与三个 `h2` 的边界）。
+  20. 同一次渲染里，目录的每个 `id` 恰对应渲染结果里一个 `h2`，且全文 `id` 唯一；渲染结果没有 `h1`、没有跳级（测试：多个 `#`、跳级、重名、只有标点的标题、两个与三个 `h2` 的边界）。
   21. `site_pages` 的写入只经 `admin-auth` 给出的客户端（沿用既有的密钥出口测试）。
   22. 依赖里没有 `next-mdx-remote`、`gray-matter`，`src/content/` 不存在（测试，§5.3-c）。
   23. 四类条目经适配器得到的 `Entry` 都带非空 `lang` 与正确的 `href`（测试）。
   24. 版本关闭时，验收文件里没有 `todo` 标记（Phase 6 方框里跑一次 grep）。
-- **测试层级**：core（strict TDD）——`entry.ts`、标题规整与 `extractToc`、`selectWindows`、`pickPageLocale`、`search-filter`、sitemap 的关于页条件；IO（契约先行）——`pages-repo`、`pages.ts`、后台动作、`site_pages` 角色；UI——界面闸门即 REQ 的验收测试；infra 不单测。
+- **测试层级**：core（strict TDD）——`entry.ts`、标题规整与目录、`selectWindows`、`pickPageLocale`、`search-filter`、sitemap 的关于页条件；IO（契约先行）——`pages-repo`、`pages.ts`、后台动作、`site_pages` 角色；UI——界面闸门即 REQ 的验收测试；infra 不单测。
 - **兼容**：以 Chrome、Safari（含 iOS）、Firefox 近两年的版本为准；不支持的新特性（页面切换、部分中文排印）按 §3 优雅退化，不写替代实现。
 
 ## 5 开放设计问题

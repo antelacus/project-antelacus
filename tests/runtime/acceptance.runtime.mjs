@@ -22,6 +22,13 @@ const POST_SLUG = '2025-07-13-llm-note';
 const SHELL = '/essays';
 
 const get = (path, headers = {}) => fetch(BASE + path, { redirect: 'manual', headers });
+// A tag in use wherever the suite runs (production has no `seed`), plain enough to need no encoding.
+const someTag = async () => {
+  const tags = (await (await get('/api/search-index')).json()).flatMap((item) => item.tags);
+  const tag = tags.find((t) => /^[A-Za-z0-9-]+$/.test(t));
+  assert.ok(tag, 'no plain tag in the search index');
+  return tag;
+};
 const locationPath = (res) => new URL(res.headers.get('location'), BASE).pathname;
 const htmlLang = (html) => /<html[^>]*\blang="([^"]*)"/i.exec(html)?.[1] ?? null;
 
@@ -133,7 +140,7 @@ test('§5.2-h a remembered manual choice beats the browser; opening a link is no
 });
 
 test('§5.3-a public pages are cacheable, the admin is not', async () => {
-  const paths = WITH_DB ? ['/en/about', '/en', '/en/posts', '/en/notes', '/en/projects', '/en/gallery', '/en/tags', '/en/tags/seed', `/en/posts/${POST_SLUG}`] : [];
+  const paths = WITH_DB ? ['/en/about', '/en', '/en/posts', '/en/notes', '/en/projects', '/en/gallery', '/en/tags', `/en/tags/${await someTag()}`, `/en/posts/${POST_SLUG}`] : [];
   for (const path of paths) {
     await get(path);
     const second = await get(path);
@@ -141,6 +148,11 @@ test('§5.3-a public pages are cacheable, the admin is not', async () => {
     assert.match(second.headers.get('x-nextjs-cache') ?? '', /^(HIT|STALE)$/, `${path} second request`);
   }
   assert.match((await get('/admin/login')).headers.get('cache-control') ?? '', /no-store/);
+});
+
+test('a tag nothing carries is a 404, on every visit', async () => {
+  if (!WITH_DB) return;
+  for (let i = 0; i < 2; i++) assert.equal((await get('/en/tags/no-such-tag-anywhere')).status, 404);
 });
 
 test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
@@ -156,7 +168,7 @@ test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
 // that a redesign can change the page and not break the check (visual-upgrade REQ §6).
 test('every public page names itself, describes itself, and points to its languages and share image', async () => {
   if (!WITH_DB) return;
-  for (const path of ['/en', '/zh-CN/posts', '/es/gallery', '/fr/projects', '/en/tags', '/zh-HK/tags/seed', `/en/posts/${POST_SLUG}`, '/fr/about']) {
+  for (const path of ['/en', '/zh-CN/posts', '/es/gallery', '/fr/projects', '/en/tags', `/zh-HK/tags/${await someTag()}`, `/en/posts/${POST_SLUG}`, '/fr/about']) {
     const res = await get(path);
     assert.equal(res.status, 200, path);
     const items = headItems(await res.text());
