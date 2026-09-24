@@ -53,6 +53,7 @@
   - 2026-09-24 · 首页格言在各语言下都是拉丁文（此前误取各语言文案的译文，修复为常量） · Jason（重申既有裁定） · 级联：`Gate.tsx`、五份文案
   - 2026-09-24 · 首页终止符从名字旁移到格言右侧（推翻 2026-09-23「首页名字旁与文末各一」中的首页位置）：两处都读作「写完了」 · Jason · 级联：论文「二」「五」、`Gate.tsx`
   - 2026-09-24 · §5.2-i 全部模板按审查顺序签收 · Jason · 级联：本 TRACK 第三区
+  - 2026-09-24 · 首页终止符与格言整体居中（不把方块挂在居中之外）；§5.1-h 通过 · Jason · 级联：本 TRACK 第三区
 
 ## 二、批次
 
@@ -142,9 +143,14 @@
 - C-S1 SHOULD 200% 放大以 640 宽 + 2 倍像素模拟，非浏览器缩放；C-S2 SHOULD 朱砂与 Cormorant 检查不看伪元素、只看首个字体 —— status: C-S1 accepted（理由写入 DESIGN §2.5），C-S2 fixed
 - 复审（标题）：MUST 无；SHOULD 标题 id 可成 window 命名属性 —— status: accepted（见第一区裁定）。复审（搜索）：MUST 结果即本页时，`dialog.close()` 的 close 事件晚于同步代码到达，`onClose` 又把焦点送回搜索按钮 —— status: fixed（关闭时焦点去向只由 `onClose` 一处决定；新测试覆盖结果即本页）
 
-**Phase 4 证据**（进行中）：
+**Phase 4 证据**（2026-09-24 齐备）：
 - 真实内容：新版本以生产的两个公开值（只读，不含 service-role）本机构建，遍历站点地图 215 页、五种语言，套用闸门全部规则——axe 0、唯一 h1、无跳级、320px 无横向溢出、朱砂只在终止符、目录链接皆有目标、正文带语言，全过。其间发现并修复：宽的 KaTeX 公式在 320px 撑出页面（公式块内部横向滚动；种子文章加入长公式作回归）。相册封面经本机代理的假 IP（198.18.0.0/15）被 Next 图片优化器按 SSRF 防护拒绝——本机网络所致，生产同一图片 200
 - 1.4.12 判定再修一处：像素级隐藏的读屏文字（KaTeX 的 MathML 副本）不算截断
+- Jason 真机（iPhone、iPad，局域网访问上述真实内容构建）走读文章、搜索、相册、切换语言：通过。据此调整三处——首页格言误显示各语言译文（改为拉丁文常量，测试查文字）；尾纸末行加「回到顶部 · 目录」、终止符移到其末；加 ⌘K / Ctrl+K 搜索（均见第一区裁定）
+- §5.2-i：Jason 按审查顺序逐模板签收，全部通过；首页终止符移到格言右侧（第一区裁定）
+- §5.1-h：Jason 在本地合成栈只用键盘完成登录、新建、存草稿、发布：通过
+- Codex 发布前审查：五个任务 + 两个复审，全部 MUST 已修，门关闭（第一区裁定）
+- 最终树：本机界面闸门 27/27、axe 静止 68/68、有库运行时 23/23、单元 100、lint 0 警告
 
 **Batch 证据**：
 - Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
@@ -160,35 +166,22 @@
 - 已修：页面标题各不相同（2.4.2，原来全是「Admin | AnteLacus」）；总览卡片的 h2 改为类型名、计数降为正文（2.4.6，原来四个 h2 都是「1 published」）；列表与编辑器里的内容标注写作语言（3.1.2）；CodeMirror 编辑区有可见的墨色焦点环（2.4.7）与可访问名称（4.1.2，axe 报出）
 - 已查无问题：320px 无横向溢出（1.4.10）；无小于 24px 的目标（2.5.8）；每个输入都有标签（3.3.2）；登录失败以 `role="alert"` 播报、保存结果以 `role="status"` 播报（4.1.3）；键盘顺序与页面顺序一致，跳转链接在首位（2.4.1、2.4.3）
 - 接受：`datetime-local` 在 Chromium 里是 7 个 Tab 停点、其中日历按钮无自绘焦点环——浏览器原生控件；空的必填项由浏览器原生校验提示（3.3.1）
-- 键盘走「写一篇并发布」（§5.1-h）仍属 Phase 4，由 Jason 走一遍
+- 键盘走「写一篇并发布」（§5.1-h）：Jason 走过，通过（见 Phase 4 证据）
 
-**Phase 4 证据**：（Phase 4 起）
 
-**Phase 6 boxes**：Phase 4 收尾时写入。
+**Phase 6 boxes**：
+- [x] 生产 Supabase 执行两条迁移并核对（Batch 2）
+- [ ] 版本 PR：`/code-review` 发现登记并处置完毕 → Jason 审结构与范围 → 合并（即部署）
+- [ ] CHANGELOG v2.4.0 条目
+- [ ] TECHNICAL_DEBT 定稿（TD-021 在册）；README 仍属实
+- [ ] 活文档清点：REQ、DESIGN、`docs/aesthetic-thesis.md`、CLAUDE.md 与上线内容一致
+- [ ] 部署后：线上 SHA 与合并提交一致；对生产跑 `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`
+- [ ] tag `v2.4.0`
+- [ ] 路线图 / 下一版 Phase 0 的输入（本版无 FEEDBACK 登记）
+- [ ] 闸门读数：每道闸门的运行次数 / 改变了输出的拦截次数
+- [ ] 文档预算绿（`scripts/check_doc_budget.py`）；memory 清理
+- [ ] 验收触发登记：线上一次真实访问（读文章、搜索、看相册、切语言）无异常
+- [ ] 本机清理：删除 `.env.prod-check`（含生产密钥）；Clash 脚本的 `+.supabase.co` 一行去留由 Jason 定
+- [ ] TRACK 关闭——最后一项：未结事项迁出后 `git mv TRACK.md TRACK_v2.4.0.md`
 
 ## 四、Session-end pickup
-
-### Session-end pickup (2026-09-23)
-
-**Working tree state at session close**:
-- Branch: `feat/visual-upgrade`（已推送）。HEAD（本 `/pause` 提交的父提交）：`1fca3ef`（TRACK 第一区措辞随《临湖》更名）
-- Working tree: clean
-
-**Where work stands**:
-- Phase 0–2：✅ done。Phase 1 产出 `docs/aesthetic-thesis.md`（《临湖》）与 REQ；Phase 2 产出 DESIGN，Codex 设计门 10 MUST / 11 SHOULD / 1 NICE 全部在 DESIGN 中处置（第三区登记）；验收测试已写红（第二区开头）
-- Phase 3：🔲 未开始 —— 当前批次 Batch 1（界面闸门），范围与判据见第二区
-- 会话 scratchpad 里有 Phase 2 实测留下的草稿（本地栈 `config.toml`、`seed.sql`、`pw/a11y.mjs`、基线审计 `a11y/audit.mjs`），随会话消失，不可依赖；实测得到的约束已写进 DESIGN §3
-
-**Test / lint state**: `npm test` 76 条：71 过、0 败、5 todo；`tsc` 净；lint 0 错误 31 警告（TD-020 的降级规则与几处未用 import，Batch 6 清）
-
-**Reconciliation (对账)**: 本会话无上一份 pickup（v2.4.0 首个会话）。
-
-**First action for next session**: 开 Batch 1——按 DESIGN §2.5 写 `supabase/config.toml`（项目 id、只开 db/auth/rest/kong、`[realtime] enabled=false`、`[storage]` 开启）与 `supabase/seed.sql`，再写 `scripts/ui-check.sh` 与 `tests/ui/harness.mjs`、`manifest.mjs`（API 以 `tests/ui/*.ui.mjs` 里的调用为准：`visit`、`visitAdmin`、`axe`、`anonymousHtml`、`TEMPLATES`、`ADMIN_TEMPLATES`、`CONTEXTS`、`SEED`、`BASE`）；本机跑通后接 `check.yml` 任务 `ui`。
-
-**Decisions awaiting Project Lead**:
-1. 无阻塞项。Jason 对 Codex 处置表未逐条表态，按「无异议」记入裁定；他可随时推翻其中任一条。
-
-**Reference state** (verify before relying on):
-- Relevant memory items: `feedback-aesthetic-consulting.md` —— 审美问题以顾问式对话、真实内容的对照图来谈；`feedback-push-without-asking.md` —— 推送无须确认
-- Suite size at the last green run: 71 passed（5 todo）
-- 外部状态：colima 已停，本地栈镜像约 3.4 GB 缓存在 colima 磁盘里（Jason 可要求清理）；Claude artifacts：字体对照页 https://claude.ai/artifact/MZUWx8i4xDDwGronL6755P、首页构图画布 https://claude.ai/artifact/3ZRrUNaYaA2wAMD6Dy36m2（Batch 3 的构图参照为其方案 B）；Supabase CLI 实测版本 2.117.0（Batch 1 钉版本前再核）
