@@ -17,15 +17,15 @@
 | P3 | `/[locale]/gallery` | 照片格 | 5.1 |
 | P4 | `/[locale]/{posts,notes,projects,gallery}/[slug]` | 手卷：引首 → 折叠目录（≥3 个 `h2`）→ 画心 → 尾纸 + 终止符；相册另有查看器 | 5.1-c/f、5.2-h |
 | P5 | `/[locale]/tags`、`/[locale]/tags/[id]` | 目录 | 5.1 |
-| P6 | `/[locale]/about` | 手卷（尾纸只有终止符） | 5.3 |
-| P7 | 404（`global-not-found`）、`[locale]/error` | 引首一段 + 回首页 | 5.1 |
+| P6 | `/[locale]/about` | 手卷（尾纸只有「回到顶部」一行与终止符） | 5.3 |
+| P7 | 404（未知路径：`global-not-found`；未知 slug、标签与没有版本的关于页：`[locale]/not-found`）、`[locale]/error` | 引首一段 + 回首页 | 5.1 |
 | P8 | 搜索对话框（任何公开页打开） | 目录 | 5.1-c |
 | P9 | `/admin/pages/about`、`/admin/pages/about/[locale]` | 后台：语言列表、纯文字编辑器 | 5.3-b、5.1-b |
 
 ### 2.2 模块关系
 | 模块 / 文件 | 单一职责 | 测试层级 |
 |-------------|---------|----------|
-| `src/lib/entry.ts`（新） | 呈现类型 `Entry = { type, slug, href, title, summary, date, tags, lang, image? }` 与四个适配器（专栏、闪念、相册、项目各自的领域对象 → `Entry`）及搜索索引项的适配器；形态组件只认 `Entry` | core |
+| `src/lib/entry.ts`（新） | 呈现类型 `Entry = { type, slug, href, title, summary, date, tags, lang, cover?, coverAlt? }` 与四个适配器（专栏、闪念、相册、项目各自的领域对象 → `Entry`）；形态组件只认 `Entry`，搜索索引也直接输出它（去掉封面） | core |
 | `src/lib/{photo,project}-types.ts`（改） | 映射带上 `lang`（取行的 `locale`），与专栏、闪念一致 | core |
 | `src/app/api/search-index/route.ts`（改） | 直接输出 `Entry`（经四个适配器），去掉封面；搜索对话框不再另做映射 | IO |
 | `src/components/Gate.tsx`（新，服务端） | 首页的门：名字（Cormorant）、终止符、格言（`lang="la"`） | UI |
@@ -36,21 +36,21 @@
 | `src/components/Colophon.tsx`（新，服务端） | 尾纸：写于、标签（链接到标签页）、语言；末行「回到顶部」（到导航）与有目录时的「目录」（`ContentsLink`，点开即展开），`EndMark` 在这一行末 | UI |
 | `src/lib/page-ids.ts`（新） | 页面自身的固定 id（`main-content`、`site-nav`、`contents`、搜索对话框的两个）的唯一出处；正文标题 id 避开它们 | infra |
 | `src/components/Toc.tsx`（新，服务端） | 折叠目录：`<details>`/`<summary>` + 锚点列表；条目少于 3 个时不渲染 | UI |
-| `src/components/Nav.tsx`（重写，服务端） | 页首导航：五个栏目链接 + 两个客户端小件；静止、不固定；不再渲染面包屑，面包屑的结构化数据移到详情页的服务端输出 | UI |
+| `src/components/Nav.tsx`（重写，服务端） | 页首导航：站名（首页之外）与五个栏目链接 + 两个客户端小件；静止、不固定；不再渲染面包屑，面包屑的结构化数据移到详情页的服务端输出 | UI |
 | `src/components/NavLinks.tsx`（新，客户端） | 栏目链接的 `aria-current`（`usePathname`） | UI |
 | `src/components/SearchDialog.tsx`（新，客户端，取代 `SearchModal`） | 原生 `<dialog>`：以标题命名、有可见的关闭按钮；内层面板之外的点击才算点背景；一个常驻的 `role="status"` 区播报加载、无结果、失败，失败时另有「重试」按钮（重试不移走焦点）；结果用 `CatalogRow`；关闭后焦点回到触发按钮。⌘K / Ctrl+K 从页面任何位置打开（带修饰键，合 WCAG 2.1.4），关闭后焦点回到按下时所在的元素。只有一个输入框（标题、标签、摘要依次加权），不设类型、标签、年份、语言筛选器——标签与类型由标签页与栏目承担 | UI + core（筛选函数） |
-| `src/lib/search-filter.ts`（新） | 搜索的纯筛选与排序（从 `SearchModal` 抽出） | core |
+| `src/lib/search-filter.ts`（新） | 搜索的纯筛选与排序 | core |
 | `src/components/LanguageSwitch.tsx`（新，客户端） | `<details>` 里一组普通链接：`/api/locale?to=<语言>&next=<当前路径把首段换成目标语言>`（`usePathname`）；公开页面不带有意义的查询参数，故不保留查询 | UI |
-| `src/components/SiteLink.tsx`（新，共享） | 站内链接的唯一出口：`next-intl` 的 `Link` + `transitionTypes={['page']}`（§2.4） | infra |
+| `src/components/SiteLink.tsx`（新，共享） | 站内链接的唯一出口：`next/link`，按当前语言加前缀，带 `transitionTypes={['page']}`（§2.4） | infra |
 | `src/components/SkipLink.tsx`（重写，服务端） | 普通 `<a href="#main-content">`，无脚本 | infra |
 | `src/components/PhotoViewer.tsx`（改） | 上一张 / 下一张按钮在触屏上也显示（覆盖 PhotoSwipe 在 `.pswp--touch` 下的隐藏）；纸墨配色、去文字阴影、静态的加载提示（覆盖其无限转圈）；关闭后焦点回到打开它的那张照片（自存引用）；辅助函数先声明后使用；可访问名称走文案 | UI |
 | `src/lib/markdown/`（改） | 标题规整：正文里最高一级标题渲染为 `h2`，其余按相对层级顺延，跳级压平——页面的 `h1` 只属于引首；标题 `id` 稳定且唯一（重名加序号）；`renderMarkdownWithToc(source) → {content, toc}` 一次运行同时给出正文与目录，目录只取规整后的 `h2`，二者 id 必然一致 | core |
-| `src/lib/home.ts`（新） | `selectWindows(latestByType) → Entry[]`：每类最新一篇，相册取封面；空类型不出窗、不补位 | core |
+| `src/lib/home.ts`（新） | `selectWindows(byType) → HomeWindow[]`：每类最新一篇；窗没有封面字段，只有相册窗带 `image`（相册封面）；空类型不出窗、不补位 | core |
 | `src/lib/page-locale.ts`（新） | `pickPageLocale(available, requested) → locale | null`：请求语言 → `en` → 按 `routing.ts` 语言表顺序的第一个；与数据返回顺序无关 | core |
 | `src/lib/server/pages-repo.ts`（新） | `site_pages` 的全部读写：已发布版本（某 slug 的全部语言）、后台的语言列表与按（slug、语言）取、保存（按主键 upsert，后写覆盖先写；`updated_at` 由触发器写）；客户端由调用方传入 | IO |
 | `src/lib/pages.ts`（重写） | 关于页的公开加载器：`getPage(slug, locale) → { lang, title, body } | null`，`lang` 是选中版本的语言、与 URL 无关；`hasPublishedPage(slug)` 供 sitemap；匿名、无 cookie 的客户端；一条缓存（该 slug 全部已发布版本）、标签 `PAGES_TAG`、半小时，与其他加载器同一方式；`PAGE_SLUGS` 是后台认得的页面清单 | IO |
 | `src/lib/sitemap-entries.ts`（改） | 关于页只在至少一个版本已发布时列入（经 `pages.ts`） | core |
-| `src/app/admin/(protected)/pages/**`（新） | 关于页的语言列表与编辑器：`MarkdownEditor` 的纯文字模式（`onUpload` 变为可选，缺省时不接受粘贴图片）+ `MarkdownPreview`；动作：zod 校验（slug 只许 `about`，语言只许 `routing.ts` 中的）→ 管理员校验 → `pages-repo.save` → `updateTag('pages')`；标签失效失败沿用上一版「已保存、最迟半小时更新」的提示 | IO |
+| `src/app/admin/(protected)/pages/**`（新） | 关于页的语言列表与编辑器：`MarkdownEditor` 的纯文字模式（`onUpload` 变为可选，缺省时不接受粘贴图片）+ `MarkdownPreview`；动作：管理员校验 → zod 校验（slug 只许 `about`，语言只许 `routing.ts` 中的）→ `savePageVersion` → `updateTag('pages')`；标签失效失败沿用上一版「已保存、最迟半小时更新」的提示 | IO |
 | `src/app/[locale]/**/page.tsx`（改） | 按 §2.1 的形态组装；正文容器 `lang` = 条目写作语言，并带 `data-content`；每页恰一个 `h1`；详情页输出面包屑结构化数据 | UI |
 | `src/app/globals.css`（重写） | 变量（五色、三种字体角色、间距）、基础排印、中文排印（`:lang(zh)` 下的两端对齐与字间均分）、形态组件的类、悬停（`@media (hover: hover) and (pointer: fine)`）与按下态、页面切换的 150ms 规则、PhotoSwipe 覆盖 | UI |
 | `src/messages/*.json`（改） | 界面上的全部可访问名称、语言名、此前写死的中文 | infra |
@@ -82,11 +82,11 @@
 - **目录锚点**：`id` 在服务端随标题生成，页面不在浏览器里扫描标题。
 
 ### 2.5 界面闸门
-- **流程**（`scripts/ui-check.sh`，本机与 CI 同一份）：先装好清理（`trap` 覆盖正常退出、中断、终止；保留原失败码）→ Docker 不在时本机 `colima start`，并记下是本次启动的 → `supabase start`（CLI 为钉死版本的开发依赖；`config.toml` 固定项目 id 与端口；只运行 db、auth、rest、kong）→ 迁移与 `seed.sql` 自动应用 → **后端边界**：环境变量只取自 `supabase status -o env`，清掉继承的 Supabase 变量，断言 API 地址是 `127.0.0.1` 后才建管理员 → 经 auth 管理接口建合成管理员 → 清空并构建到独立目录（`next.config.ts` 的 `distDir` 由 `NEXT_DIST_DIR` 覆盖；目录里的 Turbopack 构建缓存与数据缓存会跨运行残留）并在 `localhost` 上启动 → 各步都有就绪期限 → 跑测试 → 清理：停应用进程、`supabase stop --no-backup`（不留卷，下次从空库重放迁移与种子）、只停本次启动的 colima。
+- **流程**（`scripts/ui-check.sh`，本机与 CI 同一份）：先装好清理（`trap` 覆盖正常退出、中断、终止；保留原失败码）→ Docker 不在时本机 `colima start`，并记下是本次启动的 → 本项目的本地栈已在运行则拒绝（拆除会清掉它的数据）→ `supabase start`（CLI 为钉死版本的开发依赖；`config.toml` 固定项目 id 与端口；只运行 db、auth、rest、kong）→ 迁移与 `seed.sql` 自动应用 → **后端边界**：环境变量只取自 `supabase status -o env`，清掉继承的 Supabase 变量，断言 API 地址是 `127.0.0.1` 后才建管理员 → 经 auth 管理接口建合成管理员 → 清空并构建到独立目录（`next.config.ts` 的 `distDir` 由 `NEXT_DIST_DIR` 覆盖；目录里的 Turbopack 构建缓存与数据缓存会跨运行残留）并在 `localhost` 上启动 → 各步都有就绪期限 → 跑测试 → 清理：停应用进程、`supabase stop --no-backup`（只停本次启动的栈；不留卷，下次从空库重放迁移与种子）、只停本次启动的 colima。
 - **种子**（合成内容，走与后台同一的 `save_content_item`；`site_pages` 先清空再插入合成行）：带封面、标签与 ≥3 个 `h2` 的中文专栏；只有 2 个 `h2` 的英文闪念；带封面与两个链接的项目；两张图的相册；一篇草稿；关于页 `en`、`zh-CN` 已发布、`es` 为草稿。图片取 `public/images/` 已提交的文件。关于页回退到「任意」与「一个都没有」两种情形由单元与 IO 测试负责。
 - **测试**：Playwright 作库、跑在 `node:test` 下，显式列出文件、同一进程运行（`*.ui.mjs` 不在 Node 的默认发现规则里；对账要读其他文件记下的结果）。环境：桌面 Chromium、触屏 WebKit（iPhone）、触屏 Chromium（Pixel）、平板 WebKit（触屏 820 宽）、320px、200% 放大（桌面 640 宽）。200% 放大以 640 CSS 像素宽、2 倍像素比模拟，而非浏览器缩放：1280 宽放大一倍即 640 CSS 像素，这正是 WCAG 1.4.10 重排检查的做法，Playwright 也没有真正的缩放。`manifest.mjs` 列出「模板 × 环境 × 状态」：状态（搜索打开、查看器打开、目录展开、悬停、聚焦）是模板的变体，遍历模板的检查因此自动覆盖各状态；静止即载入完成的一刻，不另等待（首载）。每次 axe 运行记下它判定的组合，`coverage.ui.mjs` 排在最后与清单逐项对账，缺一项即失败（§5.5-a）：静止部分自 Batch 1 起生效，状态部分在状态的入口都存在后（Batch 5）生效。入口尚未建成的状态在清单里标 `pending`（写明由哪一批建成）：入口不存在时跳过并在对账输出里列出，入口一存在即照常检查；状态对账在 Batch 5 去 todo 后，任何跳过都会让闸门变红。检查前先断言页面身份：状态码、有 `<main>`、种子标题在 `<main>` 里、没有破图、状态已进入（入口不存在即刻失败，不等超时）、后台页面已登录。`h1` 的个数与层级是 §5.1-g 自己的判据，不作身份条件。
 - **不空转**：每次运行都在四种环境里各植入一个无名按钮，axe 须报出它——检查失灵时闸门变红。§5.5-b 的分支实验（源码里造一个无名按钮、记下变红的运行号、删分支）要在 §5.1-a 去掉 todo 之后才可能变红，故在 Batch 6 做。
-- 脚本拒绝 `BASE_URL` 不在本机回环地址白名单的运行——界面闸门永不对生产。合成管理员的凭据只在脚本进程内，不进构建产物与日志。
+- 界面测试（`tests/ui/harness.mjs`）拒绝 `BASE_URL` 不在本机回环地址白名单的运行——界面闸门永不对生产。合成管理员的凭据只在脚本进程内，不进构建产物与日志。
 - CI：`check.yml` 新增任务 `ui`，与现有任务并行；它也以 `RUNTIME_DB=1` 对本地栈跑 `tests/runtime/`；`deploy.yml` 等它通过。
 
 ### 2.6 持久化数据

@@ -27,9 +27,9 @@
 | `src/lib/sitemap-entries.ts`（由 `src/app/sitemap.ts` 改名搬来） | 生成 sitemap 条目的普通模块——不再是路由文件 | IO |
 | `src/app/sitemap.xml/route.ts` | `/sitemap.xml` 的**唯一**路由，请求时生成 | IO |
 | `src/lib/{posts,notes,gallery,projects}.ts` | 带标签、带时限的数据缓存；时限统一为半小时（`src/lib/cache-lifetime.ts`）——页面自身的缓存继承并叠加在它之上，改库最坏两倍时限可见，REQ 承诺一小时 | IO |
-| `src/components/UtilityDropdown.tsx` | 语言切换；手动切换时记下选择 | IO |
-| `src/app/admin/(protected)/notes/actions.ts` | 保存/发布笔记；成功后使 `notes` 标签失效 | IO |
-| `.github/workflows/check.yml`（新） | 闸门：lint、类型检查、测试、构建 + 中间件清单断言、文档预算。可被调用 | infra |
+| `src/components/LanguageSwitch.tsx` | 语言切换；手动切换时记下选择 | IO |
+| `src/app/admin/(protected)/content/actions.ts` | 保存/发布内容；成功后使该类型的标签失效 | IO |
+| `.github/workflows/check.yml`（新） | 闸门：lint、类型检查、测试、构建 + 中间件清单断言。可被调用 | infra |
 | `.github/workflows/deploy.yml` | `check` 任务调用闸门；`deploy` 任务 `needs: check` | infra |
 | `public/sw.js` | 自注销脚本 | infra |
 | `CLAUDE.md` + `tests/claude-md.test.ts`（新） | 与现实一致的项目说明；测试断言其中每个路径与 `npm run` 名都存在 | infra |
@@ -50,7 +50,7 @@
 
 变体的判定按语言标签的**主标签**精确匹配（`en-US` 的主标签是 `en`），不按字符串前缀——不用「以 es 开头」来判，那会把 `/essays` 带到 `/es`（实测现行代码正是如此）。栏目按清单查，不猜。
 
-页面渲染：`[locale]` 根布局不读 cookie、不读请求头，并在渲染前调用 `setRequestLocale`，整棵公开页面树因此可以静态生成；数据经 `src/lib/*.ts` 的缓存读取。页面在首次被访问时生成，随后按数据缓存的时限复用。后台保存笔记 → `revalidateTag('notes')` → 用到笔记数据的页面（详情、列表、首页、标签页、搜索索引、sitemap，都经 `notes` 标签读取）下次访问时重新生成。
+页面渲染：`[locale]` 根布局不读 cookie、不读请求头，并在渲染前调用 `setRequestLocale`，整棵公开页面树因此可以静态生成；数据经 `src/lib/*.ts` 的缓存读取。页面在首次被访问时生成，随后按数据缓存的时限复用。后台保存一条内容 → 该类型的标签失效 → 用到它的页面（详情、列表、首页、标签页、搜索索引、sitemap，都经该标签读取）下次访问时重新生成。
 
 ## 3 入口
 - 访客：`/<语言>/…` 下的页面；无前缀与语言变体地址经中间件到达它们。

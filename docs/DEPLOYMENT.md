@@ -42,7 +42,7 @@ The dump holds the `public` schema whole — types, tables, the save function, d
 
 1. Create the target: a fresh Supabase project, or any Postgres 17+ with the roles `anon`, `authenticated`, `service_role` (a Supabase project has them; a plain Postgres needs `create role …` for each).
 2. From a `postgres:$PG_MAJOR` container: `pg_restore --no-owner --no-privileges --clean --if-exists -d "$TARGET_URL" antelacus-<stamp>.dump` (`--clean --if-exists` lets it be re-run). One error is expected and harmless: `schema "public" already exists` — every database has it; pg_restore reports it and carries on ("errors ignored on restore: 1").
-3. Check: `select content_type, status, count(*) from public.content_items group by 1, 2;` should match the admin dashboard's counts, and `select count(*) from public.content_item_tags;` must not be zero.
+3. Check: `select content_type, status, count(*) from public.content_items group by 1, 2;` should match the admin dashboard's counts, `select count(*) from public.content_item_tags;` must not be zero, and `select locale, status from public.site_pages;` must list the about page's languages.
 4. Upload `ANTELACUS_DATA_DIR/storage/<bucket>/…` into buckets of the same names (public read), keeping the paths. Restoring into a *different* project changes the storage host: search and replace the old project host in `content_items.cover_image_url`, `content_items.body_markdown` and `gallery_images.public_url`.
 5. Point `.env` at the new project, `docker compose up -d --build`, run `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`. Auth is not in the dump: create the admin user again in Authentication → Users.
 
