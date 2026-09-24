@@ -1,0 +1,59 @@
+# TRACK — release-pipeline v2.5.0
+
+## 一、范围与裁定
+
+- 模式：standard · 目标：改动先在生产旁边的预发布站点上、用真实内容和真机验过，再把同一个产物晋升到生产；部署后自动核验，失败能一步退回。
+- 范围（括号内为第三区的发现编号）：
+  1. 镜像不含 `.env`；构建所需的公开值以构建参数进入（D-11）
+  2. 构建一次、逐级晋升：CI 构建镜像，按提交 SHA 推到私有镜像仓库，预发布与生产拉同一个镜像，VPS 不再构建（D-1、D-4、D-9）
+  3. 预发布站点：同一台 VPS，走生产同一套 nginx + Cloudflare，访问控制 + `noindex`；读生产数据，不能写（TD-022、D-1、D-9）
+  4. 部署后自动核验：经公网地址核对 served SHA、跑有库运行时套件；失败退回上一个镜像（D-3、D-4）
+  5. 迁移闸门：部署前只读核对生产已有代码所需的迁移；`db-function-check.sh` 进 CI；迁移只做加法（先扩后缩）（D-2）
+  6. 闸门去重：同一提交只跑一遍闸门；安装与运行时套件的重叠去掉（D-5、D-6）
+  7. TD-021 的弱断言补强；后台检查补上上传、登出、其余内容类型（D-7）
+  8. 手动清单自动化：打 tag、Cloudflare 缓存清除、Supabase Auth 设置核对（D-8）
+  9. 耗时基线：闸门每个任务、每一步与部署各段的耗时可读出（D-10）
+- 明确不做：
+  - CI 搬上 VPS（自托管 runner）：CI 留在 GitHub
+  - 蓝绿 / 金丝雀发布、k8s、功能开关、独立 QA 环境
+  - 对生产写数据的端到端测试
+- 全局约束（约束所有批次）：
+  - The Floor：镜像不含 `.env` 之前，镜像不离开 VPS（D-11；与定级无关）。预发布不持有 service-role 密钥。每个新令牌（镜像仓库、Cloudflare、Supabase Management）只进 GitHub secrets 或 VPS 的 `.env`，最小权限，逐个经 Jason 批准
+  - 生产不中断：VPS 上的改动不得让生产停服；nginx 改动先 `nginx -t` 再 reload
+  - 公开页面保持可缓存：规则在项目 `CLAUDE.md`「Routing and languages」
+  - 生产数据库的迁移仍由人执行，机器只核对
+- Phase 0 待核（外部约束，结论写进 DESIGN 的外部约束一节）：
+  - VPS：CPU / 内存 / 磁盘余量；已占端口（goodman 预发布用 3001）；Docker 与 compose 版本；nginx 的生效配置
+  - 镜像仓库：私有镜像的额度与 VPS 拉取的认证方式
+  - Cloudflare：预发布子域的访问控制在当前套餐是否可用
+  - Supabase：预发布域名下的登录（Auth 的站点地址与回调设置）；没有 service-role 密钥时后台能打开到什么程度
+- 裁定（一行一条，只记「批了什么」）：
+  - 2026-09-24 · 预发布站点放在生产旁边（仿 project-goodman），CI 留在 GitHub · Jason · 级联：本 TRACK 范围 3、明确不做
+  - 2026-09-24 · 测试发布机制采用五层（本机 / CI / 预发布 / 生产 / 上线后）、构建一次逐级晋升、迁移先扩后缩、预发布读生产数据不能写 · Jason · 级联：REQ（待开）
+  - 2026-09-24 · Codex 诊断的全部发现进本版，含 D-7、D-8、D-10，不拆版本 · Jason · 级联：本 TRACK 范围
+  - 2026-09-24 · Codex 诊断返回的 4 条 MUST 与 D-11 定为 SHOULD；D-11 另作全局约束 · Jason · 级联：本 TRACK 第三区、全局约束
+
+## 二、批次
+
+批次在 Phase 2 设计定稿时切分。
+
+## 三、门与发布
+
+**评审发现登记**（Phase 0 诊断，在两次 Codex 门的额度之外；Codex xhigh，只读；全文 `codex resume 01a0d3e0-220e-75b3-8f5e-04d4ca150604`；引文已逐条对源核实；D-11 为 Claude 实测）：
+- D-1 · SHOULD（Codex 原定 MUST）：生产拓扑（镜像、VPS `.env`、nginx、Cloudflare）不在任何检查路径上 —— status: open → 范围 2、3
+- D-2 · SHOULD（原 MUST）：生产迁移手动执行、无闸门；`db-function-check.sh` 不在任何工作流里 —— status: open → 范围 5
+- D-3 · SHOULD（原 MUST）：部署成功只代表 `localhost:3002/` 有响应；生产运行时套件靠手动 —— status: open → 范围 4
+- D-4 · SHOULD（原 MUST）：没有应用回滚；健康检查失败只打印日志 —— status: open → 范围 2、4
+- D-5 · SHOULD：同一提交的闸门跑多遍（分支 push、PR、main 上 `Check` 与 `Deploy` 调用各一遍） —— status: open → 范围 6
+- D-6 · SHOULD：两个任务各自 `npm ci`；不读库的运行时子集被有库全量覆盖。（第二次构建不是冗余：`NEXT_PUBLIC_*` 构建时定型，换后端须重建） —— status: open → 范围 6
+- D-7 · SHOULD：TD-021 的弱断言；后台界面清单只有 4 个模板，上传、登出、其余内容类型无检查 —— status: open → 范围 7
+- D-8 · SHOULD：Auth 设置、Cloudflare 缓存清除、打 tag 靠手动；post-merge 钩子只提醒 —— status: open → 范围 8
+- D-9 · SHOULD（部分待核）：预发布与生产同机的隔离与容量；本地栈 ES256 与生产可能的 HS256 登录行为不同 —— status: open → 范围 2、3，待核项见第一区
+- D-10 · NICE：没有按步骤的耗时基线 —— status: open → 范围 9
+- D-11 · SHOULD：Next standalone 输出复制 `.env`，`Dockerfile` 把它带进最终镜像，含 service-role 密钥（假 `.env` 本机构建实测；JS 文件中无密钥） —— status: open → 范围 1
+
+**Phase 4 证据**：（Phase 4 填写）
+
+**Phase 6 boxes**：Phase 4 收尾时写入。
+
+## 四、Session-end pickup
