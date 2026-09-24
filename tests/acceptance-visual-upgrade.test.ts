@@ -93,10 +93,14 @@ test('acceptance §5.3 the about migration holds five languages whose bodies ren
 
 // ---------- §5.4 hook rules ----------
 
-test('acceptance §5.4-a the three React Compiler rules are no longer downgraded', () => {
-  const config = read('eslint.config.mjs');
+test('acceptance §5.4-a the three React Compiler rules are errors for the site\'s components', async () => {
+  // What ESLint actually applies to a component, not what the config file happens to say.
+  const { ESLint } = await import('eslint');
+  const config = await new ESLint({ cwd: ROOT }).calculateConfigForFile(join(ROOT, 'src/components/Nav.tsx'));
   for (const rule of ['set-state-in-effect', 'immutability', 'static-components']) {
-    assert.doesNotMatch(config, new RegExp(`react-hooks/${rule}['"]\\s*:\\s*['"]?(warn|off|1|0)`), `${rule} is still downgraded`);
+    const setting = config.rules?.[`react-hooks/${rule}`];
+    const level = Array.isArray(setting) ? setting[0] : setting;
+    assert.ok(level === 2 || level === 'error', `react-hooks/${rule} is ${JSON.stringify(setting)}, not an error`);
   }
 });
 
@@ -104,6 +108,7 @@ test('acceptance §5.4-a the three React Compiler rules are no longer downgraded
 
 test('acceptance §5.5-a the gate runs the UI checks on every push, and a deploy waits for them', () => {
   const gate = read('.github/workflows/check.yml');
+  assert.match(gate, /^on:\n(?: {2}.*\n)*? {2}push:/m, 'check.yml does not run on push');
   assert.match(gate, /^ {2}ui:\n(?: {4}.*\n|\n)*? {6}- run: scripts\/ui-check\.sh$/m, 'check.yml has no ui job running the UI gate');
   // A called workflow is one unit to its caller: `needs: check` waits for every job in check.yml.
   const deploy = read('.github/workflows/deploy.yml');

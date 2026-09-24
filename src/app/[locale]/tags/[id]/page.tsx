@@ -6,6 +6,12 @@ import { getEntriesByTag } from '@/lib/tags';
 
 type RouteParams = Promise<{ locale: string; id: string }>;
 
+// Nothing is built ahead of time (the build must not need the database); the empty list is what lets
+// Next cache each tag page after its first visit instead of rendering it on every request.
+export function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: { params: RouteParams }) {
   const { locale, id } = await params;
   const tag = decodeURIComponent(id);

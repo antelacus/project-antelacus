@@ -58,17 +58,17 @@ export const TEMPLATES = [
   { name: 'home zh-HK', kind: 'home', path: `/zh-HK`, text: SEED.postTitle },
   { name: 'posts fr', kind: 'list', path: `/fr/posts`, text: SEED.postTitle },
   { name: 'post es', kind: 'detail', path: `/es/posts/${SEED.post}`, text: SEED.postTitle },
-  { name: 'search open', kind: 'state', path: p(''), state: 'search' },
-  { name: 'viewer open', kind: 'state', path: p(`/gallery/${SEED.gallery}`), state: 'viewer' },
-  { name: 'toc open', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'toc' },
-  { name: 'row hovered', kind: 'state', path: p('/posts'), state: 'hover' },
-  { name: 'link focused', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'focus' },
+  { name: 'search open', kind: 'state', path: p(''), state: 'search', text: SEED.postTitle },
+  { name: 'viewer open', kind: 'state', path: p(`/gallery/${SEED.gallery}`), state: 'viewer', text: SEED.galleryTitle },
+  { name: 'toc open', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'toc', text: SEED.postTitle },
+  { name: 'row hovered', kind: 'state', path: p('/posts'), state: 'hover', text: SEED.postTitle },
+  { name: 'link focused', kind: 'state', path: p(`/posts/${SEED.post}`), state: 'focus', text: SEED.postTitle },
 ];
 
 // `anonymous` pages are opened without the synthetic admin's session.
 export const ADMIN_TEMPLATES = [
-  { name: 'login', path: '/admin/login', anonymous: true },
-  { name: 'overview', path: '/admin' },
+  { name: 'login', path: '/admin/login', anonymous: true, text: 'Sign in' },
+  { name: 'overview', path: '/admin', text: 'published' },
   { name: 'list', path: '/admin/content/post', text: SEED.draftTitle },
-  { name: 'editor', path: `/admin/content/post/${SEED.post}` },
+  { name: 'editor', path: `/admin/content/post/${SEED.post}`, text: SEED.postTitle },
 ];

@@ -26,7 +26,7 @@ export default async function TagsIndexLocalePage({ params }: { params: Promise<
       {tags.length === 0 ? (
         <p className="page-empty">{await getMetaMessage(locale, 'list.empty')}</p>
       ) : (
-        <ul className="tag-index">
+        <ul className="tag-index" data-meta="tags">
           {tags.map((tag) => (
             <li key={tag.id}>
               <SiteLink href={`/tags/${encodeURIComponent(tag.id)}`}>{tag.id}</SiteLink> <span className="tag-count">{tag.count}</span>

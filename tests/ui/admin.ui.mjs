@@ -13,6 +13,17 @@ test('acceptance §5.1-b the four admin templates have zero axe violations', asy
   assert.deepEqual(failures, []);
 });
 
+test('acceptance §5.3-a through the page: each language shows its own version, a draft or missing one falls back to English', async () => {
+  const { anonymousHtml } = await h();
+  const title = (html) => /<h1[^>]*>([^<]*)<\/h1>/.exec(html)?.[1];
+  const lang = (html) => /<div class="prose[^"]*" lang="([^"]+)"/.exec(html)?.[1];
+  assert.deepEqual([title(await anonymousHtml('/zh-CN/about')), lang(await anonymousHtml('/zh-CN/about'))], ['种子关于页', 'zh-CN']);
+  for (const path of ['/es/about', '/fr/about']) {
+    const html = await anonymousHtml(path);
+    assert.deepEqual([title(html), lang(html)], ['Seed about', 'en'], `${path}: not the English fallback`);
+  }
+});
+
 test('acceptance §5.3-b after a save the next anonymous visit shows it, fallback languages included', async () => {
   const { anonymousHtml, visitAdmin, BASE } = await h();
   const marker = `marker-${Date.now()}`;
@@ -26,4 +37,19 @@ test('acceptance §5.3-b after a save the next anonymous visit shows it, fallbac
     await Promise.all([page.waitForURL(/saved=/), page.getByRole('button', { name: /publish|发布|save|保存/i }).first().click()]);
   });
   for (const path of ['/en/about', '/fr/about']) assert.match(await anonymousHtml(path), new RegExp(marker), `${BASE}${path} is stale`);
+});
+
+test('acceptance §5.3-b a language added in the admin is what the next visit to it shows', async () => {
+  const { anonymousHtml, visitAdmin } = await h();
+  const title = `Version française ${Date.now()}`;
+  assert.doesNotMatch(await anonymousHtml('/fr/about'), new RegExp(title));
+  await visitAdmin([{ name: 'about fr editor', path: '/admin/pages/about/fr' }], async (page) => {
+    await page.fill('input[name=title]', title);
+    await page.locator('[data-editor-body] .cm-content').click();
+    await page.keyboard.type('Une page en français.');
+    await Promise.all([page.waitForURL(/saved=published/), page.getByRole('button', { name: 'Publish', exact: true }).click()]);
+  });
+  const html = await anonymousHtml('/fr/about');
+  assert.match(html, new RegExp(title), '/fr/about still shows the fallback');
+  assert.match(html, /<div class="prose[^"]*" lang="fr"/);
 });

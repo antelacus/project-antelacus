@@ -34,6 +34,39 @@ test('acceptance §5.1-c search: open, type, reach a result, Esc returns focus t
   });
 });
 
+test('acceptance §5.1-c search: the results are announced, and choosing one takes focus to the new page', async () => {
+  const { visit, SEED } = await h();
+  await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
+    await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-open-search]')));
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('seed note');
+    await page.waitForFunction(() => /\d/.test(document.querySelector('dialog[open] [role="status"]')?.textContent ?? ''));
+    await tabTo(page, (p) => p.evaluate(() => document.activeElement?.closest('dialog[open] .catalog [data-meta="title"]') !== null), 10);
+    await Promise.all([page.waitForURL(new RegExp(`/en/notes/${SEED.note}$`)), page.keyboard.press('Enter')]);
+    await page.waitForFunction(() => document.activeElement?.id === 'main-content');
+    assert.equal(await page.locator('dialog[open]').count(), 0, 'the dialog stayed open');
+  });
+});
+
+test('acceptance §5.1-c search: when the index fails, Retry announces it and keeps focus', async () => {
+  const { visit } = await h();
+  await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
+    let fail = true;
+    await page.route('**/api/search-index', (route) => (fail ? route.fulfill({ status: 500, body: '{}' }) : route.continue()));
+    await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-open-search]')));
+    await page.keyboard.press('Enter');
+    await page.locator('[data-search-retry]').waitFor();
+    assert.ok((await page.textContent('dialog[open] [role="status"]'))?.trim(), 'the failure is not announced');
+    await page.locator('[data-search-retry]').focus();
+    await page.keyboard.press('Enter');
+    await page.locator('[data-search-retry]:not([aria-disabled="true"])').waitFor();
+    assert.ok(await page.evaluate(() => document.activeElement?.hasAttribute('data-search-retry')), 'a failed retry lost focus');
+    fail = false;
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => document.activeElement?.id === 'search-field');
+  });
+});
+
 test('acceptance §5.1-c language: switch to another language with the keyboard', async () => {
   const { visit } = await h();
   await visit(['desktop'], [{ name: 'posts', path: '/en/posts' }], async (page) => {
@@ -51,6 +84,7 @@ test('acceptance §5.1-c gallery: open the viewer, page through, Esc returns foc
     await page.keyboard.press('Enter');
     await page.waitForSelector('.pswp--open');
     await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => document.querySelector('.pswp__counter')?.textContent?.trim().startsWith('2'));
     await page.keyboard.press('Escape');
     await page.waitForSelector('.pswp--open', { state: 'detached' });
     assert.ok(await page.evaluate(() => document.activeElement?.matches('[data-photo-index="0"]')), 'focus did not return to the photo');

@@ -8,11 +8,10 @@ const SEAL = 'rgb(180, 42, 30)'; // 朱砂 #B42A1E
 test('acceptance §5.2-a vermilion appears only on the end mark, at most once per page', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
-    const users = await page.$$eval('body *', (els, seal) => els.filter((el) => {
-      const s = getComputedStyle(el);
+    const users = await page.$$eval('body *', (els, seal) => els.filter((el) => [getComputedStyle(el), getComputedStyle(el, '::before'), getComputedStyle(el, '::after')].some((s) => {
       return [s.color, s.backgroundColor, s.borderTopColor, s.borderRightColor, s.borderBottomColor, s.borderLeftColor, s.outlineColor]
         .some((c) => c === seal) && (s.color === seal || s.backgroundColor === seal || s.borderStyle !== 'none' || s.outlineStyle !== 'none');
-    }).map((el) => el.hasAttribute('data-end-mark') ? 'end-mark' : el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')), SEAL);
+    })).map((el) => el.hasAttribute('data-end-mark') ? 'end-mark' : el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')), SEAL);
     assert.ok(users.every((u) => u === 'end-mark'), `${t.name}: vermilion on ${users.filter((u) => u !== 'end-mark')}`);
     assert.ok(users.length <= 1, `${t.name}: ${users.length} end marks`);
   });
@@ -42,17 +41,25 @@ test('acceptance §5.2-d Cormorant Garamond is used only inside the gate', async
   const { visit, TEMPLATES } = await h();
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
     const outside = await page.$$eval('body *', (els) => els.filter((el) =>
-      /cormorant/i.test(getComputedStyle(el).fontFamily.split(',')[0]) && !el.closest('[data-gate]') && el.textContent?.trim()).map((el) => el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')));
+      /cormorant/i.test(getComputedStyle(el).fontFamily) && !el.closest('[data-gate]') && el.textContent?.trim()).map((el) => el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')));
     assert.deepEqual(outside, [], `${t.name}: Cormorant outside the gate on ${outside}`);
   });
 });
 
 test('acceptance §5.2-e the navigation scrolls away with the page', async () => {
-  const { visit, SEED } = await h();
+  const { visit, SEED, TEMPLATES } = await h();
   await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }], async (page) => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     const box = await page.locator('[data-site-nav]').boundingBox();
     assert.ok(box === null || box.y + box.height <= 0, 'the navigation is still in the viewport');
+  });
+  // Every other page may be too short to scroll; there, nothing may pin the navigation instead.
+  await visit(['desktop'], TEMPLATES.filter((t) => !t.state && t.kind !== '404'), async (page, ctx, t) => {
+    const pinned = await page.$eval('[data-site-nav]', (nav) => {
+      for (let el = nav; el; el = el.parentElement) if (['fixed', 'sticky'].includes(getComputedStyle(el).position)) return el.tagName;
+      return null;
+    });
+    assert.equal(pinned, null, `${t.name}: the navigation is pinned`);
   });
 });
 
@@ -63,12 +70,15 @@ test('acceptance §5.2-f no post or project cover on the home or list pages', as
     const srcs = await page.$$eval('img', (imgs) => imgs.map((i) => i.currentSrc || i.src));
     const covers = srcs.filter((s) => SEED.coverFiles.some((f) => s.includes(f)));
     assert.deepEqual(covers, [], `${t.name}: cover images shown`);
+    // Whatever the file: the only images on these pages are albums' own photos.
+    const strays = await page.$$eval('main img', (imgs) => imgs.filter((i) => !i.closest('.window-photo, [data-photo-tile]')).map((i) => i.currentSrc || i.src));
+    assert.deepEqual(strays, [], `${t.name}: images other than album photos`);
   });
 });
 
 test('acceptance §5.2-h the tail carries date, tags and language and ends on the end mark; the TOC starts closed', async () => {
   const { visit, SEED } = await h();
-  await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }, { name: 'short note', path: `/en/notes/${SEED.note}` }], async (page, ctx, t) => {
+  await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }, { name: 'short note', path: `/en/notes/${SEED.note}` }, { name: 'project', path: `/en/projects/${SEED.project}` }, { name: 'album', path: `/en/gallery/${SEED.gallery}` }], async (page, ctx, t) => {
     const tail = page.locator('[data-colophon]');
     for (const part of ['written', 'tags', 'language']) assert.equal(await tail.locator(`[data-meta="${part}"]`).count(), 1, `${t.name}: no ${part}`);
     assert.ok(await tail.evaluate((el) => el.querySelector('[data-end-mark]') !== null && el.lastElementChild?.matches('[data-end-mark], :has(> [data-end-mark])')), `${t.name}: tail does not end on the end mark`);

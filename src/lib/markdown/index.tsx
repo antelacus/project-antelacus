@@ -34,6 +34,9 @@ const processor = unified()
   // two math classes are added. href/src protocols are limited to http, https and mailto.
   .use(rehypeSanitize, {
     ...defaultSchema,
+    // Raw HTML never reaches this point (it is text by now), so every id is the pipeline's own: remark-rehype
+    // already prefixes footnote ids, and a second prefix here broke every footnote link.
+    clobberPrefix: '',
     attributes: { ...defaultSchema.attributes, code: [['className', /^language-./, 'math-inline', 'math-display']] },
     protocols: { ...defaultSchema.protocols, href: ['http', 'https', 'mailto'], src: ['http', 'https'] },
   })

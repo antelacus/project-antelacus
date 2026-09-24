@@ -124,16 +124,16 @@
 - SHOULD-11 关于页编辑器复用 `MarkdownEditor` 时上传接口不认 `page` —— status: fixed `8ef2e28`（DESIGN）
 - NICE-1 关于页原文描述了已删除的功能菜单与旧美学 —— status: fixed `8ef2e28`（Batch 2 改写，Jason 审）
 
-**评审发现登记**（Codex 发布前审查，xhigh，五个任务，2026-09-24；引文已逐条对源核实；处置待 Jason 裁定）：
+**评审发现登记**（Codex 发布前审查，xhigh，五个任务，2026-09-24；引文已逐条对源核实；处置见第一区裁定；修后对标题与搜索两任务重跑 Codex）：
 - 关于页回退与缓存（`pages.ts`、`page-locale.ts`）：无发现。`site_pages` 两条迁移：无发现（角色行为 Codex 沙箱无 Docker 未跑，本机 `db-function-check.sh` 已覆盖）
-- P-1 MUST 标题 id 可能与页面既有 id 重复（脚注 `user-content-*`、搜索对话框的 `search-title` / `search-field`）—— status: open
-- P-2 MUST 只有图片的标题得出空文字的目录链接 —— status: open
-- P-3 SHOULD 含 KaTeX 的标题，目录文字是 MathML 与源码的拼接（如 `x2x^2x2`）—— status: open
-- P-4 MUST 搜索「重试」按下即卸载，焦点落到页面 —— status: open
-- P-5 MUST 选中搜索结果后导航，焦点不随新页面 —— status: open
-- C-1…C-11 MUST 本版验收测试的漏洞：搜索不走到结果（C-1）、相册不验证翻页（C-2）、§5.1-f 不查链接与格言 `lang`（C-3）、状态与后台模板无身份文字（C-4）、§5.2-e 只查文章页（C-5）、§5.2-f 靠两个文件名（C-6）、§5.2-h 不查项目与相册（C-7）、§5.3-a 只测纯函数（C-8）、§5.3-b 不测新增语言（C-9）、§5.4-a 规则被删也过（C-10）、§5.5-a 不查 `push` 触发（C-11）—— status: open
-- C-12…C-22 MUST 运行时套件的浅断言：C-13 可缓存、C-19 元数据、C-20 CSP 属本版 REQ §6；其余引用的是 routing-slimdown / content-publishing 的 §-id（Codex 按本版 REQ 误读编号），属旧版测试 —— status: open
-- C-S1 SHOULD 200% 放大以 640 宽 + 2 倍像素模拟，非浏览器缩放；C-S2 SHOULD 朱砂与 Cormorant 检查不看伪元素、只看首个字体 —— status: open
+- P-1 MUST 标题 id 可能与页面既有 id 重复（脚注 `user-content-*`、搜索对话框的 `search-title` / `search-field`）—— status: fixed（页面 id 集中于 `page-ids.ts` 并保留；树中既有 id 保留；修时另见 Batch 4 回归：脚注标题被改 id、`aria-describedby` 失去目标；与 v2.3.0 起的旧错：清洗器二次加前缀，脚注链接从未可用——一并修复）
+- P-2 MUST 只有图片的标题得出空文字的目录链接 —— status: fixed（取图片 alt；无文字者不进目录）
+- P-3 SHOULD 含 KaTeX 的标题，目录文字是 MathML 与源码的拼接（如 `x2x^2x2`）—— status: fixed（目录文字在 KaTeX 之前记下，即公式源码）
+- P-4 MUST 搜索「重试」按下即卸载，焦点落到页面 —— status: fixed（失败过则重试期间按钮保留；成功后焦点移到搜索框；新测试拦截请求验证）
+- P-5 MUST 选中搜索结果后导航，焦点不随新页面 —— status: fixed（导航后焦点移到新页面的 `<main>`，结果即本页时立即移；新测试按 Enter 验证）
+- C-1…C-11 MUST 本版验收测试的漏洞：搜索不走到结果（C-1）、相册不验证翻页（C-2）、§5.1-f 不查链接与格言 `lang`（C-3）、状态与后台模板无身份文字（C-4）、§5.2-e 只查文章页（C-5）、§5.2-f 靠两个文件名（C-6）、§5.2-h 不查项目与相册（C-7）、§5.3-a 只测纯函数（C-8）、§5.3-b 不测新增语言（C-9）、§5.4-a 规则被删也过（C-10）、§5.5-a 不查 `push` 触发（C-11）—— status: fixed（C-3 另查出两处：首页窗与照片格的链接未标写作语言、标签索引的标签名未标为标签——已补）
+- C-12…C-22 MUST 运行时套件的浅断言：C-13 可缓存、C-19 元数据、C-20 CSP 属本版 REQ §6；其余引用的是 routing-slimdown / content-publishing 的 §-id（Codex 按本版 REQ 误读编号），属旧版测试 —— status: C-13、C-19、C-20 fixed（C-13 另查出标签详情页每次请求都渲染、不可缓存，已补空的 `generateStaticParams`）；其余入 TECHNICAL_DEBT TD-021
+- C-S1 SHOULD 200% 放大以 640 宽 + 2 倍像素模拟，非浏览器缩放；C-S2 SHOULD 朱砂与 Cormorant 检查不看伪元素、只看首个字体 —— status: C-S1 accepted（理由写入 DESIGN §2.5），C-S2 fixed
 
 **Phase 4 证据**（进行中）：
 - 真实内容：新版本以生产的两个公开值（只读，不含 service-role）本机构建，遍历站点地图 215 页、五种语言，套用闸门全部规则——axe 0、唯一 h1、无跳级、320px 无横向溢出、朱砂只在终止符、目录链接皆有目标、正文带语言，全过。其间发现并修复：宽的 KaTeX 公式在 320px 撑出页面（公式块内部横向滚动；种子文章加入长公式作回归）。相册封面经本机代理的假 IP（198.18.0.0/15）被 Next 图片优化器按 SSRF 防护拒绝——本机网络所致，生产同一图片 200

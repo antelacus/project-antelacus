@@ -9,9 +9,9 @@ import SiteLink from './SiteLink';
 export default function PhotoTile({ entry }: { entry: Entry }) {
   return (
     <article className="entry tile" data-photo-tile>
-      <SiteLink href={entry.href} className="entry-link">
+      <SiteLink href={entry.href} className="entry-link" lang={entry.lang}>
         {entry.cover && <Image className="tile-image" src={entry.cover} alt={entry.coverAlt ?? ''} width={800} height={600} sizes="(min-width: 48rem) 33vw, 100vw" />}
-        <h2 className="entry-title" data-meta="title" lang={entry.lang}>{entry.title}</h2>
+        <h2 className="entry-title" data-meta="title">{entry.title}</h2>
       </SiteLink>
       <EntryMeta entry={entry} />
     </article>

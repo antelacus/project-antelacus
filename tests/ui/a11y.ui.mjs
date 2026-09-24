@@ -46,13 +46,20 @@ test('acceptance §5.1-f English pages name no interface element in Chinese; the
   const { visit, TEMPLATES, SEED } = await h();
   const english = TEMPLATES.filter((t) => t.path.startsWith('/en'));
   await visit(['desktop'], english, async (page, ctx, t) => {
-    const names = await page.$$eval('[aria-label], button, [role="button"], summary', (els) =>
-      els.filter((el) => !el.closest('[data-content]')).map((el) => el.getAttribute('aria-label') ?? el.textContent ?? ''));
+    // Interface, not content: a piece's own words carry their own lang (or are tags, the author's words).
+    const names = await page.$$eval('[aria-label], button, [role="button"], summary, a, label', (els) =>
+      els.filter((el) => !el.closest('[data-content], [data-meta="tags"]') && el.closest('[lang]')?.getAttribute('lang') === document.documentElement.lang)
+        .map((el) => el.getAttribute('aria-label') ?? el.textContent ?? ''));
     const chinese = names.filter((n) => CJK.test(n));
-    assert.deepEqual(chinese, [], `${t.name}: interface names in Chinese`);
+    assert.deepEqual(chinese, [], `${t.name}: interface names in Chinese: ${chinese.map((n) => n.trim().slice(0, 20))}`);
   });
-  await visit(['desktop'], [{ name: 'zh post under /en', path: `/en/posts/${SEED.post}` }], async (page) => {
-    assert.equal(await page.getAttribute('[data-content]', 'lang'), 'zh-CN');
+  for (const [path, lang] of [[`/en/posts/${SEED.post}`, 'zh-CN'], [`/zh-CN/notes/${SEED.note}`, 'en'], [`/fr/projects/${SEED.project}`, 'en'], ['/fr/about', 'en']]) {
+    await visit(['desktop'], [{ name: path, path }], async (page) => {
+      assert.equal(await page.getAttribute('[data-content]', 'lang'), lang, `${path}: body language`);
+    });
+  }
+  await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
+    assert.equal(await page.getAttribute('[data-gate] [lang]', 'lang'), 'la', 'the motto is not marked Latin');
   });
 });
 

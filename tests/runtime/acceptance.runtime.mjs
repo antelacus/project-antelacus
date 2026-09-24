@@ -133,7 +133,7 @@ test('§5.2-h a remembered manual choice beats the browser; opening a link is no
 });
 
 test('§5.3-a public pages are cacheable, the admin is not', async () => {
-  const paths = WITH_DB ? ['/en/about', '/en', '/en/posts', `/en/posts/${POST_SLUG}`] : [];
+  const paths = WITH_DB ? ['/en/about', '/en', '/en/posts', '/en/notes', '/en/projects', '/en/gallery', '/en/tags', '/en/tags/seed', `/en/posts/${POST_SLUG}`] : [];
   for (const path of paths) {
     await get(path);
     const second = await get(path);
@@ -156,7 +156,7 @@ test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
 // that a redesign can change the page and not break the check (visual-upgrade REQ §6).
 test('every public page names itself, describes itself, and points to its languages and share image', async () => {
   if (!WITH_DB) return;
-  for (const path of ['/en', '/zh-CN/posts', `/en/posts/${POST_SLUG}`, '/fr/about']) {
+  for (const path of ['/en', '/zh-CN/posts', '/es/gallery', '/fr/projects', '/en/tags', '/zh-HK/tags/seed', `/en/posts/${POST_SLUG}`, '/fr/about']) {
     const res = await get(path);
     assert.equal(res.status, 200, path);
     const items = headItems(await res.text());
@@ -210,7 +210,15 @@ test('§5.4-d a malformed slug is a 404 without the database', async () => {
 test('§5.5-a security headers are present and x-powered-by is not', async () => {
   for (const path of [SHELL, '/admin/login']) {
     const res = await get(path);
-    assert.match(res.headers.get('content-security-policy') ?? '', /default-src 'self'/, path);
+    const csp = res.headers.get('content-security-policy') ?? '';
+    assert.match(csp, /default-src 'self'/, path);
+    // Self-hosted everything (REQ §6): the only outside origin any directive names is the image storage
+    // (127.0.0.1 in a build against the local stack).
+    for (const directive of csp.split(';').map((d) => d.trim()).filter(Boolean)) {
+      const [name, ...sources] = directive.split(/\s+/);
+      const outside = sources.filter((src) => /^https?:|^\*|^wss?:/.test(src) && !(name === 'img-src' && /^https:\/\/([a-z0-9-]+\.supabase\.co|127\.0\.0\.1)$/.test(src)));
+      assert.deepEqual(outside, [], `${path}: ${name} admits ${outside}`);
+    }
     assert.match(res.headers.get('strict-transport-security') ?? '', /max-age=\d+/, path);
     assert.equal(res.headers.get('x-powered-by'), null, path);
   }

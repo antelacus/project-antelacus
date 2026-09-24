@@ -1,9 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import { fromSearchItem, type Entry, type SearchIndexItem } from '@/lib/entry';
+import { PAGE_IDS } from '@/lib/page-ids';
 import { searchEntries } from '@/lib/search-filter';
 import CatalogRow from './CatalogRow';
 
@@ -47,22 +49,36 @@ export default function SearchDialog() {
   const trigger = useRef<HTMLElement | null>(null);
   const leaving = useRef(false);
   const [load, setLoad] = useState<Load>('idle');
+  // Once a load has failed, Retry stays mounted through the next attempt: removing a focused button
+  // drops focus onto the page.
+  const [failedBefore, setFailedBefore] = useState(false);
+  const pathname = usePathname();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [query, setQuery] = useState('');
 
   const fetchIndex = async () => {
+    if (load === 'loading') return;
     setLoad('loading');
     try {
       const res = await fetch('/api/search-index');
       if (!res.ok) throw new Error(String(res.status));
       setEntries(((await res.json()) as SearchIndexItem[]).map(fromSearchItem));
-      setLoad('ready');
-      // A retry that succeeds removes its own button; focus moves on to the field instead of the page.
+      // A retry that succeeds removes its own button; focus moves on to the field, not the page.
       if (document.activeElement?.hasAttribute('data-search-retry')) input.current?.focus();
+      setFailedBefore(false);
+      setLoad('ready');
     } catch {
+      setFailedBefore(true);
       setLoad('failed');
     }
   };
+
+  // Choosing a result navigates; the dialog stays in the layout, so focus is taken to the new page.
+  useEffect(() => {
+    if (!leaving.current) return;
+    leaving.current = false;
+    document.getElementById(PAGE_IDS.main)?.focus();
+  }, [pathname]);
 
   const open = (event: React.MouseEvent<HTMLButtonElement>) => {
     trigger.current = event.currentTarget;
@@ -87,7 +103,7 @@ export default function SearchDialog() {
       <dialog
         ref={dialog}
         className="search-dialog"
-        aria-labelledby="search-title"
+        aria-labelledby={PAGE_IDS.searchTitle}
         onKeyDown={dialogKeys}
         onClose={() => {
           if (!leaving.current) trigger.current?.focus();
@@ -99,15 +115,15 @@ export default function SearchDialog() {
       >
         <div className="search-panel">
           <div className="search-head">
-            <h2 id="search-title">{t('search')}</h2>
+            <h2 id={PAGE_IDS.searchTitle}>{t('search')}</h2>
             <button type="button" className="nav-button" onClick={() => dialog.current?.close()}>
               {t('close')}
             </button>
           </div>
-          <label className="search-label" htmlFor="search-field">{t('label')}</label>
+          <label className="search-label" htmlFor={PAGE_IDS.searchField}>{t('label')}</label>
           <input
             ref={input}
-            id="search-field"
+            id={PAGE_IDS.searchField}
             className="search-input"
             type="search"
             value={query}
@@ -117,8 +133,8 @@ export default function SearchDialog() {
           <p className="search-status" role="status">
             {status}
           </p>
-          {load === 'failed' && (
-            <button type="button" className="nav-button" data-search-retry onClick={() => void fetchIndex()}>
+          {(load === 'failed' || (load === 'loading' && failedBefore)) && (
+            <button type="button" className="nav-button" data-search-retry aria-disabled={load === 'loading'} onClick={() => void fetchIndex()}>
               {t('retry')}
             </button>
           )}
@@ -126,9 +142,14 @@ export default function SearchDialog() {
             <ul
               className="catalog"
               onClick={(event) => {
-                if ((event.target as HTMLElement).closest('a')) {
-                  leaving.current = true;
-                  dialog.current?.close();
+                const link = (event.target as HTMLElement).closest('a');
+                if (!link) return;
+                leaving.current = true;
+                dialog.current?.close();
+                // A result on this very page causes no navigation to wait for.
+                if (new URL(link.href).pathname === window.location.pathname) {
+                  leaving.current = false;
+                  document.getElementById(PAGE_IDS.main)?.focus();
                 }
               }}
             >
