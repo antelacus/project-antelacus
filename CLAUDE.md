@@ -49,7 +49,7 @@ The framework constraints behind these rules, each with the measurement that est
 
 ### Search
 
-`src/components/SearchModal.tsx` fetches `/api/search-index` once and filters in memory.
+`src/components/SearchDialog.tsx` fetches `/api/search-index` on first open and filters in memory with `src/lib/search-filter.ts`.
 
 ### Authentication
 

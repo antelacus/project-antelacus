@@ -18,7 +18,7 @@ async function tabTo(page, predicate, limit = 40) {
   assert.fail('target never received focus');
 }
 
-test('acceptance §5.1-c search: open, type, reach a result, Esc returns focus to the trigger', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.1-c search: open, type, reach a result, Esc returns focus to the trigger', async () => {
   const { visit } = await h();
   await visit(['desktop'], [{ name: 'home', path: '/en' }], async (page) => {
     await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-open-search]')));
@@ -34,7 +34,7 @@ test('acceptance §5.1-c search: open, type, reach a result, Esc returns focus t
   });
 });
 
-test('acceptance §5.1-c language: switch to another language with the keyboard', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.1-c language: switch to another language with the keyboard', async () => {
   const { visit } = await h();
   await visit(['desktop'], [{ name: 'posts', path: '/en/posts' }], async (page) => {
     await tabTo(page, (p) => p.evaluate(() => document.activeElement?.matches('[data-language-switch] summary')));

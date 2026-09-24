@@ -4,21 +4,7 @@ import { getAllPhotosMeta } from '@/lib/gallery';
 import { getAllNotesMeta } from '@/lib/notes';
 import { getAllPostsMeta } from '@/lib/posts';
 import { getAllProjectsMeta } from '@/lib/projects';
-
-type ContentType = 'post' | 'note' | 'photo' | 'project';
-
-interface SearchIndexItem {
-  id: string;
-  type: ContentType;
-  slug: string;
-  title: string;
-  summary?: string;
-  tags: string[];
-  date: string;
-  locale: string;
-  cover?: string;
-  lang: string;
-}
+import type { SearchIndexItem } from '@/lib/entry';
 
 export async function GET() {
   try {

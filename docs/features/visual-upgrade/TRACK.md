@@ -77,10 +77,11 @@
 - 执行中的调整：项目页引首不再显示状态与星数（论文：引首只有日期、标题、导语与封面），源码与演示链接移入尾纸；查看器去掉自制的信息浮层（地点、时间已在页面上）与打开 / 关闭动画（动画期间按键被忽略，Esc 会丢）；`TagList` 已无使用者，提前删除
 
 ### Batch 5 — 导航、搜索、语言、页面切换
-- 状态：open
+- 状态：done
 - 范围：`Nav`、`NavLinks`、`SearchDialog`、`search-filter.ts`、`LanguageSwitch`、`SkipLink`、`<ViewTransition>`（关闭 D-1）；删 `UtilityDropdown`、`SearchModal`、`TagList`、四张旧卡片 · 覆盖 REQ §5.1-c/e/g、§5.2-b/e
 - 验收判据：上列 §-id 去 todo 且绿
 - 依赖：Batch 4
+- 执行中的调整：搜索只保留一个输入框，旧的类型、标签、年份、语言筛选器与三种排序删去（待 Jason 确认，可推翻）；原生模态对话框 Tab 会越出、搜索框里 Esc 先被用于清空，二者按 WAI-ARIA 模式手动处理；`use-locale-prefix.ts` 与旧样式的遗留段随使用者一并删除；D-1 关闭（每页包 `PageTransition`）
 
 ### Batch 6 — 收口
 - 状态：open
@@ -122,6 +123,7 @@
 
 **Batch 证据**：
 - Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
+- Batch 5：§5.1-c（搜索、语言）、§5.1-e、§5.1-g、§5.2-b、§5.2-e 与状态对账去 todo 且绿，清单无 pending；§5.1-a 与 §5.1-f 虽仍标 Batch 6，本机已全绿；不变量 19 单元测试入库；本机界面闸门静止 56/56、有库运行时 23/23；单元 95 过；lint 0 错误 0 警告。CI：（待填）
 - Batch 4：§5.1-c（相册）、§5.2-h 去 todo 且绿，查看器与目录两个状态不再 pending；不变量 20 单元测试入库；本机界面闸门 axe 静止 56/56、有库运行时 23/23；单元 89 过。CI：运行 35944160020，`check` 与 `ui` 皆绿
 - Batch 3：§5.1-d、§5.2-a/c/d/f/g 去 todo 且绿；本机界面闸门 axe 静止 56/56、有库运行时 23/23；单元 85 过。修正：闸门构建前清空 `.next-ui`（其中的 Turbopack 构建缓存曾让一次运行判定了上一次的 CSS）。320px 横向溢出 15px 全部来自旧导航，归 Batch 5（§5.1-e）。CI：运行 35939295184，`check` 与 `ui` 皆绿
 - Batch 2：§5.3-a、§5.3-b、§5.3-c 去 todo 且绿；本机界面闸门 axe 56/56、有库运行时套件 23/23；`db-function-check.sh` 全过（含 `site_pages` 角色与迁移重跑保留后台修改）。CI：运行 35878664909，`check` 与 `ui` 皆绿

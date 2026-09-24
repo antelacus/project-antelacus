@@ -1,5 +1,6 @@
 import { getAllPhotosMeta } from '@/lib/gallery';
 import { setRequestLocale } from 'next-intl/server';
+import PageTransition from '@/components/PageTransition';
 import PhotoTile from '@/components/PhotoTile';
 import { fromPhoto } from '@/lib/entry';
 import { getMetaMessage, languageAlternates, canonicalFor } from '@/lib/seo';
@@ -21,6 +22,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
   setRequestLocale(locale);
   const albums = (await getAllPhotosMeta()).map(fromPhoto);
   return (
+    <PageTransition>
     <div className="page">
       <h1 className="page-title">{await getMetaMessage(locale, 'meta.gallery_title')}</h1>
       {albums.length === 0 ? (
@@ -35,5 +37,6 @@ export default async function GalleryPage({ params }: { params: Promise<{ locale
         </ul>
       )}
     </div>
+    </PageTransition>
   );
 }

@@ -17,7 +17,7 @@ test('acceptance §5.5-a axe judged every template at rest in every context, and
   assert.deepEqual(missing(required), []);
 });
 
-test('acceptance §5.5-a axe judged every template in its interactive state', { todo: 'Batch 5' }, (t) => {
+test('acceptance §5.5-a axe judged every template in its interactive state', (t) => {
   for (const state of skippedStates()) t.diagnostic(`skipped, trigger not built yet: ${state}`);
   assert.deepEqual(missing(requiredCoverage().filter((c) => c.state)), []);
 });

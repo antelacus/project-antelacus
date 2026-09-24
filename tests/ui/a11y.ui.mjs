@@ -34,7 +34,7 @@ test('acceptance §5.1-d without hover, every item on the home and list pages sh
   });
 });
 
-test('acceptance §5.1-e at 320px no public page scrolls sideways', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.1-e at 320px no public page scrolls sideways', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['narrow'], TEMPLATES, async (page, ctx, t) => {
     const [scroll, client] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
@@ -56,7 +56,7 @@ test('acceptance §5.1-f English pages name no interface element in Chinese; the
   });
 });
 
-test('acceptance §5.1-g every public page has exactly one h1 and no skipped heading level', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.1-g every public page has exactly one h1 and no skipped heading level', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
     const levels = await page.$$eval('h1, h2, h3, h4, h5, h6', (els) => els.map((e) => Number(e.tagName[1])));

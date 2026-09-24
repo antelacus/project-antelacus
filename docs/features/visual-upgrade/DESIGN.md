@@ -37,7 +37,7 @@
 | `src/components/Toc.tsx`（新，服务端） | 折叠目录：`<details>`/`<summary>` + 锚点列表；条目少于 3 个时不渲染 | UI |
 | `src/components/Nav.tsx`（重写，服务端） | 页首导航：五个栏目链接 + 两个客户端小件；静止、不固定；不再渲染面包屑，面包屑的结构化数据移到详情页的服务端输出 | UI |
 | `src/components/NavLinks.tsx`（新，客户端） | 栏目链接的 `aria-current`（`usePathname`） | UI |
-| `src/components/SearchDialog.tsx`（新，客户端，取代 `SearchModal`） | 原生 `<dialog>`：以标题命名、有可见的关闭按钮；内层面板之外的点击才算点背景；一个常驻的 `role="status"` 区播报加载、无结果、失败，失败时另有「重试」按钮（重试不移走焦点）；结果用 `CatalogRow`；关闭后焦点回到触发按钮 | UI + core（筛选函数） |
+| `src/components/SearchDialog.tsx`（新，客户端，取代 `SearchModal`） | 原生 `<dialog>`：以标题命名、有可见的关闭按钮；内层面板之外的点击才算点背景；一个常驻的 `role="status"` 区播报加载、无结果、失败，失败时另有「重试」按钮（重试不移走焦点）；结果用 `CatalogRow`；关闭后焦点回到触发按钮。只有一个输入框（标题、标签、摘要依次加权），不设类型、标签、年份、语言筛选器——标签与类型由标签页与栏目承担 | UI + core（筛选函数） |
 | `src/lib/search-filter.ts`（新） | 搜索的纯筛选与排序（从 `SearchModal` 抽出） | core |
 | `src/components/LanguageSwitch.tsx`（新，客户端） | `<details>` 里一组普通链接：`/api/locale?to=<语言>&next=<当前路径把首段换成目标语言>`（`usePathname`）；公开页面不带有意义的查询参数，故不保留查询 | UI |
 | `src/components/SiteLink.tsx`（新，共享） | 站内链接的唯一出口：`next-intl` 的 `Link` + `transitionTypes={['page']}`（§2.4） | infra |
@@ -76,7 +76,7 @@
 
 ### 2.4 页面关系与路由
 路由不变。
-- **页面切换**：React 19.3 的 `<ViewTransition>`，`default="none"`，只对 `page` 类型做 150ms 淡入淡出；`page` 只由 `SiteLink` 发出，前进后退、`router.refresh()`、首次加载不触发。不用 CSS `@view-transition { navigation: auto }`——它只作用于整页跳转。包在布局还是每个页面上，Batch 5 原型后定（§5 D-1）。
+- **页面切换**：React 19.3 的 `<ViewTransition>`，`default="none"`，只对 `page` 类型做 150ms 淡入淡出；`page` 只由 `SiteLink` 发出，前进后退、`router.refresh()`、首次加载不触发。不用 CSS `@view-transition { navigation: auto }`——它只作用于整页跳转。包在每个页面上（`PageTransition`，经 `Catalog`、`Article` 或页面自身），不包在布局上：布局跨导航常驻，进出永不触发（Next 16 随包文档 view-transitions 指南）。
 - **悬停**：只在 `(hover: hover) and (pointer: fine)` 下生效，触屏点击后不残留；触屏的按下态靠 `:active`。悬停只改底色与墨色深浅，不显示新信息。
 - **目录锚点**：`id` 在服务端随标题生成，页面不在浏览器里扫描标题。
 
@@ -96,7 +96,7 @@
 ## 3 外部系统约束
 上两版 §8 / §3 全部仍然成立，以下为本版新学到的（Phase 2 实测与查证，对象 Next 16.3.5、React 19.3、Supabase CLI 2.117.0、PhotoSwipe 5.4.4）：
 - **React 19.3**：`<ViewTransition>` 稳定，Next 16 App Router 无需配置；旧的 `experimental.viewTransition` 已不存在。浏览器不支持时 React 直接提交、不动画。它会关掉根的整页过渡，只有被包裹的内容淡入淡出。所有 transition 都会触发它（含前进后退、`router.refresh()`），故用 `default="none"` + 类型限定。过渡期间须 `::view-transition { pointer-events: none }`，否则点击丢失。
-- **`<dialog>` + `showModal()`**（Chrome 37 / Safari 15.4 / Firefox 98）：惰性背景、Esc、焦点移入、Tab 不出对话框为浏览器自带。焦点归还：Safari 点击按钮不给按钮焦点，须自存触发元素；对话框须在 `close()` 之后再卸载。`closedby="any"` Safari 不支持。iOS 背景滚动须另锁（`body:has(dialog[open])`）。对话框自带的焦点管理不播报之后出现的状态文字（4.1.3 须另设状态区）。
+- **`<dialog>` + `showModal()`**（Chrome 37 / Safari 15.4 / Firefox 98）：惰性背景、Esc、焦点移入为浏览器自带；但 Tab 越过最后一个控件时焦点会离开对话框、去往浏览器自身界面（Batch 5 实测），故按 WAI-ARIA 模态对话框模式手动首尾循环。焦点归还：Safari 点击按钮不给按钮焦点，须自存触发元素；对话框须在 `close()` 之后再卸载。`closedby="any"` Safari 不支持。iOS 背景滚动须另锁（`body:has(dialog[open])`）。对话框自带的焦点管理不播报之后出现的状态文字（4.1.3 须另设状态区）。
 - **`<details>`**：键盘与读屏原生；`<summary>` 里不放标题元素；去掉默认三角时须保留另一种可见的展开状态。
 - **中文排印 CSS**：`text-autospace` 默认关闭、须显式开启（Chrome 140 / Safari 18.4 / Firefox 145）；`text-justify: inter-character` Safari 不支持，且用在西文上会拉开词内字母——只作用于 `:lang(zh)`；`text-spacing-trim` 仅 Chrome；`hanging-punctuation` 仅 Safari；`line-break: strict` 全支持。不支持处一律被忽略。这些规则靠 `lang` 生效，故正文容器必须带条目的写作语言。
 - **PhotoSwipe 5.4.4 自带样式**：`.pswp--touch` 下隐藏左右箭头；计数器有文字阴影；黑底；加载指示是无限旋转动画。只在脚本里开按钮不够，须由站点样式覆盖。默认把焦点还给打开前的活动元素，不一定是所点的照片。
@@ -122,4 +122,4 @@
 - **兼容**：以 Chrome、Safari（含 iOS）、Firefox 近两年的版本为准；不支持的新特性（页面切换、部分中文排印）按 §3 优雅退化，不写替代实现。
 
 ## 5 开放设计问题
-- D-1 `<ViewTransition>` 包在 `[locale]/layout.tsx` 的 `{children}` 外一次，还是每个 `page.tsx` 里各包一次：前者一处改动，但布局跨导航常驻，`update` 触发是否成立待原型；Batch 5 实测后关闭，结论写进 §2.4。
+N/A —— D-1 已关闭，结论在 §2.4。

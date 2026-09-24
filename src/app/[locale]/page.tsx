@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
+import PageTransition from '@/components/PageTransition';
 
 import Gate from '@/components/Gate';
 import Window from '@/components/Window';
@@ -26,6 +27,7 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
   const others = windows.filter((w) => w !== photo);
 
   return (
+    <PageTransition>
     <div className="page">
       <Gate />
       <div className={photo ? 'windows' : 'windows windows-text-only'}>
@@ -37,5 +39,6 @@ export default async function LocalizedHome({ params }: { params: Promise<{ loca
         )}
       </div>
     </div>
+    </PageTransition>
   );
 }

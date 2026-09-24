@@ -7,7 +7,7 @@ export default function LocaleError({ reset }: { error: Error & { digest?: strin
     <div className="content-container content-container-standard" style={{ textAlign: 'center', marginTop: '6rem' }}>
       <h1>Something went wrong</h1>
       <p>This page could not be shown right now. It is not you; please try again in a moment.</p>
-      <button type="button" onClick={reset} style={{ marginTop: '1rem', font: 'inherit', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}>
+      <button type="button" className="nav-button" onClick={reset} style={{ marginTop: '1rem', textDecoration: 'underline' }}>
         Try again
       </button>
     </div>

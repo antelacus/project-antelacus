@@ -55,7 +55,12 @@
     "year": "Année",
     "allYears": "Toutes les années",
     "language": "Langue",
-    "allLanguages": "Toutes les langues"
+    "allLanguages": "Toutes les langues",
+    "close": "Fermer",
+    "results": "{count, plural, one {# résultat} other {# résultats}}",
+    "failed": "L’index n’a pas pu être chargé.",
+    "retry": "Réessayer",
+    "label": "Chercher dans les titres, résumés et étiquettes"
   },
   "meta": {
     "posts_title": "Articles",

@@ -342,44 +342,78 @@ button { font: inherit; color: inherit; }
 .pswp .pswp__counter { text-shadow: none; color: var(--color-ink); }
 .pswp .pswp__preloader .pswp__icn { animation: none; transition: none; }
 
-/* ---------- legacy: components v2.4.0 Batches 4–5 replace; flat and still, until they go ---------- */
+/* ---------- navigation, search, language ---------- */
 
-.breadcrumb-bar { margin: var(--space-2) 0; }
-.breadcrumb-inner { font-size: 0.9rem; color: var(--color-ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.breadcrumb-item a { text-decoration: none; }
-.breadcrumb-sep { margin: 0 var(--space-2); }
-.breadcrumb-current { text-decoration: none; }
-.nav-utility-compact { margin-left: 48px; }
-@media (max-width: 450px) { .nav-utility-compact { margin-left: 12px; } }
-
-.card, .card-link { display: block; text-decoration: none; color: inherit; padding: var(--space-3); }
-.card-link:hover { background-color: var(--color-wash-moss); }
-.post-search-card, .photo-search-card, .project-search-card { display: flex; align-items: flex-start; gap: var(--space-2); }
-.note-search-card { display: block; }
-.post-search-content, .photo-search-content, .project-search-content, .post-list-content { flex: 1; min-width: 0; }
-.post-search-cover, .photo-search-cover, .project-search-cover { flex-shrink: 0; width: 120px; height: 90px; overflow: hidden; border: 1px solid var(--color-ink); }
-.post-search-image, .photo-search-image, .project-search-image { width: 100%; height: 100%; object-fit: cover; }
-@media (max-width: 768px) {
-  .search-modal-content { flex-direction: column; }
-  .search-modal-results { min-height: 0; }
-}
-
-.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); }
-.photo-grid-item { display: block; line-height: 0; }
-.photo-grid-image { width: 100%; height: auto; border: 1px solid var(--color-ink); box-sizing: border-box; }
-.photo-grid-overlay, .photo-number { display: none; }
-
-.action-button {
-  display: inline-flex;
+.site-nav { max-width: 72rem; margin: 0 auto; padding: var(--space-3) clamp(var(--space-3), 5vw, var(--space-7)) 0; box-sizing: border-box; }
+.site-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-ink);
-  text-decoration: none;
-  line-height: 1.2;
+  gap: var(--space-2) var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-rule);
+  font-size: 0.9375rem;
 }
-.action-button:hover { background-color: var(--color-wash-moss); }
-.action-button .icon { display: inline-flex; width: 16px; height: 16px; }
+.site-nav-links, .site-nav-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-4); margin: 0; padding: 0; list-style: none; }
+.site-nav-links a { display: inline-block; padding: var(--space-1) 0; text-decoration: none; }
+.site-nav-links a[aria-current="page"] { text-decoration: underline; text-decoration-color: var(--color-ink); }
+@media (hover: hover) and (pointer: fine) {
+  .site-nav-links a:hover { text-decoration: underline; }
+}
+.site-nav-home { font-weight: 500; }
+@media (max-width: 30rem) {
+  .site-nav-links, .site-nav-tools { column-gap: var(--space-3); }
+}
+.nav-button { background: none; border: 0; padding: var(--space-1) 0; cursor: pointer; color: inherit; font: inherit; }
+
+/* The language menu: a disclosure; open, its summary is underlined instead of carrying a triangle. */
+.language-switch { position: relative; }
+.language-switch summary { list-style: none; }
+.language-switch summary::-webkit-details-marker { display: none; }
+.language-switch[open] summary { text-decoration: underline; }
+.language-switch ul {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 10;
+  min-width: 9rem;
+  margin: var(--space-1) 0 0;
+  padding: var(--space-2) var(--space-3);
+  list-style: none;
+  background: var(--color-paper);
+  border: 1px solid var(--color-ink);
+}
+.language-switch li a { display: block; padding: var(--space-1) 0; text-decoration: none; }
+.language-switch a[aria-current="true"] { text-decoration: underline; }
+
+.search-dialog {
+  /* The reset zeroes the auto margin a dialog is centred by; this puts it back, a little below the top. */
+  margin: clamp(var(--space-3), 8vh, var(--space-7)) auto auto;
+  width: min(40rem, calc(100vw - 2 * var(--space-3)));
+  max-height: min(44rem, calc(100dvh - 2 * var(--space-5)));
+  padding: 0;
+  border: 1px solid var(--color-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.search-dialog::backdrop { background: rgb(249 248 246 / 0.9); }
+.search-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); box-sizing: border-box; }
+.search-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }
+.search-head h2 { margin: 0; font-size: 1.25rem; }
+.search-label { font-size: 0.875rem; color: var(--color-ink-soft); }
+/* The browser's own clear button comes in its own colour; select and delete does the same. */
+.search-input::-webkit-search-cancel-button { appearance: none; }
+.search-input { width: 100%; box-sizing: border-box; font: inherit; padding: var(--space-2); border: 1px solid var(--color-ink); background: var(--color-paper); color: var(--color-ink); }
+.search-status { margin: 0; min-height: 1.7em; font-size: 0.875rem; color: var(--color-ink-soft); }
+.search-dialog .entry-title { font-size: 1.0625rem; }
+/* iOS scrolls the page behind a modal dialog unless the page itself stops. */
+body:has(dialog[open]) { overflow: hidden; }
+
+/* ---------- the page change: a short fade, only when a reader follows a site link ---------- */
+
+::view-transition { pointer-events: none; }
+::view-transition-old(.page-fade), ::view-transition-new(.page-fade) { animation-duration: 150ms; }
 
 /* ---------- admin: plain, dense, usable on a phone; outside the thesis ---------- */
 

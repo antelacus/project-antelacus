@@ -55,7 +55,12 @@
     "year": "Year",
     "allYears": "All years",
     "language": "Language",
-    "allLanguages": "All languages"
+    "allLanguages": "All languages",
+    "close": "Close",
+    "results": "{count, plural, one {# result} other {# results}}",
+    "failed": "The index could not be loaded.",
+    "retry": "Try again",
+    "label": "Search titles, summaries and tags"
   },
   "meta": {
     "posts_title": "Posts",

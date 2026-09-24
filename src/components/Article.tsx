@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { extractToc, renderMarkdown } from '@/lib/markdown';
 import Colophon, { type ColophonProps } from './Colophon';
+import PageTransition from './PageTransition';
 import Toc from './Toc';
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
 export default function Article({ title, lang, body, date, lead, cover, after, colophon }: Props) {
   const day = date?.slice(0, 10);
   return (
+    <PageTransition>
     <article className="scroll" data-title={title}>
       <header className="scroll-opening" lang={lang}>
         {day && <time className="scroll-date" dateTime={day}>{day}</time>}
@@ -40,5 +42,6 @@ export default function Article({ title, lang, body, date, lead, cover, after, c
       {after}
       <Colophon {...colophon} />
     </article>
+    </PageTransition>
   );
 }

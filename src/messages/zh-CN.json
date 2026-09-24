@@ -24,7 +24,7 @@
     "skip_to_content": "跳转到主要内容",
     "menu": "功能与目录",
     "search": "搜索",
-    "language": "语言切换",
+    "language": "语言",
     "langSoon": "语言切换（即将推出）",
     "toc": "文章目录"
   },
@@ -55,7 +55,12 @@
     "year": "年份",
     "allYears": "全部年份",
     "language": "语言",
-    "allLanguages": "全部语言"
+    "allLanguages": "全部语言",
+    "close": "关闭",
+    "results": "共 {count} 条",
+    "failed": "索引未能载入。",
+    "retry": "重试",
+    "label": "搜索标题、摘要与标签"
   },
   "meta": {
     "posts_title": "专栏",

@@ -55,7 +55,12 @@
     "year": "Año",
     "allYears": "Todos los años",
     "language": "Idioma",
-    "allLanguages": "Todos los idiomas"
+    "allLanguages": "Todos los idiomas",
+    "close": "Cerrar",
+    "results": "{count, plural, one {# resultado} other {# resultados}}",
+    "failed": "No se pudo cargar el índice.",
+    "retry": "Reintentar",
+    "label": "Busca en títulos, resúmenes y etiquetas"
   },
   "meta": {
     "posts_title": "Artículos",

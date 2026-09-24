@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { fromNote, fromPhoto, fromPost, fromProject } from '../src/lib/entry';
+import { fromNote, fromPhoto, fromPost, fromProject, fromSearchItem } from '../src/lib/entry';
 import { mapPhotoRecordToPhotoMeta } from '../src/lib/photo-types';
 import { mapProjectRecordToProjectMeta } from '../src/lib/project-types';
 import { mapPostRecordToPostMeta } from '../src/lib/post-types';
@@ -43,4 +43,9 @@ test('an album entry carries its cover photo; the cover falls back to the first 
   const album = fromPhoto(mapPhotoRecordToPhotoMeta({ ...row('en', { cover_image_url: null }), gallery_images: images }));
   assert.equal(album.cover, '/images/1.png');
   assert.equal(album.coverAlt, 'One');
+});
+
+test('a search index item adapts like the rest; the index\'s `photo` is an album', () => {
+  const album = fromSearchItem({ id: 'photo:a', type: 'photo', slug: 'a', title: 'A', tags: ['x'], date: '2026-01-01', locale: 'zh', lang: 'fr' });
+  assert.deepEqual([album.type, album.href, album.lang], ['gallery', '/gallery/a', 'fr']);
 });

@@ -24,7 +24,7 @@
     "skip_to_content": "跳至主要內容",
     "menu": "功能與目錄",
     "search": "搜尋",
-    "language": "語言切換",
+    "language": "語言",
     "langSoon": "語言切換（即將推出）",
     "toc": "文章目錄"
   },
@@ -55,7 +55,12 @@
     "year": "年份",
     "allYears": "全部年份",
     "language": "語言",
-    "allLanguages": "全部語言"
+    "allLanguages": "全部語言",
+    "close": "關閉",
+    "results": "共 {count} 條",
+    "failed": "索引未能載入。",
+    "retry": "重試",
+    "label": "搜尋標題、摘要與標籤"
   },
   "meta": {
     "posts_title": "專欄",

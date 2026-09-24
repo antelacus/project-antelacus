@@ -1,4 +1,5 @@
 import { setRequestLocale } from 'next-intl/server';
+import PageTransition from '@/components/PageTransition';
 
 import SiteLink from '@/components/SiteLink';
 import { canonicalFor, getMetaMessage, languageAlternates } from '@/lib/seo';
@@ -19,6 +20,7 @@ export default async function TagsIndexLocalePage({ params }: { params: Promise<
   const tags = await getTagSummaries();
 
   return (
+    <PageTransition>
     <div className="page page-narrow">
       <h1 className="page-title">{await getMetaMessage(locale, 'meta.tags_title')}</h1>
       {tags.length === 0 ? (
@@ -33,5 +35,6 @@ export default async function TagsIndexLocalePage({ params }: { params: Promise<
         </ul>
       )}
     </div>
+    </PageTransition>
   );
 }

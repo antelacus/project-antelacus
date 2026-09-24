@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
 // REQ docs/features/visual-upgrade/REQ.md — the criteria a unit test can carry. Each is marked `todo`
 // with its batch until that batch lands; the version cannot close with a mark left. Criteria that need
@@ -40,6 +40,19 @@ test('invariant 18 — globals.css uses vermilion only for the end mark and Corm
   assert.deepEqual(rulesUsing('var(--color-seal)'), ['.end-mark']);
   assert.deepEqual(rulesUsing('var(--font-gate)'), ['.gate']);
   assert.deepEqual(rulesUsing('--font-cormorant-garamond'), [':root'], 'only the --font-gate definition names Cormorant');
+});
+
+// Invariant 19 (DESIGN §4): hover is the stylesheet's, and colour too — a component that sets either in
+// script bypasses the one place the thesis's rules are checked.
+test('invariant 19 — public components have no mouse-over handlers and no inline colours', () => {
+  const files = (dir: string): string[] => readdirSync(join(ROOT, dir)).flatMap((name) => {
+    const path = join(dir, name);
+    return statSync(join(ROOT, path)).isDirectory() ? files(path) : /\.tsx$/.test(name) ? [path] : [];
+  });
+  const publicFiles = [...files('src/components').filter((f) => !f.startsWith(join('src/components', 'admin'))), ...files('src/app/[locale]')];
+  assert.ok(publicFiles.length > 20, `scanned ${publicFiles.length} files — the scan looks broken`);
+  const offenders = publicFiles.filter((f) => /onMouse(Enter|Leave)|style=\{\{[^}]*\b(color|background(Color)?|borderColor)\s*:/.test(read(f)));
+  assert.deepEqual(offenders.map((f) => relative(ROOT, join(ROOT, f))), []);
 });
 
 // ---------- §5.3 about page in the database ----------

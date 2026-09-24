@@ -18,7 +18,7 @@ test('acceptance §5.2-a vermilion appears only on the end mark, at most once pe
   });
 });
 
-test('acceptance §5.2-b nothing moves while the reader does nothing', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.2-b nothing moves while the reader does nothing', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
     await page.waitForTimeout(1500);
@@ -47,7 +47,7 @@ test('acceptance §5.2-d Cormorant Garamond is used only inside the gate', async
   });
 });
 
-test('acceptance §5.2-e the navigation scrolls away with the page', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.2-e the navigation scrolls away with the page', async () => {
   const { visit, SEED } = await h();
   await visit(['desktop'], [{ name: 'post', path: `/en/posts/${SEED.post}` }], async (page) => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
