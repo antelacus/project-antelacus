@@ -145,16 +145,16 @@
 - 复审（标题）：MUST 无；SHOULD 标题 id 可成 window 命名属性 —— status: accepted（见第一区裁定）。复审（搜索）：MUST 结果即本页时，`dialog.close()` 的 close 事件晚于同步代码到达，`onClose` 又把焦点送回搜索按钮 —— status: fixed（关闭时焦点去向只由 `onClose` 一处决定；新测试覆盖结果即本页）
 
 **评审发现登记**（`/code-review` PR #11，high，同模型整版审查；已逐条对源核实；Jason 裁定全部修复）：
-- R-1 MUST 查看器关闭后焦点总回到第一张：PhotoSwipe 在设置 `currIndex` 之前派发 `beforeOpen`（photoswipe.esm.js 6604 / 6623）—— status: open（改读 `pswp.options.index` 或于 `firstUpdate` 记下；测试打开第二张）
-- R-2 MUST 后台新建稿的草稿缓存只在首次读取时填入：客户端导航回到新建页后恢复空稿并覆盖真稿（TD-020 修法引入）—— status: open（写 sessionStorage 时同步更新缓存）
-- R-3 MUST 任意不存在的标签返回 200 且被缓存（C-13 补缓存后放大）—— status: open（未知标签 404；运行时测试改取真实存在的标签）
-- R-4 SHOULD 按 ⌘/Ctrl 点结果（新标签页打开）也关闭对话框，焦点落空并残留 `navigation` 标记 —— status: open
-- R-5 SHOULD 全局快捷键对无 `key` 的键盘事件调用 `toLowerCase` 会抛错（自动填充）—— status: open
-- R-6 SHOULD `ui-check.sh` 启动与退出时 `supabase stop --no-backup` 会抹掉开发者已在跑的本项目本地栈 —— status: open（已有栈在跑则拒绝运行）
-- R-7 NICE 正文走两遍 Markdown 管道（`extractToc` + `renderMarkdown`）—— status: open（一次运行同时返回正文与目录）
-- R-8 NICE 搜索索引路由另有一套类型映射，并下发无用的 `locale`、`cover` —— status: open（路由直接输出 `Entry`，删 `SearchIndexItem` 与 `fromSearchItem`）
-- R-9 NICE `tags.ts` 的 `getTagStats` 仍用旧 `ContentMeta`，`items` 填了不读 —— status: open（改用 `Entry` 适配器）
-- R-10 SHOULD CLAUDE.md「Styling」仍点名已删除的 `.content-container-wide` 与 `.card` / `.card-link` / `.tag` —— status: open
+- R-1 MUST 查看器关闭后焦点总回到第一张：PhotoSwipe 在设置 `currIndex` 之前派发 `beforeOpen`（photoswipe.esm.js 6604 / 6623）—— status: fixed `cd44faa`
+- R-2 MUST 后台新建稿的草稿缓存只在首次读取时填入：客户端导航回到新建页后恢复空稿并覆盖真稿（TD-020 修法引入）—— status: fixed `cd44faa`（新界面测试在未修构建上确认为红）
+- R-3 MUST 任意不存在的标签返回 200 且被缓存（C-13 补缓存后放大）—— status: fixed `cd44faa`
+- R-4 SHOULD 按 ⌘/Ctrl 点结果（新标签页打开）也关闭对话框，焦点落空并残留 `navigation` 标记 —— status: fixed `cd44faa`
+- R-5 SHOULD 全局快捷键对无 `key` 的键盘事件调用 `toLowerCase` 会抛错（自动填充）—— status: fixed `cd44faa`
+- R-6 SHOULD `ui-check.sh` 启动与退出时 `supabase stop --no-backup` 会抹掉开发者已在跑的本项目本地栈 —— status: fixed `cd44faa`
+- R-7 NICE 正文走两遍 Markdown 管道（`extractToc` + `renderMarkdown`）—— status: fixed `cd44faa`
+- R-8 NICE 搜索索引路由另有一套类型映射，并下发无用的 `locale`、`cover` —— status: fixed `cd44faa`
+- R-9 NICE `tags.ts` 的 `getTagStats` 仍用旧 `ContentMeta`，`items` 填了不读 —— status: fixed `cd44faa`（同时删去无人读取的 `types`）
+- R-10 SHOULD CLAUDE.md「Styling」仍点名已删除的 `.content-container-wide` 与 `.card` / `.card-link` / `.tag` —— status: fixed `cd44faa`（新测试：Styling 点名的类须在 `globals.css` 中存在）
 
 **Phase 4 证据**（2026-09-24 齐备）：
 - 真实内容：新版本以生产的两个公开值（只读，不含 service-role）本机构建，遍历站点地图 215 页、五种语言，套用闸门全部规则——axe 0、唯一 h1、无跳级、320px 无横向溢出、朱砂只在终止符、目录链接皆有目标、正文带语言，全过。其间发现并修复：宽的 KaTeX 公式在 320px 撑出页面（公式块内部横向滚动；种子文章加入长公式作回归）。相册封面经本机代理的假 IP（198.18.0.0/15）被 Next 图片优化器按 SSRF 防护拒绝——本机网络所致，生产同一图片 200
@@ -164,6 +164,7 @@
 - §5.1-h：Jason 在本地合成栈只用键盘完成登录、新建、存草稿、发布：通过
 - Codex 发布前审查：五个任务 + 两个复审，全部 MUST 已修，门关闭（第一区裁定）
 - 最终树：本机界面闸门 27/27、axe 静止 68/68、有库运行时 23/23、单元 100、lint 0 警告
+- R-1…R-10 修后（`cd44faa`）：本机界面闸门 30/30、axe 静止 68/68、有库运行时 24/24、单元 100、lint 0 警告
 
 **Batch 证据**：
 - Batch 1：本机 `scripts/ui-check.sh` 退出 0——axe 判定静止组合 56/56，植入按钮四环境皆报出，有库运行时套件 23/23；colima、栈、应用均已拆除。浏览器检查约 83 秒。CI：运行 35874205263，`check` 与 `ui` 皆绿，`ui` 同样 56/56、23/23
