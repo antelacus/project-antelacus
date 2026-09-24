@@ -23,7 +23,7 @@
   - 公开页面保持可缓存：规则在项目 `CLAUDE.md`「Routing and languages」
   - 生产数据库的迁移仍由人执行，机器只核对
 - Phase 0 待核（外部约束，结论写进 DESIGN 的外部约束一节）：
-  - VPS：CPU / 内存 / 磁盘余量；已占端口（goodman 预发布用 3001）；Docker 与 compose 版本；nginx 的生效配置
+  - VPS（已核）：6 核、内存 7.8 GiB（可用 5.0）、磁盘余 103 G、负载 0.5–0.8；Docker 29.8.1、Compose v5.5.1、nginx 1.24.0；端口 3000–3002 已占，3003 空闲；goodman 预发布没有 nginx 站点，只在 127.0.0.1:3001；每个站点只放行 Cloudflare IP（`cloudflare-ips.conf` + `deny all`）；源站证书为通配 `*.antelacus.com`，2040 年到期
   - 镜像仓库：私有镜像的额度与 VPS 拉取的认证方式
   - Cloudflare：预发布子域的访问控制在当前套餐是否可用
   - Supabase：预发布域名下的登录（Auth 的站点地址与回调设置）；没有 service-role 密钥时后台能打开到什么程度
