@@ -56,7 +56,7 @@
 - 依赖：none
 
 ### Batch 2 — 关于页进库
-- 状态：代码完成（本机闸门与 `db-function-check.sh` 皆绿）；待 Jason 审中英文正文，待在 Supabase 执行两条迁移并核对——二者都在合并之前
+- 状态：done——正文 Jason 已审；两条迁移 2026-09-24 已在 Supabase 执行；核对查询的结果待 Jason 回报（合并前）
 - 范围：两条迁移（表、改写后的五份正文）、`db-function-check.sh` 角色检查、`sitemap-entries.ts`、`pages-repo.ts`、`pages.ts`、`page-locale.ts`、`about/page.tsx`、`/admin/pages/**`；删 `src/content/pages/`、`next-mdx-remote`、`gray-matter` · 覆盖 REQ §5.3
 - 验收判据：§5.3-a/b/c 去 todo；上线前在 Supabase 执行迁移并跑核对查询；Jason 审中英文正文；`db-function-check.sh` 仍绿
 - 依赖：Batch 1
