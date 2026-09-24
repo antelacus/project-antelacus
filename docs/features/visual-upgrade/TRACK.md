@@ -181,7 +181,8 @@
 - [ ] 闸门读数：每道闸门的运行次数 / 改变了输出的拦截次数
 - [ ] 文档预算绿（`scripts/check_doc_budget.py`）；memory 清理
 - [ ] 验收触发登记：线上一次真实访问（读文章、搜索、看相册、切语言）无异常
-- [ ] 本机清理：删除 `.env.prod-check`（含生产密钥）；Clash 脚本的 `+.supabase.co` 一行去留由 Jason 定
+- [x] 本机清理：`.env.prod-check` 已删除（Jason，2026-09-24）
+- [ ] Clash 脚本里 `+.supabase.co` 一行的去留（Jason 定；备份 `sK5xH7G8Nriz.js.bak-2026-09-24`）
 - [ ] TRACK 关闭——最后一项：未结事项迁出后 `git mv TRACK.md TRACK_v2.4.0.md`
 
 ## 四、Session-end pickup
