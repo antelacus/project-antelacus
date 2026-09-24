@@ -19,18 +19,18 @@ export async function getMetaMessage(locale: string, key: string): Promise<strin
 // and summary, which change. One day, like the other images.
 export const SHARE_IMAGE_CACHE_CONTROL = 'public, max-age=86400';
 
+// A page's path under a locale; the home page is the locale itself, without a trailing slash.
+function underLocale(locale: string, path: string) {
+  const trimmed = path.replace(/^\/+|\/+$/g, '');
+  return trimmed ? `/${locale}/${trimmed}` : `/${locale}`;
+}
+
 export function languageAlternates(path: string) {
-  const normalized = path.startsWith('/') ? path : `/${path}`;
-  const map: Record<string, string> = {};
-  for (const l of locales) {
-    map[l] = `/${l}${normalized}`.replace(/\/+/, '/');
-  }
-  return map;
+  return Object.fromEntries(locales.map((l) => [l, underLocale(l, path)]));
 }
 
 export function canonicalFor(locale: string, path: string) {
-  const normalized = path.startsWith('/') ? path : `/${path}`;
-  return `/${locale}${normalized}`.replace(/\/+/, '/');
+  return underLocale(locale, path);
 }
 
 // The trail a detail page reports in its structured data: home, its section, itself.

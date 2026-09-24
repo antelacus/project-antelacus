@@ -101,5 +101,13 @@
     "zoom": "Ampliar",
     "error": "No se pudo cargar la foto.",
     "photo": "Foto {n}"
+  },
+  "status": {
+    "notFoundTitle": "Página no encontrada",
+    "notFoundBody": "La página que buscas no existe o se ha movido.",
+    "errorTitle": "Algo salió mal",
+    "errorBody": "Esta página no se puede mostrar ahora. No es cosa tuya; inténtalo de nuevo en un momento.",
+    "retry": "Reintentar",
+    "home": "Volver a la portada"
   }
 }

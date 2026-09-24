@@ -1,7 +1,7 @@
 import Article from '@/components/Article';
 import { getPhotoBySlug, getPhotoSlugs } from '@/lib/gallery';
 import { setRequestLocale } from 'next-intl/server';
-import { detailTrail, languageAlternates } from '@/lib/seo';
+import { canonicalFor, detailTrail, languageAlternates } from '@/lib/seo';
 import { SITE_ORIGIN } from '@/lib/site';
 import { imageGalleryJsonLd, jsonLdScript, breadcrumbJsonLd } from '@/lib/structured-data';
 import { notFound } from 'next/navigation';
@@ -15,8 +15,8 @@ export function generateStaticParams() {
   return [];
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
   // Metadata renders outside the error boundary: a database failure here would be a bare 500, so
   // it falls back to the layout's defaults and lets the page body raise the error where it is caught.
   try {
@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: photo.title,
       description: photo.caption || photo.title,
       alternates: {
+        canonical: canonicalFor(locale, `/gallery/${photo.slug}`),
         languages: languageAlternates(`/gallery/${photo.slug}`),
       },
       openGraph: {

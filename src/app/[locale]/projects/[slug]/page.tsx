@@ -3,7 +3,7 @@ import { getProjectBySlug, getProjectSlugs } from '@/lib/projects';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { isNotFoundError } from '@/lib/not-found';
-import { detailTrail, getMetaMessage, languageAlternates } from '@/lib/seo';
+import { canonicalFor, detailTrail, getMetaMessage, languageAlternates } from '@/lib/seo';
 import { SITE_ORIGIN } from '@/lib/site';
 import { softwareProjectJsonLd, jsonLdScript, breadcrumbJsonLd } from '@/lib/structured-data';
 
@@ -13,8 +13,8 @@ export function generateStaticParams() {
   return [];
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
   // Metadata renders outside the error boundary: a database failure here would be a bare 500, so
   // it falls back to the layout's defaults and lets the page body raise the error where it is caught.
   try {
@@ -25,6 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       title: project.name, 
       description: project.description || '',
       alternates: {
+        canonical: canonicalFor(locale, `/projects/${project.slug}`),
         languages: languageAlternates(`/projects/${project.slug}`),
       },
       openGraph: {

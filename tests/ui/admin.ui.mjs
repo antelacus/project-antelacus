@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const h = () => import('./harness.mjs');
 
-test('acceptance §5.1-b the four admin templates have zero axe violations', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.1-b the four admin templates have zero axe violations', async () => {
   const { visitAdmin, axe, ADMIN_TEMPLATES } = await h();
   const failures = [];
   await visitAdmin(ADMIN_TEMPLATES, async (page, t) => {

@@ -93,7 +93,7 @@ test('acceptance §5.3 the about migration holds five languages whose bodies ren
 
 // ---------- §5.4 hook rules ----------
 
-test('acceptance §5.4-a the three React Compiler rules are no longer downgraded', { todo: 'Batch 6' }, () => {
+test('acceptance §5.4-a the three React Compiler rules are no longer downgraded', () => {
   const config = read('eslint.config.mjs');
   for (const rule of ['set-state-in-effect', 'immutability', 'static-components']) {
     assert.doesNotMatch(config, new RegExp(`react-hooks/${rule}['"]\\s*:\\s*['"]?(warn|off|1|0)`), `${rule} is still downgraded`);

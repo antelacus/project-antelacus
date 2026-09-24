@@ -164,10 +164,9 @@ button { font: inherit; color: inherit; }
 .page-title { margin: var(--space-4) 0 var(--space-5); }
 .page-empty { color: var(--color-ink-soft); }
 
-/* Detail pages and the admin, until their own layouts (v2.4.0 Batch 4). */
+/* The admin's page frame. */
 .content-container { width: 100%; margin: 0 auto; padding: var(--space-5) var(--space-3); box-sizing: border-box; }
 .content-container-standard { max-width: 52rem; }
-.content-container-wide { max-width: 72rem; }
 @media (min-width: 48rem) {
   .content-container { padding: var(--space-6) var(--space-5); }
 }
@@ -341,6 +340,9 @@ button { font: inherit; color: inherit; }
 .pswp .pswp__button, .pswp .pswp__counter { opacity: 1; }
 .pswp .pswp__counter { text-shadow: none; color: var(--color-ink); }
 .pswp .pswp__preloader .pswp__icn { animation: none; transition: none; }
+
+.status-actions { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: baseline; }
+.status-retry { text-decoration: underline; text-underline-offset: 0.2em; }
 
 /* ---------- navigation, search, language ---------- */
 

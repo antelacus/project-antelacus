@@ -101,5 +101,13 @@
     "zoom": "縮放",
     "error": "照片未能載入。",
     "photo": "照片 {n}"
+  },
+  "status": {
+    "notFoundTitle": "頁面未找到",
+    "notFoundBody": "你要找的頁面不存在，或已被移走。",
+    "errorTitle": "出了點問題",
+    "errorBody": "這個頁面暫時無法顯示。不是你的原因，請稍後再試。",
+    "retry": "重試",
+    "home": "回到首頁"
   }
 }

@@ -1,4 +1,4 @@
-// Acceptance checks that only a running server can answer (REQ §5.2, §5.3-a, §5.4-c, §6-a).
+// Acceptance checks that only a running server can answer (REQ §5.2, §5.3-a, §5.4-c).
 //   BASE_URL=http://localhost:3000 npm run test:runtime          — a local build; pages that need the database are left out
 //   BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime — production, everything
 //   scripts/ui-check.sh                                          — everything, against the seeded local stack
@@ -11,14 +11,11 @@
 //   npx next build && npx next start -p 3917 &      then   BASE_URL=http://localhost:3917 npm run test:runtime
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { headItems } from './head-items.mjs';
 
 const BASE = process.env.BASE_URL?.replace(/\/$/, '');
 if (!BASE) throw new Error('BASE_URL is required — refusing to report a green run that checked nothing');
 const WITH_DB = process.env.RUNTIME_DB === '1';
-// The seeded stack of scripts/ui-check.sh: a database, but not production's content.
-const LOCAL_STACK = WITH_DB && ['127.0.0.1', 'localhost'].includes(new URL(BASE).hostname);
 // A post in production and in supabase/seed.sql alike.
 const POST_SLUG = '2025-07-13-llm-note';
 // A page in the site's own document without the database: the 404.
@@ -155,20 +152,23 @@ test('§5.4-c /sw.js is a short-lived, self-removing stub', async () => {
   assert.match(await res.text(), /registration\.unregister\(\)/);
 });
 
-test('§6-a document metadata is unchanged by the root-layout move', async () => {
-  // The baseline is production's heads; the seeded stack has other content. Retires in v2.4.0 Batch 6.
-  if (LOCAL_STACK) return;
-  const baseline = JSON.parse(readFileSync(new URL('./fixtures/head-baseline.json', import.meta.url), 'utf8')).pages;
-  const needsDb = (path) => path !== '/admin/login';
-  // Ruled allowed differences (REQ §6): which pages preload the nav image changed with the layout move,
-  // and the two hand-written font preloads pointed at files that never existed (next/font preloads its own).
-  const comparable = (item) => !item.startsWith('link:preload(image)=') && !item.startsWith('link:preload(font)=/fonts/') && !item.startsWith('link:preconnect=');
-  const paths = Object.keys(baseline).filter((path) => WITH_DB || !needsDb(path));
-  assert.ok(paths.length >= 1, 'nothing to compare');
-  for (const path of paths) {
-    const res = await fetch(BASE + path);
-    assert.equal(res.status, baseline[path].status, path);
-    assert.deepEqual(headItems(await res.text()).filter(comparable), baseline[path].head.filter(comparable), path);
+// What routing-slimdown §6-a guarded with a frozen copy of production's heads, asserted by meaning so
+// that a redesign can change the page and not break the check (visual-upgrade REQ §6).
+test('every public page names itself, describes itself, and points to its languages and share image', async () => {
+  if (!WITH_DB) return;
+  for (const path of ['/en', '/zh-CN/posts', `/en/posts/${POST_SLUG}`, '/fr/about']) {
+    const res = await get(path);
+    assert.equal(res.status, 200, path);
+    const items = headItems(await res.text());
+    const values = (prefix) => items.filter((item) => item.startsWith(prefix)).map((item) => item.slice(prefix.length));
+    assert.equal(values('title=').filter(Boolean).length, 1, `${path}: title`);
+    assert.ok(values('meta:description=')[0], `${path}: description`);
+    assert.deepEqual(values('link:canonical='), [`https://www.antelacus.com${path}`], `${path}: canonical`);
+    const rest = path.split('/').slice(2).join('/');
+    for (const locale of ['zh-CN', 'zh-HK', 'en', 'es', 'fr']) {
+      assert.deepEqual(values(`link:alternate[${locale}]=`), [`https://www.antelacus.com/${locale}${rest ? `/${rest}` : ''}`], `${path}: alternate ${locale}`);
+    }
+    assert.match(values('meta:og:image=')[0] ?? '', /^https:\/\/www\.antelacus\.com\/.+/, `${path}: share image`);
   }
 });
 

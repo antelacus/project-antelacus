@@ -10,11 +10,16 @@ import { selectWindows } from '@/lib/home';
 import { getAllNotesMeta } from '@/lib/notes';
 import { getAllPostsMeta } from '@/lib/posts';
 import { getAllProjectsMeta } from '@/lib/projects';
+import { canonicalFor, languageAlternates } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: { absolute: 'Ante Lacus, Pax Mentis' },
-  description: 'Ante Lacus, Pax Mentis',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    title: { absolute: 'Ante Lacus, Pax Mentis' },
+    description: 'Ante Lacus, Pax Mentis',
+    alternates: { canonical: canonicalFor(locale, ''), languages: languageAlternates('') },
+  };
+}
 
 // The gate, then the framed view: the newest album as the large window, the newest post, note and
 // project beside it (docs/aesthetic-thesis.md, 五「首页」).

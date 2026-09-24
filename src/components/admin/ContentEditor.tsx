@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, useSyncExternalStore } from 'react';
 import { useFormStatus } from 'react-dom';
 
 import { saveContentAction, type SaveState } from '@/app/admin/(protected)/content/actions';
@@ -49,6 +49,20 @@ const dateInput = (value: string) => {
   return value.includes('T') ? value.slice(0, 16) : '';
 };
 
+// The body a lost tab left behind, read from this tab's storage once per page load. The server has none,
+// so the first render matches it; the draft arrives on the client's next render (useSyncExternalStore),
+// not through an effect setting state.
+const drafts = new Map<string, string>();
+const noSubscription = () => () => {};
+function readDraft(key: string): string {
+  if (!drafts.has(key)) {
+    let stored = '';
+    try { stored = sessionStorage.getItem(key) ?? ''; } catch { /* storage may be unavailable */ }
+    drafts.set(key, stored);
+  }
+  return drafts.get(key)!;
+}
+
 function SubmitButton({ intent, children, primary }: { intent: 'draft' | 'publish'; children: string; primary?: boolean }) {
   const { pending } = useFormStatus();
   return (
@@ -71,19 +85,18 @@ export default function ContentEditor({ type, initial, notice }: Props) {
   // existing item needs no backup: a failed save returns to this same form with its state intact.
   const draftKey = `editor:${type}:new`;
   const backingUp = !initial;
+  const draft = useSyncExternalStore(noSubscription, () => (backingUp && !notice ? readDraft(draftKey) : ''), () => '');
+  // Once the author has touched the body, even to empty it, what they wrote wins over the draft.
+  const [bodyTouched, setBodyTouched] = useState(false);
+  const content = bodyTouched ? value.content : value.content || draft;
   useEffect(() => {
     try {
-      if (notice) sessionStorage.removeItem(draftKey);
-      else if (backingUp) {
-        const stored = sessionStorage.getItem(draftKey);
-        if (stored) setValue((current) => (current.content ? current : { ...current, content: stored }));
-      }
+      if (notice) {
+        sessionStorage.removeItem(draftKey);
+        drafts.delete(draftKey);
+      } else if (backingUp) sessionStorage.setItem(draftKey, content);
     } catch { /* storage may be unavailable; the form still works */ }
-  }, [draftKey, backingUp, notice]);
-  useEffect(() => {
-    if (!backingUp) return;
-    try { sessionStorage.setItem(draftKey, value.content); } catch { /* ignore */ }
-  }, [draftKey, backingUp, value.content]);
+  }, [draftKey, backingUp, notice, content]);
 
   const upload = async (file: File) => {
     if (!value.slug) throw new Error('Set the slug before uploading, it names the folder');
@@ -101,7 +114,7 @@ export default function ContentEditor({ type, initial, notice }: Props) {
     <form action={formAction} style={{ display: 'grid', gap: '1rem' }}>
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="id" value={initial?.id ?? ''} />
-      <input type="hidden" name="content" value={value.content} />
+      <input type="hidden" name="content" value={content} />
       <input type="hidden" name="cover" value={value.cover} />
       <input type="hidden" name="metadata" value={JSON.stringify(initial?.metadata ?? {})} />
       {/* Enter in a text field submits through the first submit button; this one keeps the item's status. */}
@@ -164,8 +177,8 @@ export default function ContentEditor({ type, initial, notice }: Props) {
           <button type="button" className="admin-button" onClick={() => setShowPreview((v) => !v)}>{showPreview ? 'Hide preview' : 'Preview'}</button>
         </div>
         <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: showPreview ? 'repeat(auto-fit, minmax(20rem, 1fr))' : '1fr' }}>
-          <MarkdownEditor value={value.content} onChange={(content) => set('content', content)} onUpload={(file) => upload(file).then((u) => u.url)} onError={setError} />
-          {showPreview && <MarkdownPreview value={value.content} />}
+          <MarkdownEditor value={content} label={type === 'gallery' ? 'Notes' : 'Body'} onChange={(next) => { setBodyTouched(true); set('content', next); }} onUpload={(file) => upload(file).then((u) => u.url)} onError={setError} />
+          {showPreview && <MarkdownPreview value={content} />}
         </div>
       </div>
 

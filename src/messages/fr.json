@@ -101,5 +101,13 @@
     "zoom": "Zoomer",
     "error": "La photo n’a pas pu être chargée.",
     "photo": "Photo {n}"
+  },
+  "status": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundBody": "La page que vous cherchez n’existe pas ou a été déplacée.",
+    "errorTitle": "Une erreur est survenue",
+    "errorBody": "Cette page ne peut pas s’afficher pour le moment. Ce n’est pas de votre fait ; réessayez dans un instant.",
+    "retry": "Réessayer",
+    "home": "Retour à l’accueil"
   }
 }

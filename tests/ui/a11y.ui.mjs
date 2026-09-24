@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const h = () => import('./harness.mjs');
 const CJK = /[㐀-鿿]/;
 
-test('acceptance §5.1-a every public template has zero axe violations in all four contexts', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.1-a every public template has zero axe violations in all four contexts', async () => {
   const { visit, axe, TEMPLATES, CONTEXTS } = await h();
   const failures = [];
   await visit(Object.keys(CONTEXTS), TEMPLATES, async (page, ctx, t) => {
@@ -42,7 +42,7 @@ test('acceptance §5.1-e at 320px no public page scrolls sideways', async () => 
   });
 });
 
-test('acceptance §5.1-f English pages name no interface element in Chinese; the article body carries its own language', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.1-f English pages name no interface element in Chinese; the article body carries its own language', async () => {
   const { visit, TEMPLATES, SEED } = await h();
   const english = TEMPLATES.filter((t) => t.path.startsWith('/en'));
   await visit(['desktop'], english, async (page, ctx, t) => {
@@ -65,7 +65,7 @@ test('acceptance §5.1-g every public page has exactly one h1 and no skipped hea
   });
 });
 
-test('acceptance §5.1-i tablet and 200% zoom do not scroll sideways; WCAG 1.4.12 spacing clips no text', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.1-i tablet and 200% zoom do not scroll sideways; WCAG 1.4.12 spacing clips no text', async () => {
   const { visit, TEMPLATES } = await h();
   await visit(['tablet', 'zoom200'], TEMPLATES, async (page, ctx, t) => {
     const [scroll, client] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
@@ -73,11 +73,23 @@ test('acceptance §5.1-i tablet and 200% zoom do not scroll sideways; WCAG 1.4.1
   });
   await visit(['desktop'], TEMPLATES, async (page, ctx, t) => {
     await page.addStyleTag({ content: '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }' });
+    // Clipped text, not clipped content: a line of text that ends up outside a container that hides its
+    // overflow. (A carousel hiding its off-screen images is not a 1.4.12 failure.)
     const clipped = await page.$$eval('body *', (els) => els.filter((el) => {
       const s = getComputedStyle(el);
-      const hides = [s.overflow, s.overflowX, s.overflowY].some((o) => o === 'hidden' || o === 'clip');
-      return hides && el.textContent?.trim() && (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1);
-    }).map((el) => el.tagName));
-    assert.deepEqual(clipped, [], `${t.name}: text clipped under 1.4.12 spacing`);
+      if (![s.overflow, s.overflowX, s.overflowY].some((o) => o === 'hidden' || o === 'clip')) return false;
+      const box = el.getBoundingClientRect();
+      const texts = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let node = texts.nextNode(); node; node = texts.nextNode()) {
+        if (!node.textContent?.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        for (const line of range.getClientRects()) {
+          if (line.width && (line.bottom > box.bottom + 1 || line.right > box.right + 1 || line.top < box.top - 1 || line.left < box.left - 1)) return true;
+        }
+      }
+      return false;
+    }).map((el) => el.tagName.toLowerCase() + [...el.classList].slice(0, 3).map((c) => '.' + c).join('')));
+    assert.deepEqual(clipped, [], `${t.name}: text clipped under 1.4.12 spacing in ${clipped}`);
   });
 });

@@ -11,6 +11,8 @@ import { basicSetup } from 'codemirror';
 // is text only: pasted or dropped images are ignored and there is no image button.
 export type MarkdownEditorProps = {
   value: string;
+  /** The editing area's accessible name — the visible label beside it. */
+  label: string;
   onChange(next: string): void;
   onUpload?(file: File): Promise<string>;
   onError?(message: string): void;
@@ -18,7 +20,7 @@ export type MarkdownEditorProps = {
 
 const isImage = (file: File) => file.type.startsWith('image/');
 
-export default function MarkdownEditor({ value, onChange, onUpload, onError }: MarkdownEditorProps) {
+export default function MarkdownEditor({ value, label, onChange, onUpload, onError }: MarkdownEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const latest = useRef({ onChange, onUpload, onError });
@@ -52,6 +54,8 @@ export default function MarkdownEditor({ value, onChange, onUpload, onError }: M
           basicSetup,
           markdown(),
           EditorView.lineWrapping,
+          // CodeMirror's editing area is a textbox; without a name a screen reader announces only that.
+          EditorView.contentAttributes.of({ 'aria-label': label }),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) latest.current.onChange(update.state.doc.toString());
           }),

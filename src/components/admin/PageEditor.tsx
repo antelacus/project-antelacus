@@ -71,7 +71,7 @@ export default function PageEditor({ slug, locale, initial, notice }: Props) {
         </div>
         <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: showPreview ? 'repeat(auto-fit, minmax(20rem, 1fr))' : '1fr' }}>
           <div data-editor-body>
-            <MarkdownEditor value={body} onChange={setBody} />
+            <MarkdownEditor value={body} label="Body" onChange={setBody} />
           </div>
           {showPreview && <MarkdownPreview value={body} />}
         </div>

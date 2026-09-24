@@ -1,10 +1,18 @@
+import { useTranslations } from 'next-intl';
+
+import SiteLink from '@/components/SiteLink';
+
+// A page that does not exist under a known language (an unknown slug, an about page with no published
+// version): the opening of a scroll, and the way home.
 export default function LocaleNotFound() {
+  const t = useTranslations('status');
   return (
-    <div className="content-container content-container-standard">
-      <h1 className="text-xl mb-2">页面未找到</h1>
-      <p>你访问的页面不存在或已被移动。</p>
+    <div className="page page-narrow">
+      <div className="scroll-opening">
+        <h1 className="scroll-title">{t('notFoundTitle')}</h1>
+        <p className="scroll-lead">{t('notFoundBody')}</p>
+        <p><SiteLink href="/">{t('home')}</SiteLink></p>
+      </div>
     </div>
   );
 }
-
-
