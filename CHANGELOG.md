@@ -4,6 +4,11 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.4.1 - 2026-09-24
+
+### Fixed
+- The admin works again when signed in. Since v2.4.0 every signed-in admin page answered with Cloudflare's 502: the response headers, session cookies included, outgrew the web server's default buffer for them.
+
 ## v2.4.0 - 2026-09-24
 
 ### Added
