@@ -44,6 +44,7 @@
   - 2026-09-23 · REQ 定稿，Phase 1 关闭：目录门槛为 3 个及以上二级标题；闸门每次临时拉起 Docker 数据库并填入合成内容，查完即删，后台审计共用此环境 · Jason · 级联：REQ §5.2、§5.5
   - 2026-09-23 · Phase 2 三刀：关于页存新表（每行 = 页面 × 语言），不进 `content_items`（推翻 v2.3.0「作 `page` 类型进 `content_items`」：该法须加不可删的枚举值并放宽同类型 slug 唯一约束）；公开组件按三种形态重切（窗、目录行、照片格），服务端渲染、悬停交给 CSS、功能菜单删除、目录由渲染器生成、样式回 `globals.css`；闸门新增任务：本地 Supabase CLI 四服务 + 合成种子 + Playwright（作库，跑在 node:test 下）+ axe，另有同流程本地脚本 · Jason · 级联：DESIGN（待写）
   - 2026-09-23 · Codex 设计门处置：MUST 全修，SHOULD 全采纳（SHOULD-1 不做焦点遮挡检查、SHOULD-10 只扩到状态与首载），Jason 对处置表未提异议；窗与目录行显示写作语言；关于页编辑器纯文字、不上传图片；关于页五种语言的正文由 Claude 改写（删过时描述、加格言释义），Jason 审 · Jason · 级联：DESIGN §2、§4；REQ §5.1-i、§5.3、§7
+  - 2026-09-24 · §5.5-b 的分支实验移到 Batch 6：§5.1-a 去 todo 之前，源码里的违例无从让闸门变红；此前由每次运行植入的无名按钮证明检查不空转 · Jason · 级联：本 TRACK Batch 1、Batch 6
 
 ## 二、批次
 
@@ -52,7 +53,7 @@
 ### Batch 1 — 界面闸门
 - 状态：done（`d56ce65`，CI 35874205263）
 - 范围：`supabase/config.toml`、`supabase/seed.sql`、`scripts/ui-check.sh`、`tests/ui/harness.mjs` 与 `manifest.mjs`、`next.config.ts`（`distDir` 可覆盖）、`tests/runtime/` 有库断言移入、`package.json`（playwright、@axe-core/playwright、`test:ui`）、`check.yml` 任务 `ui`、`deploy.yml` 等它 · 覆盖 REQ §5.5
-- 验收判据：§5.5-a 去 todo；本机 `scripts/ui-check.sh` 跑通且拆干净；每次运行植入的无名按钮在四种环境里都被 axe 报出；其余 UI 测试此时照常为 todo。§5.5-b 的分支实验移到 Batch 6（待 Jason 确认）：§5.1-a 在那之前是 todo，源码里的违例让闸门变红无从发生
+- 验收判据：§5.5-a 去 todo；本机 `scripts/ui-check.sh` 跑通且拆干净；每次运行植入的无名按钮在四种环境里都被 axe 报出；其余 UI 测试此时照常为 todo。§5.5-b 的分支实验移到 Batch 6（见第一区裁定）
 - 依赖：none
 
 ### Batch 2 — 关于页进库
@@ -62,7 +63,7 @@
 - 依赖：Batch 1
 
 ### Batch 3 — 材料与三种形态
-- 状态：代码完成、闸门绿；待 Jason 看首页与一个列表页（截图已发，`UI_SERVE=1 npm run test:ui` 可本机亲看）
+- 状态：done——Jason 已看首页与一个列表页（2026-09-24）
 - 范围：`globals.css` 重写（变量、排印、中文排印、形态类）、`Gate`、`Window`、`CatalogRow`、`PhotoTile`、`EndMark`、`SiteLink`、`entry.ts`、相册与项目映射带 `lang`、搜索索引带 `lang`、`home.ts`；首页、列表页、标签页、视觉列表 · 覆盖 REQ §5.1-d、§5.2-a/c/d/f/g
 - 验收判据：上列 §-id 去 todo 且绿；Jason 在本地看首页与一个列表页
 - 依赖：Batch 1
