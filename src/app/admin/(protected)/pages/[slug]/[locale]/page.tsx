@@ -6,6 +6,11 @@ import { PAGE_SLUGS } from '@/lib/pages';
 import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
 import { getPageVersion } from '@/lib/server/pages-repo';
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }) {
+  const { slug, locale } = await params;
+  return { title: `/${slug} (${locale}) · Admin` };
+}
+
 type Props = {
   params: Promise<{ slug: string; locale: string }>;
   searchParams: Promise<{ saved?: string; stale?: string }>;

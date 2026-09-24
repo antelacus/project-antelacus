@@ -13,6 +13,8 @@ export type MarkdownEditorProps = {
   value: string;
   /** The editing area's accessible name — the visible label beside it. */
   label: string;
+  /** The language the text is written in, for spell-checking and screen readers. */
+  lang?: string;
   onChange(next: string): void;
   onUpload?(file: File): Promise<string>;
   onError?(message: string): void;
@@ -20,7 +22,7 @@ export type MarkdownEditorProps = {
 
 const isImage = (file: File) => file.type.startsWith('image/');
 
-export default function MarkdownEditor({ value, label, onChange, onUpload, onError }: MarkdownEditorProps) {
+export default function MarkdownEditor({ value, label, lang, onChange, onUpload, onError }: MarkdownEditorProps) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const latest = useRef({ onChange, onUpload, onError });
@@ -55,7 +57,7 @@ export default function MarkdownEditor({ value, label, onChange, onUpload, onErr
           markdown(),
           EditorView.lineWrapping,
           // CodeMirror's editing area is a textbox; without a name a screen reader announces only that.
-          EditorView.contentAttributes.of({ 'aria-label': label }),
+          EditorView.contentAttributes.of({ 'aria-label': label, ...(lang ? { lang } : {}) }),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) latest.current.onChange(update.state.doc.toString());
           }),
@@ -76,7 +78,10 @@ export default function MarkdownEditor({ value, label, onChange, onUpload, onErr
             },
           }),
           EditorView.theme({
-            '&': { fontSize: '1rem', minHeight: '24rem', border: '1px solid rgba(29, 29, 27, 0.18)', borderRadius: '8px', background: 'var(--color-paper)' },
+            '&': { fontSize: '1rem', minHeight: '24rem', border: '1px solid rgba(29, 29, 27, 0.4)', borderRadius: '8px', background: 'var(--color-paper)' },
+            // CodeMirror's own focus mark is a faint dotted line set a moment after focus; the site's ring is
+            // ink, and :focus-within draws it at once.
+            '&:focus-within': { outline: '2px solid var(--color-ink)', outlineOffset: '2px' },
             '.cm-content': { fontFamily: 'var(--font-code)', padding: '0.75rem 0' },
             '.cm-scroller': { minHeight: '24rem' },
           }),

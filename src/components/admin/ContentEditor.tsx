@@ -125,7 +125,7 @@ export default function ContentEditor({ type, initial, notice }: Props) {
           <p style={{ margin: 0, color: 'var(--color-seal)', fontSize: '0.95rem' }}>
             <Link href={`/admin/content/${type}`} style={{ borderBottom: 'none' }}>{type}s</Link> / {initial ? initial.slug : 'new'}
           </p>
-          <h2 style={{ margin: '0.35rem 0 0' }}>{initial ? initial.title : `New ${type}`}</h2>
+          <h2 style={{ margin: '0.35rem 0 0' }} lang={initial ? initial.lang : undefined}>{initial ? initial.title : `New ${type}`}</h2>
         </div>
         <span style={{ fontSize: '0.9rem', opacity: 0.75 }}>{initial ? initial.status : 'not saved yet'}</span>
       </div>
@@ -138,11 +138,11 @@ export default function ContentEditor({ type, initial, notice }: Props) {
       {(state?.message || error) && <p role="alert" className="admin-notice admin-notice-error">{state?.message ?? error}</p>}
 
       <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(14rem, 1fr))' }}>
-        <Field label="Title" error={errors.title}><input name="title" value={value.title} onChange={(e) => set('title', e.target.value)} required /></Field>
+        <Field label="Title" error={errors.title}><input name="title" lang={value.lang} value={value.title} onChange={(e) => set('title', e.target.value)} required /></Field>
         <Field label="Slug" error={errors.slug}><input name="slug" value={value.slug} onChange={(e) => set('slug', e.target.value)} pattern="[a-z0-9-]{1,80}" required /></Field>
       </div>
 
-      <Field label="Summary" error={errors.summary}><textarea name="summary" value={value.summary} onChange={(e) => set('summary', e.target.value)} rows={3} /></Field>
+      <Field label="Summary" error={errors.summary}><textarea name="summary" lang={value.lang} value={value.summary} onChange={(e) => set('summary', e.target.value)} rows={3} /></Field>
 
       <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))' }}>
         <Field label="Written in" error={errors.lang}>
@@ -177,7 +177,7 @@ export default function ContentEditor({ type, initial, notice }: Props) {
           <button type="button" className="admin-button" onClick={() => setShowPreview((v) => !v)}>{showPreview ? 'Hide preview' : 'Preview'}</button>
         </div>
         <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: showPreview ? 'repeat(auto-fit, minmax(20rem, 1fr))' : '1fr' }}>
-          <MarkdownEditor value={content} label={type === 'gallery' ? 'Notes' : 'Body'} onChange={(next) => { setBodyTouched(true); set('content', next); }} onUpload={(file) => upload(file).then((u) => u.url)} onError={setError} />
+          <MarkdownEditor value={content} label={type === 'gallery' ? 'Notes' : 'Body'} lang={value.lang} onChange={(next) => { setBodyTouched(true); set('content', next); }} onUpload={(file) => upload(file).then((u) => u.url)} onError={setError} />
           {showPreview && <MarkdownPreview value={content} />}
         </div>
       </div>

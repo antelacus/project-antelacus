@@ -47,7 +47,7 @@ export default function PageEditor({ slug, locale, initial, notice }: Props) {
           <p style={{ margin: 0, color: 'var(--color-seal)', fontSize: '0.95rem' }}>
             <Link href={`/admin/pages/${slug}`} style={{ borderBottom: 'none' }}>/{slug}</Link> / {locale}
           </p>
-          <h2 style={{ margin: '0.35rem 0 0' }}>{initial ? initial.title : `New ${locale} version`}</h2>
+          <h2 style={{ margin: '0.35rem 0 0' }} lang={initial ? locale : undefined}>{initial ? initial.title : `New ${locale} version`}</h2>
         </div>
         <span style={{ fontSize: '0.9rem', opacity: 0.75 }}>{initial ? initial.status : 'not saved yet'}</span>
       </div>
@@ -61,7 +61,7 @@ export default function PageEditor({ slug, locale, initial, notice }: Props) {
 
       <label style={{ display: 'grid', gap: '0.4rem' }}>
         <span>Title{errors.title && <span style={{ color: 'var(--color-seal)' }}> — {errors.title}</span>}</span>
-        <input name="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <input name="title" lang={locale} value={title} onChange={(e) => setTitle(e.target.value)} required />
       </label>
 
       <div style={{ display: 'grid', gap: '0.5rem' }}>
@@ -71,7 +71,7 @@ export default function PageEditor({ slug, locale, initial, notice }: Props) {
         </div>
         <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: showPreview ? 'repeat(auto-fit, minmax(20rem, 1fr))' : '1fr' }}>
           <div data-editor-body>
-            <MarkdownEditor value={body} label="Body" onChange={setBody} />
+            <MarkdownEditor value={body} label="Body" lang={locale} onChange={setBody} />
           </div>
           {showPreview && <MarkdownPreview value={body} />}
         </div>

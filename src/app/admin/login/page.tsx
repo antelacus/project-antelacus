@@ -5,6 +5,8 @@ import { hasConfiguredAdminEmails } from '@/lib/server/supabase-env';
 import { hasSupabasePublicEnv } from '@/lib/supabase/public-env';
 import { login } from './actions';
 
+export const metadata = { title: 'Sign in · Admin' };
+
 type AdminLoginPageProps = {
   searchParams: Promise<{
     error?: string;
