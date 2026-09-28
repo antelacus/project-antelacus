@@ -70,7 +70,7 @@ test('acceptance §5.1-c no deploy path builds on the VPS', { todo: 'Batch 5' },
 
 // ---------- §5.2 传输与保留 ----------
 
-test('acceptance §5.2-a six production deploys keep the last five, never the image staging runs', { todo: 'Batch 4' }, async () => {
+test('acceptance §5.2-a six production deploys keep the last five, never the image staging runs', async () => {
   const { retention } = await decide();
   const history = ['k6', 'k5', 'k4', 'k3', 'k2', 'k1']; // newest first
   const { keep, remove } = retention({ production: history, staging: 'k1' });
@@ -81,7 +81,7 @@ test('acceptance §5.2-a six production deploys keep the last five, never the im
 
 // ---------- §5.3 预发布站点 ----------
 
-test('acceptance §5.3-c staging refuses an env file that holds the service-role key', { todo: 'Batch 4' }, async () => {
+test('acceptance §5.3-c staging refuses an env file that holds the service-role key', async () => {
   const { stagingEnvProblems } = await decide();
   assert.deepEqual(stagingEnvProblems('NEXT_PUBLIC_SUPABASE_URL=https://x.supabase.co\n'), []);
   assert.deepEqual(stagingEnvProblems('A=1\nSUPABASE_SERVICE_ROLE_KEY=secret\n'), ['SUPABASE_SERVICE_ROLE_KEY']);
@@ -113,7 +113,7 @@ test('acceptance §5.5-a a push to main runs no gate and builds nothing', { todo
   assert.match(read('.github/workflows/branch.yml'), /branches-ignore:\s*\[\s*main\s*\]/);
 });
 
-test('acceptance §5.5-c a docs-only merge leaves the production container alone', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.5-c a docs-only merge leaves the production container alone', async () => {
   const { shouldDeploy } = await decide();
   assert.equal(shouldDeploy({ serving: 'k1', next: 'k1' }), false);
   assert.equal(shouldDeploy({ serving: 'k1', next: 'k2' }), true);
@@ -174,11 +174,18 @@ test('acceptance §5.7-a a destructive migration needs a contract-step marker', 
   for (const file of readdirSync(dir)) assert.deepEqual(lintMigration(readFileSync(join(dir, file), 'utf8')), [], file);
 });
 
-test('acceptance §5.7-b a migration without an execution record stops the deploy, by name', { todo: 'Batch 4' }, async () => {
-  const { missingMigrations } = await decide();
-  const files = ['20260319073000_dynamic_content_foundation.sql', '20260923100000_site_pages.sql'];
-  assert.deepEqual(missingMigrations(files, ['dynamic_content_foundation']), ['20260923100000_site_pages.sql']);
-  assert.deepEqual(missingMigrations(files, ['dynamic_content_foundation', 'site_pages']), []);
+test('acceptance §5.7-b a migration without a matching execution record stops the deploy', async () => {
+  const { migrationProblems } = await decide();
+  const files = [
+    { file: '20260319073000_dynamic_content_foundation.sql', digest: 'a' },
+    { file: '20260923100000_site_pages.sql', digest: 'b' },
+  ];
+  assert.deepEqual(migrationProblems({ files, records: [{ name: 'dynamic_content_foundation', digest: 'a' }] }),
+    { missing: ['20260923100000_site_pages.sql'], changed: [] });
+  assert.deepEqual(migrationProblems({ files, records: [{ name: 'dynamic_content_foundation', digest: 'a' }, { name: 'site_pages', digest: 'b' }] }),
+    { missing: [], changed: [] });
+  assert.deepEqual(migrationProblems({ files, records: [{ name: 'dynamic_content_foundation', digest: 'x' }, { name: 'site_pages', digest: 'b' }] }),
+    { missing: [], changed: ['20260319073000_dynamic_content_foundation.sql'] }, 'a record whose text differs from the file passed');
 });
 
 test('acceptance §5.7-c migration names are unique, so records can match by name', () => {

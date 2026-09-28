@@ -21,7 +21,7 @@
 | `scripts/release/migration-lint.mjs`（新） | 只看**顶层语句**，跳过函数体（`$$ … $$`）：<br>① 有没有破坏性语句（`drop table/column/schema/type/view`，包括 `if exists` 的写法；`truncate`；`rename`；`alter column … type`；顶层的 `delete from`），有就要求带收缩步标注 `-- contract: <删的是什么>, unused since v<X.Y.Z>`。重建触发器、策略、函数的 `drop … if exists` 不算破坏；<br>② 本次改动里有没有修改或删除已经进入 main 的迁移文件：已执行的迁移不可再改 | core |
 | `scripts/release/decide.mjs`（新） | 发布时的纯判定：<br>- 保留哪 5 个镜像、要删哪些；<br>- 回滚目标：取上一个保留镜像，但要跳过收缩迁移之后已经不兼容的镜像；没有可用的目标就返回空；<br>- 预发布的环境文件有没有问题；<br>- 版本号是否变了（决定是否打 tag）；<br>- 哪些路径变了、要清哪些缓存；<br>- Auth 设置有没有问题；<br>- 仓库里哪些迁移在执行记录里找不到 | core |
 | `scripts/release/release.sh`（新） | **发布脚本**，一个深模块。接口只有 `release.sh <staging\|production> deploy <键>`、`rollback [<键>]`、`status`、`adopt`（手动重建状态文件）。<br>内部依次：拿到该环境的锁（`flock`）→ 镜像不在就停下 → 核对迁移 → 在临时端口上试启动新镜像，健康了才动旧容器 → 旧容器改名、只停不删 → 新容器接管正式端口；起不来就把旧容器拉回来 → 更新状态文件 → 清理镜像。<br>预发布容器带内存、CPU、进程数和日志大小的上限。<br>它由 CI 经 SSH 通过标准输入执行，所以运行的永远是**被部署那个提交里的版本**，而不是 VPS 检出里的版本 | IO |
-| `deploy/nginx/antelacus-proxy.conf`（新） | 生产与预发布**共用**的代理配置：缓冲、代理请求头、安全响应头 | infra |
+| `deploy/nginx/antelacus-site.conf`（新） | 生产与预发布**共用**的代理配置：缓冲、代理请求头、安全响应头 | infra |
 | `deploy/nginx/www.antelacus.com.conf`（改）、`deploy/nginx/staging.antelacus.com.conf`（新） | 两个站点只在 `server_name`、上游端口和 `X-Robots-Tag` 上不同，其余都 `include` 共用的那份 | infra |
 | `src/app/api/build/route.ts`（新） | 读 `/app/BUILD_KEY` 并报出；`no-store`，不被任何一层缓存 | IO |
 | `.github/workflows/branch.yml`（新，取代 `check.yml`） | 非 main 分支的 push，以及手动指定一个 SHA：闸门 → 镜像 → 部署预发布 → 预发布检查 | infra |

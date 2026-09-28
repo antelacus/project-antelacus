@@ -4,17 +4,17 @@ The site runs on one VPS as a Docker container behind nginx, with Cloudflare in 
 
 ## Files
 
-- `Dockerfile`: multi-stage Next.js image; the runtime stage runs as the unprivileged `node` user.
-- `docker-compose.yml`: runs the app on `127.0.0.1:${ANTELACUS_PORT}`; reads `.env`.
-- `.env.example`: every variable the runtime and the scripts below read. The real `.env` exists only on the VPS.
-- `deploy/nginx/www.antelacus.com.conf`: the nginx vhost.
+- `Dockerfile`: multi-stage Next.js image; the runtime stage runs as the unprivileged `node` user. `.dockerignore` decides what goes into it, and so its build input key.
+- `scripts/release/release.sh`: the only way a container is started, replaced or recorded — `production` on `127.0.0.1:3002` with `.env`, `staging` on `127.0.0.1:3003` with `.env.staging`. `release.sh <env> status` shows what runs; the state is in `~/.local/state/antelacus/releases.json`.
+- `.env.example`: every variable the runtime and the scripts below read. The real `.env` exists only on the VPS; `.env.staging` beside it holds only its `NEXT_PUBLIC_*` lines — never the service-role key.
+- `deploy/nginx/`: `antelacus-site.conf` (installed as `/etc/nginx/snippets/antelacus-site.conf`) is everything the two sites share; `www.antelacus.com.conf` and `staging.antelacus.com.conf` add only their name, their upstream and staging's noindex.
 - `scripts/supabase-keepalive.sh`, `scripts/backup.sh`, `scripts/sync-bucket.mjs`, `scripts/site-check.sh`: the cron jobs (below).
 
 ## Deploy
 
 A push to `main` deploys: the gate (`.github/workflows/check.yml`) must pass, then `.github/workflows/deploy.yml` SSHes to the VPS and runs `docker compose up -d --build`, then checks health. Nothing unpushed reaches the server. Verify a deploy by comparing the served SHA with `main`.
 
-First-time setup on the VPS: copy `.env.example` to `.env` and fill it in; `docker compose up -d --build`; copy the nginx vhost into `sites-available`, enable it, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`.
+First-time setup on the VPS: copy `.env.example` to `.env` and fill it in; `grep '^NEXT_PUBLIC_' .env > .env.staging`; as root, copy `deploy/nginx/antelacus-site.conf` into `/etc/nginx/snippets/` and the two site files into `sites-available`, enable them, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`. A container already running as `antelacus` is taken over with `scripts/release/release.sh production adopt`.
 
 Database changes ship as files in `supabase/migrations/`. They are applied to production **before** the code that needs them is deployed; who applies them and how is in the project `CLAUDE.md` (Environment and deployment). `scripts/db-function-check.sh` applies every migration to a throwaway Postgres and exercises the save function; run it after editing a migration.
 
@@ -44,7 +44,7 @@ The dump holds the `public` schema whole — types, tables, the save function, d
 2. From a `postgres:$PG_MAJOR` container: `pg_restore --no-owner --no-privileges --clean --if-exists -d "$TARGET_URL" antelacus-<stamp>.dump` (`--clean --if-exists` lets it be re-run). One error is expected and harmless: `schema "public" already exists` — every database has it; pg_restore reports it and carries on ("errors ignored on restore: 1").
 3. Check: `select content_type, status, count(*) from public.content_items group by 1, 2;` should match the admin dashboard's counts, `select count(*) from public.content_item_tags;` must not be zero, and `select locale, status from public.site_pages;` must list the about page's languages.
 4. Upload `ANTELACUS_DATA_DIR/storage/<bucket>/…` into buckets of the same names (public read), keeping the paths. Restoring into a *different* project changes the storage host: search and replace the old project host in `content_items.cover_image_url`, `content_items.body_markdown` and `gallery_images.public_url`.
-5. Point `.env` at the new project, `docker compose up -d --build`, run `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`. Auth is not in the dump: create the admin user again in Authentication → Users.
+5. Point `.env` and the `NEXT_PUBLIC_*` build values of the image at the new project and release a new build (the public values are compiled into the image), then run `BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime`. Auth is not in the dump: create the admin user again in Authentication → Users and give it the admin role (below).
 
 A drill on the VPS itself, no data leaving it: start `docker run -d --name restore-drill -e POSTGRES_PASSWORD=drill -e POSTGRES_DB=app postgres:17`, create the three roles, restore with `docker exec -i restore-drill pg_restore --no-owner --no-privileges -U postgres -d app < dump`, run the checks of step 3, `docker rm -f restore-drill`.
 
