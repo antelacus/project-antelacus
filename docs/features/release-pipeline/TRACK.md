@@ -41,6 +41,7 @@
   - 2026-09-28 · 生产迁移由 Claude 经 Supabase MCP 执行并核对，写进发布流程，不需要 Jason 逐次同意；MCP 拿掉只读（Claude 陈述过反对理由：写能力常驻于每个会话；先备份要靠 Claude 自觉），限本项目、限数据库与文档两组工具，免确认的只有迁移与只读核对工具；备份检查随之移到执行迁移之前（推翻第三轮中「部署时检查备份」：迁移早于部署，那时检查已晚）。配置改动被 Claude Code 的安全分类器拦下，由 Jason 亲手改 · Jason · 级联：REQ §1.2、§2、§3、§5.7、§6、§8；项目 `CLAUDE.md`、`docs/DEPLOYMENT.md`（配置到位后）
   - 2026-09-28 · REQ 定稿，Phase 1 关闭 · Jason · 级联：REQ
   - 2026-09-28 · 加发布手册：不另建文件，`docs/DEPLOYMENT.md` 做成手册；流水线建成后写，Phase 4 的真实发布完全照它执行 · Jason · 级联：本 TRACK 范围 11、REQ §1.2、§5.11
+  - 2026-09-28 · DESIGN 审过；删掉 `docker-compose.yml`，容器参数只在发布脚本里定义 · Jason · 级联：DESIGN §2.1、本 TRACK Batch 4
 
 ## 二、批次
 
@@ -66,7 +67,7 @@
 
 ### Batch 4 — VPS 一侧
 - 状态：open
-- 范围：`scripts/release/release.sh`、`decide.mjs` + 测试、`src/app/api/build/route.ts`、nginx 共用配置与预发布站点、`.env.staging`、Cloudflare DNS + Access（Jason 在控制台操作）· 覆盖 REQ §5.2、§5.3
+- 范围：`scripts/release/release.sh`、`decide.mjs` + 测试、删 `docker-compose.yml`、`src/app/api/build/route.ts`、nginx 共用配置与预发布站点、`.env.staging`、Cloudflare DNS + Access（Jason 在控制台操作）· 覆盖 REQ §5.2、§5.3
 - 验收判据：§5.2-a、§5.3-a/b/c 去 todo 且绿；手动把一个镜像部署到预发布，从手机能打开；实测传输耗时（DESIGN §10 Q2）
 - 依赖：Batch 1
 

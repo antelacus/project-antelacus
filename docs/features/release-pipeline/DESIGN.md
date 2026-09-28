@@ -28,7 +28,7 @@
 | `tests/runtime/acceptance.runtime.mjs`（改） | 请求可以带上 Access 的 service token（从环境变量读）；TD-021 的补强 | IO |
 | `src/lib/server/admin-auth.ts`（改） | 管理员身份改读 `app_metadata.role`。读用 `getAdminReadClient`（登录会话），写用 `getAdminServiceRoleClient`（只在写入路径上） | core |
 | `supabase/migrations/<ts>_admin_read.sql`（新） | `public.is_admin()`；给内容各表、`site_pages` 加「管理员可读全部」的策略 | IO |
-| `docker-compose.yml`（删） | 容器参数只在发布脚本一处定义。见 §10 Q3 | — |
+| `docker-compose.yml`（删） | 容器参数只在发布脚本一处定义；运维查日志用 `docker logs antelacus` | — |
 
 依赖方向：工作流 → 发布脚本 → 状态文件 / Docker。纯判定全放在 `decide.mjs`、`build-key.mjs`、`migration-lint.mjs` 里，发布脚本只做 IO。守住这一点的是：发布脚本里不出现任何判定逻辑，判定都去调用那三个模块；它们各有单元测试。
 
@@ -124,6 +124,5 @@ push 分支 ─► branch.yml
 - **不用镜像仓库**，因为仓库是私有的，VPS 拉取私有镜像只能用 classic 令牌，而它能读账号下全部私有镜像（REQ §1.2）。
 
 ## 10 开放设计问题
-- Q1 **清缓存用哪种方式**：按文件清（所有档都有）还是按前缀清（免费档是否可用待查）？`/og.png` 有多种语言的路由，按文件清就要列全它们的地址。Batch 4 开工前查清。
-- Q2 **从 GitHub 的机器传 130 MB 到 VPS 要多久**：Batch 2 实测。太慢的话，就改成只传镜像的变化层。
-- Q3 **删掉 `docker-compose.yml`**：容器参数只在发布脚本里定义，一件事只有一个存放处。代价是运维时不能再用 `docker compose logs`，改用 `docker logs antelacus`。需要 Jason 裁定。
+- Q1 **清缓存用哪种方式**：按文件清（所有档都有）还是按前缀清（免费档是否可用待查）？`/og.png` 有多种语言的路由，按文件清就要列全它们的地址。Batch 6 开工前查清。
+- Q2 **从 GitHub 的机器传 130 MB 到 VPS 要多久**：Batch 4 实测。太慢的话，就改成只传镜像的变化层。
