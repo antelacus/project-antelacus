@@ -49,7 +49,7 @@
 验收测试在 Phase 2 写红，每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。所在位置：`tests/acceptance-release-pipeline.test.ts`（单元）、`tests/runtime/release.runtime.mjs`（对预发布或生产）、`tests/ui/admin.ui.mjs`（合成环境）。不是自动测试的判据在第三区记运行号或读出结果：§5.4-a/b、§5.6-a/b、§5.7-c 的执行记录、§5.10-a、§5.11-a。
 
 ### Batch 1 — 无密钥的产物
-- 状态：open
+- 状态：done `2e981db`
 - 范围：`.dockerignore`、`Dockerfile`、`scripts/release/build-key.mjs` + 测试 · 覆盖 REQ §5.1（镜像不含 `.env`；构建输入键）
 - 验收判据：§5.1-a/b/c 去 todo 且绿；在本机用假 `.env` 构建一次，镜像里找不到标记
 - 依赖：none
@@ -127,6 +127,9 @@
 - G-S3 · SHOULD：清缓存方式未定（即 DESIGN §10 Q1） —— status: fixed `0609c26`：维持 DESIGN §10 Q1，Batch 6 开工前查清
 - G-S4 · SHOULD：自己实现 `.dockerignore` 的匹配，未必与 Docker 的语义一致 —— status: fixed `0609c26`：键由 Docker 的键阶段在实际上下文上算，不自己实现匹配（DESIGN §2.1）
 - G-N1 · NICE：Auth 公开设置接口的前提应列进开放问题 —— status: fixed `0609c26`：列为 DESIGN §10 Q3
+
+**批次证据**：
+- Batch 1（`2e981db`，本机 Docker）：只改文档键不变、改代码键变、重算一致；植入标记构建后镜像无 `.env`、无标记；拿掉 `.env*` 排除后检查报红（`/app/.env`、`/app/.env.production`），证明不空转
 
 **Phase 4 证据**：（Phase 4 填写）
 
