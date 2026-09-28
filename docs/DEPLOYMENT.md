@@ -16,7 +16,7 @@ A push to `main` deploys: the gate (`.github/workflows/check.yml`) must pass, th
 
 First-time setup on the VPS: copy `.env.example` to `.env` and fill it in; `docker compose up -d --build`; copy the nginx vhost into `sites-available`, enable it, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`.
 
-Database changes ship as files in `supabase/migrations/`; apply them in the Supabase SQL editor (or with the Supabase CLI) **before** deploying the code that needs them. `scripts/db-function-check.sh` applies every migration to a throwaway Postgres and exercises the save function; run it after editing a migration.
+Database changes ship as files in `supabase/migrations/`. They are applied to production **before** the code that needs them is deployed; who applies them and how is in the project `CLAUDE.md` (Environment and deployment). `scripts/db-function-check.sh` applies every migration to a throwaway Postgres and exercises the save function; run it after editing a migration.
 
 ## Cron jobs (as the deploy user)
 

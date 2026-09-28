@@ -65,6 +65,15 @@ Variables: `.env.example`. The real `.env` exists only on the VPS. `SUPABASE_SER
 
 A push to `main` deploys: gate → SSH to the VPS → `docker compose up -d --build` → health check. Details: `docs/DEPLOYMENT.md`, `deploy/nginx/www.antelacus.com.conf`.
 
+**Production migrations are Claude's to apply and check, without asking** (Jason's standing ruling), through the Supabase MCP in `.mcp.json` — writable, scoped to this project. Apply each one before pushing the code that needs it, every time in this order:
+
+1. The newest dump in `ANTELACUS_DATA_DIR` on the VPS (`ssh vps-deploy`) must be at most 26 hours old. If it is older, run `scripts/backup.sh` there first.
+2. The migration must be additive, or carry a contract-step marker (`docs/features/release-pipeline/REQ.md` §5.7).
+3. Apply it with `apply_migration`, named after its file without the timestamp.
+4. Confirm it with `list_migrations` and the schema.
+
+The migration record numbers entries by when they were applied, so it matches files by name, never by version. Checks read the schema and exact counts (`list_tables` row counts are stale estimates), never row contents. Other SQL that writes to production is not covered by this ruling and still asks.
+
 ## Conventions
 
 - TypeScript strict; `@/*` maps to `src/`. Components `PascalCase.tsx`, utilities `camelCase.ts`.
