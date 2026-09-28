@@ -67,7 +67,7 @@
 - 依赖：Batch 2（lint 先守住这条迁移）
 
 ### Batch 4 — VPS 一侧
-- 状态：open
+- 状态：in-progress — 代码 `4c112ed`、`0587c65`；VPS 上的 `.env.staging` 与 nginx 已装（生产站点文件未换，发布时换）；待 Cloudflare（Jason）与 Batch 5 的首次 CI 部署
 - 范围：`scripts/release/release.sh`、`decide.mjs` + 测试、删 `docker-compose.yml`、`src/app/api/build/route.ts`、nginx 共用配置与预发布站点、`.env.staging`、Cloudflare DNS + Access（Jason 在控制台操作）· 覆盖 REQ §5.2、§5.3
 - 验收判据：§5.2-a、§5.3-a/b/c 去 todo 且绿；手动把一个镜像部署到预发布，从手机能打开；实测传输耗时（DESIGN §10 Q2）
 - 依赖：Batch 1
@@ -132,6 +132,7 @@
 - Batch 1（`2e981db`，本机 Docker）：只改文档键不变、改代码键变、重算一致；植入标记构建后镜像无 `.env`、无标记；拿掉 `.env*` 排除后检查报红（`/app/.env`、`/app/.env.production`），证明不空转
 - Batch 2（`85d0f06`）：lint 对现有 7 条全过；改一条已执行的迁移、加一条未标注的删列，各报红（退出码 1）；5 条执行记录补登后 `list_migrations` 列出 7 条，每条存的 SQL 与文件（去掉末尾换行）md5 一致（§5.7-c 证据）
 - Batch 3（`e5f55ba`）：`db-function-check` 的 §5.8-a 全绿，`is_admin()` 对谁都放行时报红；本机界面闸门 32 过（含 §5.8-a/b/c），运行时 24 过；生产：备份 1 小时 20 分内，`admin_read` 执行并核对（记录内容哈希一致、6 条策略、函数在），唯一用户经邮箱哈希比对确认后标上 `role`；TD-023 登记
+- Batch 4（进行中）：线上生产站点文件与仓库改动前一致；nginx 装上共用片段与预发布站点后 `nginx -t` 通过、reload 后生产 200；首次在 VPS 运行 `release.sh`：迁移核对通过（名称 + 内容哈希），arm64 镜像在临时端口起不来被拒、预发布未动（G-M5 生效）；从笔记本传 104 MB 镜像 16 秒
 
 **Phase 4 证据**：（Phase 4 填写）
 
