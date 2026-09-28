@@ -55,7 +55,7 @@
 - 依赖：none
 
 ### Batch 2 — 迁移纪律
-- 状态：open
+- 状态：done `85d0f06`
 - 范围：`scripts/release/migration-lint.mjs` + 测试（含「已执行不可再改」）、闸门接入；查清 DESIGN §10 Q4；补登 5 条执行记录（Claude 经 MCP）· 覆盖 REQ §5.7（先扩后缩；执行记录）
 - 验收判据：§5.7-a/c/d 去 todo 且绿；现有 7 条迁移全部通过 lint；`list_migrations` 列出 7 条
 - 依赖：none
@@ -130,6 +130,7 @@
 
 **批次证据**：
 - Batch 1（`2e981db`，本机 Docker）：只改文档键不变、改代码键变、重算一致；植入标记构建后镜像无 `.env`、无标记；拿掉 `.env*` 排除后检查报红（`/app/.env`、`/app/.env.production`），证明不空转
+- Batch 2（`85d0f06`）：lint 对现有 7 条全过；改一条已执行的迁移、加一条未标注的删列，各报红（退出码 1）；5 条执行记录补登后 `list_migrations` 列出 7 条，每条存的 SQL 与文件（去掉末尾换行）md5 一致（§5.7-c 证据）
 
 **Phase 4 证据**：（Phase 4 填写）
 
