@@ -144,7 +144,7 @@ Jason 在笔记本上 push 一个分支 → GitHub Actions 跑闸门、构建镜
 ### 5.8 后台读取与管理员身份（F8）
 - 规则：管理员身份用 Supabase 用户的 `app_metadata.role = admin` 表示（只有 service-role 能改），应用和行级权限都只读这一处；`SUPABASE_ADMIN_EMAILS` 退役。
 - 规则：管理员经行级权限读全部内容，包括草稿、关于页各语言、关系表。后台的读取用登录会话；写入（保存函数、上传）只走 service-role。没有 service-role 密钥时，后台能登录、能看，保存明确失败。
-- 硬错误：没有 service-role 密钥时保存 → 页面显示「此环境只读，未保存」，不是 500。
+- 硬错误：没有 service-role 密钥时保存 → 页面显示 `Read-only environment — not saved.`（后台界面是英文），不是 500。
 - 验收判据：
   - §5.8-a 行级权限：已登录的非管理员读不到草稿；管理员读得到（在一次性 Postgres 上验证）。
   - §5.8-b 没有 service-role 密钥时，后台的总览、列表、编辑器都能以管理员身份打开，并显示草稿。

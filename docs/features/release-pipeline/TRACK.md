@@ -44,7 +44,55 @@
 
 ## 二、批次
 
-批次在 Phase 2 设计定稿时切分。
+验收测试在 Phase 2 写红，每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。标「证据」的判据不是自动测试，在第三区记运行号或读出结果。
+
+### Batch 1 — 无密钥的产物
+- 状态：open
+- 范围：`.dockerignore`、`Dockerfile`、`scripts/release/build-key.mjs` + 测试 · 覆盖 REQ §5.1（镜像不含 `.env`；构建输入键）
+- 验收判据：§5.1-a/b/c 去 todo 且绿；在本机用假 `.env` 构建一次，镜像里找不到标记
+- 依赖：none
+
+### Batch 2 — 迁移纪律
+- 状态：open
+- 范围：`scripts/release/migration-lint.mjs` + 测试、闸门接入；补登 5 条执行记录（Claude 经 MCP）· 覆盖 REQ §5.7（先扩后缩；执行记录）
+- 验收判据：§5.7-a/c 去 todo 且绿；现有 7 条迁移全部通过 lint；`list_migrations` 列出 7 条
+- 依赖：none
+
+### Batch 3 — 后台读取与管理员身份
+- 状态：open
+- 范围：`<ts>_admin_read.sql`、`admin-auth.ts`、后台各页与动作、`admin/layout.tsx`、`supabase-env.ts`、`ui-check.sh`（合成管理员带 `role`）、`db-function-check.sh`（行级权限检查）、`.env.example` · 覆盖 REQ §5.8
+- 验收判据：§5.8-a…d 去 todo 且绿；迁移先执行到生产、Jason 的账号标上 `role` 之后再 push 代码；`SUPABASE_ADMIN_EMAILS` 暂留在生产 `.env`，另登记 TD
+- 依赖：Batch 2（lint 先守住这条迁移）
+
+### Batch 4 — VPS 一侧
+- 状态：open
+- 范围：`scripts/release/release.sh`、`decide.mjs` + 测试、`src/app/api/build/route.ts`、nginx 共用配置与预发布站点、`.env.staging`、Cloudflare DNS + Access（Jason 在控制台操作）· 覆盖 REQ §5.2、§5.3
+- 验收判据：§5.2-a、§5.3-a/b/c 去 todo 且绿；手动把一个镜像部署到预发布，从手机能打开；实测传输耗时（DESIGN §10 Q2）
+- 依赖：Batch 1
+
+### Batch 5 — 工作流
+- 状态：open
+- 范围：`branch.yml`、`production.yml`，删除 `check.yml`、`deploy.yml`；运行时套件支持 Access；耗时摘要；分支保护（Claude 经 `gh` 改，先给 Jason 看）；PR 模板 · 覆盖 REQ §5.3-d、§5.4、§5.5-a/b/c、§5.9
+- 验收判据：对应判据去 todo 且绿；§5.4-a/b 以分支保护的读出为证据
+- 依赖：Batch 4
+
+### Batch 6 — 回滚与发布后收尾
+- 状态：open
+- 范围：自动与手动回滚、打 tag、清缓存（先关闭 DESIGN §10 Q1）、Auth 核对；Cloudflare 清缓存令牌（Jason 批准）· 覆盖 REQ §5.5-d/e/f、§5.6
+- 验收判据：对应判据去 todo 且绿；§5.6-a 在预发布上演练一次（证据）
+- 依赖：Batch 5
+
+### Batch 7 — 覆盖补强
+- 状态：open
+- 范围：`tests/runtime/acceptance.runtime.mjs`（TD-021）、`tests/ui/`（上传、登出、其余内容类型、关于页）、`supabase/config.toml` 与 `ui-check.sh`（打开存储服务）· 覆盖 REQ §5.10
+- 验收判据：§5.10-a…d 去 todo 且绿；TD-021 每一条都有「植入 → 变红」的证据
+- 依赖：Batch 3（后台读法已换）
+
+### Batch 8 — 发布手册
+- 状态：open
+- 范围：`docs/DEPLOYMENT.md`、项目 `CLAUDE.md` 的 Commands 与部署段落 · 覆盖 REQ §5.11
+- 验收判据：§5.11-a 由 Phase 4 的真实发布来证明
+- 依赖：Batch 6
 
 ## 三、门与发布
 
