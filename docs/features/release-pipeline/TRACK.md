@@ -110,6 +110,23 @@
 - D-10 · NICE：没有按步骤的耗时基线 —— status: open → 范围 9
 - D-11 · SHOULD：Next standalone 输出复制 `.env`，`Dockerfile` 把它带进最终镜像，含 service-role 密钥（假 `.env` 本机构建实测；JS 文件中无密钥） —— status: open → 范围 1
 
+**评审发现登记**（Codex 设计门，xhigh，DESIGN + REQ；全文 `codex resume 01a0e604-0b26-71d3-9222-40fea1e2dde4`；引文已逐条对源核实）：
+- G-M1 · MUST：构建输入键不是产物的身份——同一个键重建会得到不同的镜像（基础镜像、npm 下载），标签会被覆盖；`BUILD_KEY` 作为环境变量可被 `.env` 覆盖 —— status: open
+- G-M2 · MUST：nginx 与环境文件不在产物里；「线上 nginx 与仓库一致」没有写明机制；登录后的检查不强制 —— status: open
+- G-M3 · MUST：核验经过 CDN、清缓存在核验之后，可能验到旧应用 —— status: open（前提与事实不符：HTML 为 `cf-cache-status: DYNAMIC`，只有分享图与 `/images/` 被缓存）
+- G-M4 · MUST：发布状态没有并发锁；`kept[1]` 缺失时无定义；状态损坏仍允许部署 —— status: open
+- G-M5 · MUST：固定端口的单容器先换后检，候选镜像起不来时旧容器已经没了 —— status: open
+- G-M6 · MUST：收缩迁移之后，回滚到仍依赖被删对象的保留镜像会出错 —— status: open
+- G-M7 · MUST：角色没写成功或令牌未刷新时后台被锁；预发布回滚到旧镜像时后台读不了 —— status: open
+- G-M8 · MUST：按名称匹配迁移，放过了「已执行后又被改过」的迁移 —— status: open
+- G-M9 · MUST：假 `.env` 标记检查证明不了真实密钥不在镜像里；分支工作流持有 Access token，作用域未说明 —— status: open
+- G-M10 · MUST：若干判据（§5.4-c、§5.6-a/b、§5.7-c、§5.11-a）在设计里没有归属；`DEPLOYMENT.md` 仍写着在 VPS 上构建 —— status: open
+- G-S1 · SHOULD：迁移 lint 会误报函数体里的 `delete from`（`save_content_item`）；放宽 `drop … if exists` 又会放过 `drop table if exists` —— status: open
+- G-S2 · SHOULD：预发布容器没有内存、CPU、进程数上限 —— status: open
+- G-S3 · SHOULD：清缓存方式未定（即 DESIGN §10 Q1） —— status: open
+- G-S4 · SHOULD：自己实现 `.dockerignore` 的匹配，未必与 Docker 的语义一致 —— status: open
+- G-N1 · NICE：Auth 公开设置接口的前提应列进开放问题 —— status: open
+
 **Phase 4 证据**：（Phase 4 填写）
 
 **Phase 6 boxes**：Phase 4 收尾时写入。
