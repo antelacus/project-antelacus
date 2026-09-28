@@ -25,6 +25,9 @@ jobs:
     steps:
       # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # migration-lint compares against main: an edited migration that production already ran is refused
+          fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           # 与 Dockerfile 的基础镜像一致
@@ -36,6 +39,8 @@ jobs:
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npm test
+      - name: Migrations are additive, and those on main unedited
+        run: node scripts/release/migration-lint.mjs --base origin/main
       # 构建用占位环境变量：能在这里跑完，即证明构建不依赖 Supabase 可达
       - name: Build
         run: npm run build

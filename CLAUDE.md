@@ -69,7 +69,7 @@ A push to `main` deploys: gate → SSH to the VPS → `docker compose up -d --bu
 
 1. The newest dump in `ANTELACUS_DATA_DIR` on the VPS (`ssh vps-deploy`) must be at most 26 hours old. If it is older, run `scripts/backup.sh` there first.
 2. The migration must be additive, or carry a contract-step marker (`docs/features/release-pipeline/REQ.md` §5.7).
-3. Apply it with `apply_migration`, named after its file without the timestamp.
+3. Apply it with `apply_migration`, named after its file without the timestamp, passing the file's text with its trailing newline stripped: the deploy check compares that stored text with the file.
 4. Confirm it with `list_migrations` and the schema.
 
 The migration record numbers entries by when they were applied, so it matches files by name, never by version. Checks read the schema and exact counts (`list_tables` row counts are stale estimates), never row contents. Other SQL that writes to production is not covered by this ruling and still asks.

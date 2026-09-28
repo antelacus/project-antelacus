@@ -157,7 +157,7 @@ test('acceptance §5.6-c after a contract migration, images older than its versi
 
 // ---------- §5.7 迁移纪律 ----------
 
-test('acceptance §5.7-a a destructive migration needs a contract-step marker', { todo: 'Batch 2' }, async () => {
+test('acceptance §5.7-a a destructive migration needs a contract-step marker', async () => {
   const { lintMigration } = await load('../scripts/release/migration-lint.mjs');
   assert.ok(lintMigration('alter table public.t drop column c;').length > 0, 'drop column passed');
   assert.ok(lintMigration('alter table public.t rename column a to b;').length > 0, 'rename passed');
@@ -181,13 +181,13 @@ test('acceptance §5.7-b a migration without an execution record stops the deplo
   assert.deepEqual(missingMigrations(files, ['dynamic_content_foundation', 'site_pages']), []);
 });
 
-test('acceptance §5.7-c migration names are unique, so records can match by name', { todo: 'Batch 2' }, () => {
+test('acceptance §5.7-c migration names are unique, so records can match by name', () => {
   const names = readdirSync(join(ROOT, 'supabase/migrations')).map((file) => file.replace(/^\d+_/, '').replace(/\.sql$/, ''));
   assert.equal(new Set(names).size, names.length);
   // The records themselves (all of them in production) are Phase 4 evidence: list_migrations.
 });
 
-test('acceptance §5.7-d changing a migration that is already on main turns the gate red', { todo: 'Batch 2' }, async () => {
+test('acceptance §5.7-d changing a migration that is already on main turns the gate red', async () => {
   const { changedAppliedMigrations } = await load('../scripts/release/migration-lint.mjs');
   const onMain = ['supabase/migrations/20260923100000_site_pages.sql'];
   assert.deepEqual(changedAppliedMigrations({ changed: [{ status: 'A', path: 'supabase/migrations/20261001000000_new.sql' }], onMain }), []);
