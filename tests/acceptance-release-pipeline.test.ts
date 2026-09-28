@@ -33,28 +33,39 @@ test('acceptance §5.1-a no .env reaches the image', { todo: 'Batch 1' }, () => 
   const ignored = read('.dockerignore').split('\n').map((line) => line.trim());
   assert.ok(ignored.includes('.env*'), '.dockerignore does not exclude .env*');
   assert.doesNotMatch(read('Dockerfile'), /COPY[^\n]*\.env/, 'the Dockerfile copies an env file');
+  const args = [...read('Dockerfile').matchAll(/^ARG\s+([A-Z0-9_]+)/gm)].map((m) => m[1]);
+  assert.ok(args.length > 0, 'no build arguments: the public values cannot reach the build');
+  assert.deepEqual(args.filter((name) => !name.startsWith('NEXT_PUBLIC_')), [], 'a build argument that is not public');
   // The image itself is checked where it is built: branch.yml plants a marked .env in the context and
   // asserts the built image holds neither the file nor the marker.
   assert.match(readIfAny('.github/workflows/branch.yml'), /PLANTED_ENV_MARKER/, 'the image job does not plant a marker');
 });
 
 test('acceptance §5.1-b the build input key changes with build inputs only', { todo: 'Batch 1' }, async () => {
+  // Docker decides what is in the context (.dockerignore, applied by the key stage); the key is a hash
+  // of exactly that directory plus the build arguments.
   const { buildKey } = await load('../scripts/release/build-key.mjs');
-  const base = { '.dockerignore': 'docs\n*.md\n', 'src/a.ts': 'a', 'docs/x.md': 'x', 'README.md': 'r' };
+  const base = { 'src/a.ts': 'a', 'src/lib/b.ts': 'b', 'package.json': '{}' };
   const args = { NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co' };
   const key = buildKey({ root: tree(base), buildArgs: args });
   assert.match(key, /^[0-9a-f]{64}$/);
-  assert.equal(buildKey({ root: tree({ ...base, 'docs/x.md': 'changed', 'README.md': 'changed' }), buildArgs: args }), key,
-    'a docs-only change moved the key');
-  assert.notEqual(buildKey({ root: tree({ ...base, 'src/a.ts': 'b' }), buildArgs: args }), key, 'a source change kept the key');
+  assert.equal(buildKey({ root: tree(base), buildArgs: args }), key, 'the same inputs gave another key');
+  assert.notEqual(buildKey({ root: tree({ ...base, 'src/a.ts': 'changed' }), buildArgs: args }), key, 'a content change kept the key');
+  assert.notEqual(buildKey({ root: tree({ 'src/renamed.ts': 'a', 'src/lib/b.ts': 'b', 'package.json': '{}' }), buildArgs: args }), key,
+    'a rename kept the key');
   assert.notEqual(buildKey({ root: tree(base), buildArgs: { NEXT_PUBLIC_SUPABASE_URL: 'https://other.supabase.co' } }), key,
     'a build argument change kept the key');
+  const ignored = read('.dockerignore').split('\n').map((line) => line.trim());
+  for (const entry of ['docs', '*.md', '.github', 'tests']) assert.ok(ignored.includes(entry), `.dockerignore does not exclude ${entry}`);
+  assert.match(read('Dockerfile'), /AS key\b/, 'no key stage');
 });
 
 test('acceptance §5.1-c no deploy path builds on the VPS', { todo: 'Batch 5' }, () => {
   for (const path of ['scripts/release/release.sh', '.github/workflows/production.yml']) {
     const source = read(path);
-    assert.doesNotMatch(source, /docker build|compose[^\n]*--build|npm run build/, `${path} builds`);
+    // Only the key stage may run where production is decided: it copies the context and hashes it.
+    const builds = source.split('\n').filter((line) => /docker build|compose[^\n]*--build|npm run build/.test(line) && !/--target key\b/.test(line));
+    assert.deepEqual(builds, [], `${path} builds`);
   }
 });
 
@@ -83,6 +94,15 @@ test('acceptance §5.3-c staging refuses an env file that holds the service-role
 
 test('acceptance §5.4-c the PR template asks for the signed-in look at staging', { todo: 'Batch 5' }, () => {
   assert.match(read('.github/pull_request_template.md'), /- \[ \][^\n]*staging[^\n]*admin/i);
+});
+
+test('acceptance §5.4-d the PR check is red until the signed-in look is ticked', { todo: 'Batch 5' }, async () => {
+  const { checklistTicked } = await decide();
+  const template = read('.github/pull_request_template.md');
+  assert.equal(checklistTicked(template), false, 'the untouched template passes');
+  assert.equal(checklistTicked(template.replace(/- \[ \]([^\n]*staging[^\n]*admin)/i, '- [x]$1')), true);
+  assert.equal(checklistTicked(''), false);
+  assert.match(read('.github/workflows/pr-checklist.yml'), /pull_request/);
 });
 
 // ---------- §5.5 晋升与部署后核验 ----------
@@ -124,6 +144,18 @@ test('acceptance §5.5-f open sign-ups or skipped confirmation turn the Auth che
   assert.equal(authSettingsProblems({}).length, 2, 'a response without the fields passed');
 });
 
+// ---------- §5.6 回滚 ----------
+
+test('acceptance §5.6-c after a contract migration, images older than its version are no rollback target', { todo: 'Batch 6' }, async () => {
+  const { rollbackTarget } = await decide();
+  const kept = [{ key: 'k3', version: '2.6.0' }, { key: 'k2', version: '2.5.1' }, { key: 'k1', version: '2.5.0' }];
+  assert.equal(rollbackTarget({ kept, contracts: [] })?.key, 'k2');
+  assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.6.0' }] }), null, 'fell back to an image the database no longer fits');
+  assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.1' }] })?.key, 'k2');
+  assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.1' }], requested: 'k1' }), null, 'a manual rollback past a contract step went through');
+  assert.equal(rollbackTarget({ kept: [kept[0]], contracts: [] }), null, 'nothing to fall back to, yet a target');
+});
+
 // ---------- §5.7 迁移纪律 ----------
 
 test('acceptance §5.7-a a destructive migration needs a contract-step marker', { todo: 'Batch 2' }, async () => {
@@ -135,6 +167,10 @@ test('acceptance §5.7-a a destructive migration needs a contract-step marker', 
   assert.deepEqual(lintMigration('-- contract: column c, unused since v2.5.0\nalter table public.t drop column c;'), []);
   assert.deepEqual(lintMigration('drop trigger if exists t on public.x;\ncreate trigger t before update on public.x for each row execute function f();'), [],
     're-creating a trigger is not destructive');
+  assert.ok(lintMigration('drop table if exists public.t;').length > 0, 'drop table if exists passed');
+  assert.ok(lintMigration('delete from public.t;').length > 0, 'a top-level delete passed');
+  assert.deepEqual(lintMigration('create function f() returns void language plpgsql as $$ begin delete from public.t where id = 1; end $$;'), [],
+    'a delete inside a function body is not a migration deleting data');
   const dir = join(ROOT, 'supabase/migrations');
   for (const file of readdirSync(dir)) assert.deepEqual(lintMigration(readFileSync(join(dir, file), 'utf8')), [], file);
 });
@@ -149,8 +185,16 @@ test('acceptance §5.7-b a migration without an execution record stops the deplo
 test('acceptance §5.7-c migration names are unique, so records can match by name', { todo: 'Batch 2' }, () => {
   const names = readdirSync(join(ROOT, 'supabase/migrations')).map((file) => file.replace(/^\d+_/, '').replace(/\.sql$/, ''));
   assert.equal(new Set(names).size, names.length);
-  // The records themselves (all seven in production) are Phase 4 evidence: list_migrations.
-  assert.ok(names.length >= 8, 'the admin-read migration is not in the repository yet');
+  // The records themselves (all of them in production) are Phase 4 evidence: list_migrations.
+});
+
+test('acceptance §5.7-d changing a migration that is already on main turns the gate red', { todo: 'Batch 2' }, async () => {
+  const { changedAppliedMigrations } = await load('../scripts/release/migration-lint.mjs');
+  const onMain = ['supabase/migrations/20260923100000_site_pages.sql'];
+  assert.deepEqual(changedAppliedMigrations({ changed: [{ status: 'A', path: 'supabase/migrations/20261001000000_new.sql' }], onMain }), []);
+  assert.deepEqual(changedAppliedMigrations({ changed: [{ status: 'M', path: onMain[0] }], onMain }), [onMain[0]]);
+  assert.deepEqual(changedAppliedMigrations({ changed: [{ status: 'D', path: onMain[0] }], onMain }), [onMain[0]]);
+  assert.deepEqual(changedAppliedMigrations({ changed: [{ status: 'M', path: 'src/lib/posts.ts' }], onMain }), []);
 });
 
 // ---------- §5.8 后台读取与管理员身份 ----------
