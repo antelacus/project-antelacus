@@ -42,6 +42,7 @@
   - 2026-09-28 · REQ 定稿，Phase 1 关闭 · Jason · 级联：REQ
   - 2026-09-28 · 加发布手册：不另建文件，`docs/DEPLOYMENT.md` 做成手册；流水线建成后写，Phase 4 的真实发布完全照它执行 · Jason · 级联：本 TRACK 范围 11、REQ §1.2、§5.11
   - 2026-09-28 · DESIGN 审过；删掉 `docker-compose.yml`，容器参数只在发布脚本里定义 · Jason · 级联：DESIGN §2.1、本 TRACK Batch 4
+  - 2026-09-28 · Codex 设计门 15 条发现按 Claude 提议处置（第三区）；不在 CI 里放管理员账号，登录后的检查由 `pr-checklist` 强制打勾，重议条件写进 REQ §1.2；Phase 2 关闭 · Jason · 级联：DESIGN、REQ §1.2、§5.1、§5.4-d、§5.6-c、§5.7-d、§6
 
 ## 二、批次
 
@@ -55,8 +56,8 @@
 
 ### Batch 2 — 迁移纪律
 - 状态：open
-- 范围：`scripts/release/migration-lint.mjs` + 测试、闸门接入；补登 5 条执行记录（Claude 经 MCP）· 覆盖 REQ §5.7（先扩后缩；执行记录）
-- 验收判据：§5.7-a/c 去 todo 且绿；现有 7 条迁移全部通过 lint；`list_migrations` 列出 7 条
+- 范围：`scripts/release/migration-lint.mjs` + 测试（含「已执行不可再改」）、闸门接入；查清 DESIGN §10 Q4；补登 5 条执行记录（Claude 经 MCP）· 覆盖 REQ §5.7（先扩后缩；执行记录）
+- 验收判据：§5.7-a/c/d 去 todo 且绿；现有 7 条迁移全部通过 lint；`list_migrations` 列出 7 条
 - 依赖：none
 
 ### Batch 3 — 后台读取与管理员身份
@@ -73,13 +74,13 @@
 
 ### Batch 5 — 工作流
 - 状态：open
-- 范围：`branch.yml`、`production.yml`，删除 `check.yml`、`deploy.yml`；运行时套件支持 Access；耗时摘要；分支保护（Claude 经 `gh` 改，先给 Jason 看）；PR 模板 · 覆盖 REQ §5.3-d、§5.4、§5.5-a/b/c、§5.9
+- 范围：`branch.yml`、`production.yml`、`pr-checklist.yml`，删除 `check.yml`、`deploy.yml`；运行时套件支持 Access；耗时摘要；分支保护（Claude 经 `gh` 改，先给 Jason 看）；PR 模板 · 覆盖 REQ §5.1-c、§5.3-d、§5.4、§5.5-a/b/c、§5.9
 - 验收判据：对应判据去 todo 且绿；§5.4-a/b 以分支保护的读出为证据
 - 依赖：Batch 4
 
 ### Batch 6 — 回滚与发布后收尾
 - 状态：open
-- 范围：自动与手动回滚、打 tag、清缓存（先关闭 DESIGN §10 Q1）、Auth 核对；Cloudflare 清缓存令牌（Jason 批准）· 覆盖 REQ §5.5-d/e/f、§5.6
+- 范围：自动与手动回滚、打 tag、清缓存（先关闭 DESIGN §10 Q1）、Auth 核对；Cloudflare 清缓存令牌（Jason 批准）· 覆盖 REQ §5.5-d/e/f、§5.6（含 §5.6-c 回滚兼容）
 - 验收判据：对应判据去 todo 且绿；§5.6-a 在预发布上演练一次（证据）
 - 依赖：Batch 5
 
@@ -111,21 +112,21 @@
 - D-11 · SHOULD：Next standalone 输出复制 `.env`，`Dockerfile` 把它带进最终镜像，含 service-role 密钥（假 `.env` 本机构建实测；JS 文件中无密钥） —— status: open → 范围 1
 
 **评审发现登记**（Codex 设计门，xhigh，DESIGN + REQ；全文 `codex resume 01a0e604-0b26-71d3-9222-40fea1e2dde4`；引文已逐条对源核实）：
-- G-M1 · MUST：构建输入键不是产物的身份——同一个键重建会得到不同的镜像（基础镜像、npm 下载），标签会被覆盖；`BUILD_KEY` 作为环境变量可被 `.env` 覆盖 —— status: open
-- G-M2 · MUST：nginx 与环境文件不在产物里；「线上 nginx 与仓库一致」没有写明机制；登录后的检查不强制 —— status: open
-- G-M3 · MUST：核验经过 CDN、清缓存在核验之后，可能验到旧应用 —— status: open（前提与事实不符：HTML 为 `cf-cache-status: DYNAMIC`，只有分享图与 `/images/` 被缓存）
-- G-M4 · MUST：发布状态没有并发锁；`kept[1]` 缺失时无定义；状态损坏仍允许部署 —— status: open
-- G-M5 · MUST：固定端口的单容器先换后检，候选镜像起不来时旧容器已经没了 —— status: open
-- G-M6 · MUST：收缩迁移之后，回滚到仍依赖被删对象的保留镜像会出错 —— status: open
-- G-M7 · MUST：角色没写成功或令牌未刷新时后台被锁；预发布回滚到旧镜像时后台读不了 —— status: open
-- G-M8 · MUST：按名称匹配迁移，放过了「已执行后又被改过」的迁移 —— status: open
-- G-M9 · MUST：假 `.env` 标记检查证明不了真实密钥不在镜像里；分支工作流持有 Access token，作用域未说明 —— status: open
-- G-M10 · MUST：若干判据（§5.4-c、§5.6-a/b、§5.7-c、§5.11-a）在设计里没有归属；`DEPLOYMENT.md` 仍写着在 VPS 上构建 —— status: open
-- G-S1 · SHOULD：迁移 lint 会误报函数体里的 `delete from`（`save_content_item`）；放宽 `drop … if exists` 又会放过 `drop table if exists` —— status: open
-- G-S2 · SHOULD：预发布容器没有内存、CPU、进程数上限 —— status: open
-- G-S3 · SHOULD：清缓存方式未定（即 DESIGN §10 Q1） —— status: open
-- G-S4 · SHOULD：自己实现 `.dockerignore` 的匹配，未必与 Docker 的语义一致 —— status: open
-- G-N1 · NICE：Auth 公开设置接口的前提应列进开放问题 —— status: open
+- G-M1 · MUST：构建输入键不是产物的身份——同一个键重建会得到不同的镜像（基础镜像、npm 下载），标签会被覆盖；`BUILD_KEY` 作为环境变量可被 `.env` 覆盖 —— status: fixed `0609c26`：同一个键永不重建；生产只接受预发布验过的镜像 ID；键写成镜像里的文件（DESIGN §2.2、§7-2；REQ §5.1）
+- G-M2 · MUST：nginx 与环境文件不在产物里；「线上 nginx 与仓库一致」没有写明机制；登录后的检查不强制 —— status: fixed `0609c26`：写明经 SSH 比对线上 nginx；登录后的检查由 `pr-checklist` 强制（DESIGN §2.1、§7-5；REQ §5.4-d）
+- G-M3 · MUST：核验经过 CDN、清缓存在核验之后，可能验到旧应用 —— status: fixed `0609c26`：只补「清完缓存再取一次」；HTML 不被缓存写进外部约束（DESIGN §2.2、§8）
+- G-M4 · MUST：发布状态没有并发锁；`kept[1]` 缺失时无定义；状态损坏仍允许部署 —— status: fixed `0609c26`：每个环境一把锁 + GitHub 串行；无回滚目标不自动回滚；状态损坏拒绝生产部署，`adopt` 重建（DESIGN §5、§6）
+- G-M5 · MUST：固定端口的单容器先换后检，候选镜像起不来时旧容器已经没了 —— status: fixed `0609c26`：临时端口试启动，旧容器只停不删，失败即恢复（DESIGN §2.1、§6）
+- G-M6 · MUST：收缩迁移之后，回滚到仍依赖被删对象的保留镜像会出错 —— status: fixed `0609c26`：收缩步标注带版本，更早的镜像不作回滚目标（DESIGN §7-9；REQ §5.6-c）
+- G-M7 · MUST：角色没写成功或令牌未刷新时后台被锁；预发布回滚到旧镜像时后台读不了 —— status: fixed `0609c26`：推代码前 SQL 核对角色；登录检查由 `pr-checklist` 强制；预发布回滚到旧镜像时后台打不开，接受（DESIGN §3、§9）
+- G-M8 · MUST：按名称匹配迁移，放过了「已执行后又被改过」的迁移 —— status: fixed `0609c26`：已进入 main 的迁移不可再改，闸门检查；执行记录是否存 SQL 原文待查（DESIGN §7-8、§10 Q4；REQ §5.7-d）
+- G-M9 · MUST：假 `.env` 标记检查证明不了真实密钥不在镜像里；分支工作流持有 Access token，作用域未说明 —— status: fixed `0609c26`：构建参数只有 `NEXT_PUBLIC_*`；CI 里没有 service-role；Access token 的风险接受（DESIGN §7-3；REQ §5.1-a、§6）
+- G-M10 · MUST：若干判据（§5.4-c、§5.6-a/b、§5.7-c、§5.11-a）在设计里没有归属；`DEPLOYMENT.md` 仍写着在 VPS 上构建 —— status: fixed `0609c26`：DESIGN §11 判据归属表；手册随 Batch 4–6 同步改（DESIGN §9、§11）
+- G-S1 · SHOULD：迁移 lint 会误报函数体里的 `delete from`（`save_content_item`）；放宽 `drop … if exists` 又会放过 `drop table if exists` —— status: fixed `0609c26`：只看顶层语句，跳过函数体；`drop table if exists` 仍算破坏（DESIGN §2.1；REQ §5.7-a 测试）
+- G-S2 · SHOULD：预发布容器没有内存、CPU、进程数上限 —— status: fixed `0609c26`：预发布容器设内存、CPU、进程数、日志上限（DESIGN §2.1）
+- G-S3 · SHOULD：清缓存方式未定（即 DESIGN §10 Q1） —— status: fixed `0609c26`：维持 DESIGN §10 Q1，Batch 6 开工前查清
+- G-S4 · SHOULD：自己实现 `.dockerignore` 的匹配，未必与 Docker 的语义一致 —— status: fixed `0609c26`：键由 Docker 的键阶段在实际上下文上算，不自己实现匹配（DESIGN §2.1）
+- G-N1 · NICE：Auth 公开设置接口的前提应列进开放问题 —— status: fixed `0609c26`：列为 DESIGN §10 Q3
 
 **Phase 4 证据**：（Phase 4 填写）
 
