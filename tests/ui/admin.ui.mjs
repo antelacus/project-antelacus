@@ -69,7 +69,7 @@ test('a new item\'s unsaved body survives leaving the editor and coming back wit
 
 // ---------- REQ release-pipeline §5.8, §5.10 — marked `todo` with their batch until it lands ----------
 
-test('acceptance release-pipeline §5.8-a RLS: a signed-in non-admin sees no drafts, the admin sees them', { todo: 'Batch 3' }, async () => {
+test('acceptance release-pipeline §5.8-a RLS: a signed-in non-admin sees no drafts, the admin sees them', async () => {
   const { createClient } = await import('@supabase/supabase-js');
   const url = process.env.UI_SUPABASE_URL;
   const key = process.env.UI_SUPABASE_PUBLISHABLE_KEY;
@@ -85,7 +85,7 @@ test('acceptance release-pipeline §5.8-a RLS: a signed-in non-admin sees no dra
   assert.ok(await drafts(process.env.UI_ADMIN_EMAIL, process.env.UI_ADMIN_PASSWORD) > 0, 'the admin reads no drafts');
 });
 
-test('acceptance release-pipeline §5.8-b/c without the service-role key the admin opens, shows drafts, and refuses to save', { todo: 'Batch 3' }, async () => {
+test('acceptance release-pipeline §5.8-b/c without the service-role key the admin opens, shows drafts, and refuses to save', async () => {
   const { SEED } = await h();
   const base = process.env.UI_READONLY_BASE_URL;
   assert.ok(base, 'ui-check.sh does not start a read-only instance yet');
@@ -100,7 +100,8 @@ test('acceptance release-pipeline §5.8-b/c without the service-role key the adm
     await page.goto(`${base}/admin/content/post`);
     assert.ok(await page.getByText(SEED.draftTitle).count(), 'the list shows no draft');
     await page.goto(`${base}/admin/content/post/${SEED.post}`);
-    await page.getByRole('button', { name: 'Publish', exact: true }).click();
+    // The seeded post is published, so its save button reads "Publish changes".
+    await page.getByRole('button', { name: 'Publish changes', exact: true }).click();
     await page.getByText('Read-only environment — not saved.').waitFor({ timeout: 5000 });
   } finally {
     await browser.close();

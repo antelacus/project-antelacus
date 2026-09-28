@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { isValidSlug } from '@/lib/content-slug';
-import { getAdminSession } from '@/lib/server/admin-auth';
+import { getAdminSession, ReadOnlyEnvironment } from '@/lib/server/admin-auth';
 import { contentTypeSchema } from '@/lib/server/database.types';
 import { UploadRejected, uploadImage } from '@/lib/server/media';
 
@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json(uploaded, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     if (error instanceof UploadRejected) return NextResponse.json({ error: error.message }, { status: 422 });
+    if (error instanceof ReadOnlyEnvironment) return NextResponse.json({ error: error.message }, { status: 503 });
     throw error;
   }
 }

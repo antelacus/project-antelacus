@@ -7,7 +7,7 @@
 //
 // A local server needs no database for this subset. Build and start it with placeholder values:
 //   export NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=dummy \
-//          SUPABASE_SERVICE_ROLE_KEY=dummy SUPABASE_ADMIN_EMAILS=owner@example.com
+//          SUPABASE_SERVICE_ROLE_KEY=dummy
 //   npx next build && npx next start -p 3917 &      then   BASE_URL=http://localhost:3917 npm run test:runtime
 import test from 'node:test';
 import assert from 'node:assert/strict';

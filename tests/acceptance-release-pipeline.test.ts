@@ -206,7 +206,7 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
-test('acceptance §5.8-d the service-role client is reached only from write paths', { todo: 'Batch 3' }, () => {
+test('acceptance §5.8-d the service-role client is reached only from write paths', () => {
   const users = sourceFiles(join(ROOT, 'src'))
     .filter((path) => /getAdminServiceRoleClient\(/.test(readFileSync(path, 'utf8')))
     .map((path) => relative(ROOT, path))

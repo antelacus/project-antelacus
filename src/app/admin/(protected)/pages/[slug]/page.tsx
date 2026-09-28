@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { locales } from '@/i18n/routing';
 import { PAGE_SLUGS } from '@/lib/pages';
-import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
+import { getAdminReadClient } from '@/lib/server/admin-auth';
 import { listPageVersions } from '@/lib/server/pages-repo';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -15,7 +15,7 @@ export default async function AdminPageLanguagesPage({ params }: { params: Promi
   const { slug } = await params;
   if (!(PAGE_SLUGS as readonly string[]).includes(slug)) notFound();
 
-  const versions = await listPageVersions(await getAdminServiceRoleClient(`/admin/pages/${slug}`), slug);
+  const versions = await listPageVersions(await getAdminReadClient(`/admin/pages/${slug}`), slug);
   const byLocale = new Map(versions.map((v) => [v.locale, v]));
 
   return (

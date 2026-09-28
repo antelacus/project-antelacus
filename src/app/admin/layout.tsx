@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
 import SiteDocument from '@/components/SiteDocument';
-import { hasConfiguredAdminEmails, hasSupabaseServiceRoleEnv } from '@/lib/server/supabase-env';
 import { hasSupabasePublicEnv } from '@/lib/supabase/public-env';
 import { siteMetadata, siteViewport } from '../site-metadata';
 
@@ -21,7 +20,8 @@ export const viewport = siteViewport;
 export const dynamic = 'force-dynamic';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const configured = hasSupabasePublicEnv() && hasConfiguredAdminEmails() && hasSupabaseServiceRoleEnv();
+  // Without the service-role key (staging) the admin still opens and reads; saves say so (admin-auth.ts).
+  const configured = hasSupabasePublicEnv();
   return <SiteDocument lang="en">{configured ? children : <SetupRequired />}</SiteDocument>;
 }
 
@@ -41,9 +41,8 @@ function SetupRequired() {
         </p>
         <h1 style={{ marginTop: 0 }}>Configure Supabase before using `/admin`</h1>
         <p>
-          Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or
-          `NEXT_PUBLIC_SUPABASE_ANON_KEY`), `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_ADMIN_EMAILS`
-          to your local environment.
+          Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or
+          `NEXT_PUBLIC_SUPABASE_ANON_KEY`) to your local environment, and `SUPABASE_SERVICE_ROLE_KEY` to save.
         </p>
       </section>
     </div>

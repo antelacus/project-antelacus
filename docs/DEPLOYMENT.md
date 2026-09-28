@@ -50,6 +50,7 @@ A drill on the VPS itself, no data leaving it: start `docker run -d --name resto
 
 ## Things to re-check by hand
 
-- Supabase → Authentication → Sign In / Providers: **Allow new users to sign up** off, **Confirm email** on. Admins are the emails in `SUPABASE_ADMIN_EMAILS`; with sign-ups open, a listed address without an account could be registered by anyone.
+- Supabase → Authentication → Sign In / Providers: **Allow new users to sign up** off, **Confirm email** on. With sign-ups open anyone could make an account; it would read only what is published, but it is a door that should be shut.
+- Admins are the users whose `app_metadata.role` is `admin`. Only the service role can set it, in SQL: `update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}' where email = '<email>';`. The claim reaches the session at the next sign-in, so sign out and in again; until then the admin opens but lists no drafts.
 - After a deploy that changes headers or images: `curl -I https://www.antelacus.com/en/about` shows `content-security-policy`, `strict-transport-security`, and no `x-powered-by`.
 - Cloudflare caches `/og.png` and `/images/` for a day; purge after replacing either.

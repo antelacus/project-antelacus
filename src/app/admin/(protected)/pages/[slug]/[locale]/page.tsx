@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import PageEditor from '@/components/admin/PageEditor';
 import { isSupportedLocale } from '@/i18n/routing';
 import { PAGE_SLUGS } from '@/lib/pages';
-import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
+import { getAdminReadClient } from '@/lib/server/admin-auth';
 import { getPageVersion } from '@/lib/server/pages-repo';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }) {
@@ -21,7 +21,7 @@ export default async function AdminPageEditorPage({ params, searchParams }: Prop
   if (!(PAGE_SLUGS as readonly string[]).includes(slug) || !isSupportedLocale(locale)) notFound();
   const query = await searchParams;
 
-  const version = await getPageVersion(await getAdminServiceRoleClient(`/admin/pages/${slug}/${locale}`), slug, locale);
+  const version = await getPageVersion(await getAdminReadClient(`/admin/pages/${slug}/${locale}`), slug, locale);
 
   return (
     <PageEditor

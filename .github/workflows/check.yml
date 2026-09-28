@@ -21,7 +21,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: dummy
       SUPABASE_SERVICE_ROLE_KEY: dummy
-      SUPABASE_ADMIN_EMAILS: owner@example.com
     steps:
       # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

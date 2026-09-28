@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 
 import { getAdminSession } from '@/lib/server/admin-auth';
-import { hasConfiguredAdminEmails } from '@/lib/server/supabase-env';
 import { hasSupabasePublicEnv } from '@/lib/supabase/public-env';
 import { login } from './actions';
 
@@ -31,7 +30,7 @@ function getSafeNextPath(nextPath?: string): string {
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
   const params = await searchParams;
 
-  if (hasSupabasePublicEnv() && hasConfiguredAdminEmails()) {
+  if (hasSupabasePublicEnv()) {
     const session = await getAdminSession();
     if (session) {
       redirect('/admin');
@@ -58,8 +57,8 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
         </p>
         <h1 style={{ marginTop: 0 }}>Sign in to manage dynamic content</h1>
         <p style={{ marginBottom: '1.5rem' }}>
-          This route is reserved for the site owner. Admin access is granted only to emails listed in
-          `SUPABASE_ADMIN_EMAILS`.
+          This route is reserved for the site owner. Admin access is granted only to accounts whose
+          role is admin.
         </p>
 
         {errorMessage && (

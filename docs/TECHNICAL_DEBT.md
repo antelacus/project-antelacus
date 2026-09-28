@@ -26,6 +26,12 @@ Update this file when:
 - Open questions for that design: the data source (production read-only with the publishable key and no service-role key, so the staging admin cannot write production; or a separate project); access control (Cloudflare Access or basic auth, plus `noindex`); the trigger (feature-branch push or manual); build CPU shared with production.
 - Revisit when: the next version's Phase 0 (Jason's ruling, 2026-09-24).
 
+### TD-023 - `SUPABASE_ADMIN_EMAILS` is still in the production `.env`
+
+- Status: `Open` · Severity: `Low` · Area: `deploy` · Identified: `2026-09-28` (v2.5.0 Batch 3)
+- Context: since v2.5.0 an admin is a user whose `app_metadata.role` is `admin`; no code reads `SUPABASE_ADMIN_EMAILS`. The variable stays in the VPS `.env` on purpose — the expand step of an expand/contract change — so that a rollback to a v2.4.x image still has a working admin (release-pipeline DESIGN §9).
+- Revisit when: the first release after v2.5.0 whose kept images (the five rollback targets) are all v2.5.0 or later — then delete the line from the VPS `.env` (the contract step).
+
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
