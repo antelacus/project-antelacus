@@ -45,7 +45,7 @@
 
 ## 二、批次
 
-验收测试在 Phase 2 写红，每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。标「证据」的判据不是自动测试，在第三区记运行号或读出结果。
+验收测试在 Phase 2 写红，每条 `todo` 标着它的批次；批次完成 = 它名下的标记去掉且全绿。所在位置：`tests/acceptance-release-pipeline.test.ts`（单元）、`tests/runtime/release.runtime.mjs`（对预发布或生产）、`tests/ui/admin.ui.mjs`（合成环境）。不是自动测试的判据在第三区记运行号或读出结果：§5.4-a/b、§5.6-a/b、§5.7-c 的执行记录、§5.10-a、§5.11-a。
 
 ### Batch 1 — 无密钥的产物
 - 状态：open
