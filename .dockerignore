@@ -1,6 +1,33 @@
+# The build context, and so the build input key (docs/features/release-pipeline/DESIGN.md §2.1): what is
+# not excluded here is copied into the image build and hashed by the key stage. Anything the build does
+# not read belongs here, or it moves the key without changing the image.
+
+# Secrets: Next's standalone output copies an .env it loaded into the image.
+.env*
+
 .git
 .gitignore
+.github
+.githooks
+.claude
+.mcp.json
+.vercel
+.playwright-mcp
+.DS_Store
 .next
+.next-ui
 node_modules
 npm-debug.log*
+tsconfig.tsbuildinfo
+
 docs
+*.md
+tests
+supabase
+deploy
+Dockerfile
+.dockerignore
+
+# The key stage runs scripts/release/build-key.mjs; nothing else under scripts/ is read by the build.
+scripts
+!scripts/release/build-key.mjs

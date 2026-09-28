@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 
@@ -11,7 +11,6 @@ import { dirname, join, relative } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..');
 const read = (path: string) => readFileSync(join(ROOT, path), 'utf8');
-const readIfAny = (path: string) => (existsSync(join(ROOT, path)) ? read(path) : '');
 
 // Modules a later batch creates are imported by a runtime path so the type check stays green until then.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the module's types do not exist yet
@@ -29,19 +28,19 @@ function tree(files: Record<string, string>): string {
 
 // ---------- §5.1 无密钥的产物 ----------
 
-test('acceptance §5.1-a no .env reaches the image', { todo: 'Batch 1' }, () => {
+test('acceptance §5.1-a no .env reaches the image', () => {
   const ignored = read('.dockerignore').split('\n').map((line) => line.trim());
   assert.ok(ignored.includes('.env*'), '.dockerignore does not exclude .env*');
   assert.doesNotMatch(read('Dockerfile'), /COPY[^\n]*\.env/, 'the Dockerfile copies an env file');
   const args = [...read('Dockerfile').matchAll(/^ARG\s+([A-Z0-9_]+)/gm)].map((m) => m[1]);
   assert.ok(args.length > 0, 'no build arguments: the public values cannot reach the build');
   assert.deepEqual(args.filter((name) => !name.startsWith('NEXT_PUBLIC_')), [], 'a build argument that is not public');
-  // The image itself is checked where it is built: branch.yml plants a marked .env in the context and
-  // asserts the built image holds neither the file nor the marker.
-  assert.match(readIfAny('.github/workflows/branch.yml'), /PLANTED_ENV_MARKER/, 'the image job does not plant a marker');
+  // The image itself is checked where it is built: image-check.sh plants a marked .env in the context and
+  // asserts the built image holds neither the file nor the marker (wired into branch.yml: §5.9-b).
+  assert.match(read('scripts/release/image-check.sh'), /PLANTED_ENV_MARKER/, 'the image check plants no marker');
 });
 
-test('acceptance §5.1-b the build input key changes with build inputs only', { todo: 'Batch 1' }, async () => {
+test('acceptance §5.1-b the build input key changes with build inputs only', async () => {
   // Docker decides what is in the context (.dockerignore, applied by the key stage); the key is a hash
   // of exactly that directory plus the build arguments.
   const { buildKey } = await load('../scripts/release/build-key.mjs');
@@ -231,8 +230,10 @@ test('acceptance §5.9-a the gate runs once per push, never for a PR', { todo: '
   assert.doesNotMatch(branch, /pull_request/);
 });
 
-test('acceptance §5.9-b the gate runs the database function check', { todo: 'Batch 5' }, () => {
-  assert.match(read('.github/workflows/branch.yml'), /scripts\/db-function-check\.sh/);
+test('acceptance §5.9-b the gate runs the database function check and checks its image', { todo: 'Batch 5' }, () => {
+  const branch = read('.github/workflows/branch.yml');
+  assert.match(branch, /scripts\/db-function-check\.sh/);
+  assert.match(branch, /image-check\.sh plant[\s\S]*docker build[\s\S]*image-check\.sh verify/, 'the image job does not check its image');
 });
 
 test('acceptance §5.9-c both workflows write their step timings to the run summary', { todo: 'Batch 5' }, () => {
