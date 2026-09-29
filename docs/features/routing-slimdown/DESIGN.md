@@ -19,7 +19,7 @@
 | `src/i18n/route-decision.ts` | **语言路由的全部规则**：路径、`Accept-Language`、记住的选择 → 「放行」「308 到某地址」「不存在（带语言）」或「查过内容再定」；另有「按内容索引判定是否存在」的纯函数 | core |
 | `src/proxy.ts`（由根目录的 `middleware.ts` 移入，Next 16 起改名） | 薄壳：执行 `route-decision` 的结论；「查过内容再定」时经本机回环取内容索引；「不存在」时改写到匹配不到路由的地址，并把语言放进请求头；放行的请求若在 `/admin`、`/auth` 之下则续期会话。自身不含规则，`matcher` 只排除框架自己的 `/_next/` | IO |
 | `src/app/api/route-index/route.ts`（新） | 内容索引：各类型已发布的 slug、在用的标签、关于页是否有已发布版本。经 `src/lib/*.ts` 的缓存读取，随各类型的标签失效——与页面同一套缓存，不另造 | IO |
-| `src/app/global-not-found.tsx` | 全站唯一的 404 文档：请求头带支持的语言时，用该语言的站点外壳（`LocaleShell`，含导航）；否则英文、无导航 | IO |
+| `src/app/global-not-found.tsx` | 全站唯一的 404 文档：请求头带支持的语言时，用该语言的站点外壳（`LocaleShell`，含导航）与该语言的标题；否则英文、无导航 | IO |
 | `src/components/LocaleShell.tsx`（新） | 一种语言的公开站点外壳：按语言载入界面文字（缺的键回落到 `en`）、`SiteDocument lang`、导航与翻译上下文。由 `[locale]` 根布局与 `global-not-found` 共用 | infra |
 | `src/app/site-metadata.ts`（新） | 全站的 `metadata` 与 `viewport` 对象（由现根布局原样搬来） | infra |
 | `src/components/SiteDocument.tsx`（新） | `<html lang>`、`<head>`、`<body>` 的公共外壳：全局 CSS、KaTeX 样式、字体变量与预载都在这里引入；`lang` 由调用方传入 | infra |
@@ -65,6 +65,7 @@
 ## 4 模块间契约
 - `decideLocaleRoute(input: { pathname: string; acceptLanguage: string | null; preferredLocale: string | null }): { kind: 'pass' } | { kind: 'redirect'; pathname: string } | { kind: 'not-found'; locale: AppLocale | null } | { kind: 'lookup'; locale: AppLocale; item: ContentItem }`
   - `ContentItem`：`{ section: 'posts' | 'notes' | 'gallery' | 'projects'; slug }`、`{ section: 'tags'; tag }`（解码后的标签）或 `{ section: 'about' }`。
+  - 标签段只解码一次（`decodeURIComponent`，与标签页同一规则），解码失败 →「不存在」。判定不看查询串。
   - 纯函数，无 IO，不抛错；任何畸形输入都落到「没有偏好」。
   - `preferredLocale` 不是支持的语言时当作 `null`。
   - 重定向只改路径，查询串由中间件原样带上。
@@ -73,7 +74,7 @@
 - 记住的选择：cookie `preferred_locale`，值为支持的语言代码；`Path=/`、一年、`SameSite=Lax`、`Secure`。**只由语言切换控件写，只由中间件读**——页面与布局不得读它。
 - `isPublished(item: ContentItem, index: RouteIndex): boolean`（`route-decision.ts`）：纯函数。
 - `GET /api/route-index` → `RouteIndex = { posts: string[]; notes: string[]; gallery: string[]; projects: string[]; tags: string[]; about: boolean }`，`Cache-Control: no-store`；读取失败 → 500 与通用 JSON，不含数据库原文（同 `/api/search-index`）。内容都是已公开的（sitemap、搜索索引里本来就有）。
-- proxy 取索引：`http://<回环主机>:<PORT>/api/route-index`，`cache: 'no-store'`，2 秒超时；回环主机在 `HOSTNAME` 为 `localhost` 时用 `localhost`，否则用 `127.0.0.1`（§8）。
+- proxy 取索引：`http://<回环主机>:<PORT>/api/route-index`，`cache: 'no-store'`，500 毫秒超时；返回的 JSON 先校验形状（六个字段各是字符串数组或布尔），不合即按「取不到」处理；回环主机在 `HOSTNAME` 为 `localhost` 时用 `localhost`，否则用 `127.0.0.1`（§8）。
 - 语言请求头 `x-site-locale`：只由 proxy 写，且 proxy 先删掉请求里原有的同名头；`global-not-found` 读它，不是支持的语言就当没有。
 - 缓存标签：`notes`、`posts`、`gallery`、`projects`、`pages`。写入方在写成功后使对应标签失效；内容索引经同一批标签读取。
 
@@ -84,7 +85,8 @@ N/A —— 本版不改数据库结构。
 - `Accept-Language` 缺失或畸形 → 按无偏好处理，落到 `en`。
 - 不支持的语言前缀、未知的顶级路径 → 由 `route-decision` 判为「不存在」，状态码 404，页面为 `global-not-found`。`[locale]` 根布局里的 `notFound()` 只是兜底，任何行为不得依赖它。
 - 内容不存在的详情、标签、关于页 → proxy 查过索引后判为「不存在」，页面不渲染。页面里的 `notFound()` 只剩兜底：索引说在、页面读时已不在（两者经同一批标签失效，只在失效的瞬间可能错开），此时得到的是框架的空壳 404（§8），接受。
-- 内容索引取不到（数据库不可达、回环超时、500）→ proxy 放行，页面照旧作答（数据库不可达时 500）。不因索引故障把存在的内容答成 404。
+- 内容索引取不到（数据库不可达、回环超时、500、形状不对）→ proxy 放行并记一行日志，页面照旧作答（数据库不可达时 500）。不因索引故障把存在的内容答成 404；代价是这时的未知条目回到框架的空壳 404（接受）。
+- 发布的瞬间，一个在途请求可能读到失效前的索引而答 404；下一次访问即正确（接受：索引与页面经同一缓存函数读取）。
 - `/admin`、`/auth` 的会话续期失败（Supabase 不可达）→ 放行，由页面自己的管理员校验决定去向（fail-closed 在校验处，不在中间件）。
 - 保存成功但缓存失效调用抛错 → 保存仍算成功，错误上抛到后台页面显示；内容最迟一小时后自行可见。不回滚保存：内容已落库是事实，缓存只是延迟。
 - 闸门里任一步失败 → 后续步骤与部署都不执行。
