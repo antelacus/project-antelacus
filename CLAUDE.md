@@ -53,7 +53,7 @@ The framework constraints behind these rules, each with the measurement that est
 
 ### Authentication
 
-Supabase Auth, cookie sessions (`@supabase/ssr`); admins are the emails in `SUPABASE_ADMIN_EMAILS`. The service-role client bypasses RLS and is handed out only by `getAdminServiceRoleClient` in `src/lib/server/admin-auth.ts` (a test enforces it). A check in a layout does not protect a page — Next renders them in parallel.
+Supabase Auth, cookie sessions (`@supabase/ssr`); an admin is a user whose `app_metadata.role` is `admin` (how to set it: `docs/DEPLOYMENT.md`). The admin reads through its own session and RLS (`getAdminReadClient`); the service-role client bypasses RLS, is for writes only, and is handed out only by `getAdminServiceRoleClient` in `src/lib/server/admin-auth.ts` (a test enforces it). Without the key (staging) a save answers read-only. A check in a layout does not protect a page — Next renders them in parallel.
 
 ### Styling
 

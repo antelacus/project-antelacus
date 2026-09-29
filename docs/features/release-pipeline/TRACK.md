@@ -169,6 +169,18 @@
 - J4-RP003…009 · SHOULD：§5.4-a/b 无仓库内检查；§5.3-b 在非预发布运行时被跳过；§5.10-b「页面上加载」是可选断言；§5.10-d 只查清单成员；§5.9-c 只查变量名；§5.5-e 未断言精确集合；过时的 todo 注释 —— status: RP004 fixed（工作流以 staging/production 运行的静态检查）；RP005 fixed（存储桶返回图片、预览渲染出该地址的 `<img>`；浏览器加载在合成环境受 CSP 所限——存储为 http、CSP 只放行 https）；RP007 fixed（格式化程序的测试）；RP008 fixed（精确集合）；RP009 fixed（过时注释删除）；RP003、RP006 accepted（分支保护读出为证；各后台页面由 axe 检查真实打开）
 - J4-RP010 · NICE：沙盒里 `mkdtemp` 无权限 —— status: accepted：沙盒权限，与代码无关
 
+**评审发现登记**（`/code-review` high，`main...feat/release-pipeline`，同模型，整版一次；待 Jason 处置）：
+- R-1 · MUST：`.dockerignore` 排除了 `Dockerfile`，只改 Dockerfile 时键不变，改动永不构建上线 —— status: open（提议：修，Dockerfile 进上下文 + 静态测试）
+- R-2 · MUST：`pruneImages` 删掉别的运行刚载入、尚未部署的镜像 —— status: open（提议：只清理 6 小时以上的）
+- R-3 · MUST：`staging` 与 `staging-check` 分成两个任务，中间可插入别的分支部署，检查核对错镜像、回滚掉别人的部署 —— status: open（提议：合成一个名为 `staging-check` 的任务）
+- R-4 · SHOULD：回滚后用 main 最新的运行时套件检查旧镜像，回滚成功也报红 —— status: open（提议：回滚后只核对构建标识 + 冒烟）
+- R-5 · SHOULD：同分支新推送取消正在切换预发布的运行，预发布短暂停服 —— status: open（提议：接受，R-6 修好后下一次运行自动修复）
+- R-6 · MUST：两个容器都在时 `reconcile` 默认新容器是好的而删掉旧的——由修 F04 时引入 —— status: open（提议：以状态文件记录的镜像为准）
+- R-7 · MUST：`DATABASE_URL`（含密码）出现在 `docker run` 命令行上，`ps`/`docker inspect` 可见；`db_url` 自写解析 —— status: open（提议：pgpass 临时文件挂载 + `dockerEnv` 解析；`backup.sh` 同样写法登记为 TD）
+- R-8 · SHOULD：`CLAUDE.md` 仍写管理员是 `SUPABASE_ADMIN_EMAILS` 里的邮箱 —— status: fixed（暂停时随手修，T0 文件会误导下一次会话）
+- R-9 · SHOULD：几处 `JSON.parse` 未包 try-catch（项目规则） —— status: open（提议：修）
+- R-10 · SHOULD：`retention()` 的删除列表无人使用，与 `pruneImages` 重复，§5.2-a 测的正是它 —— status: open（提议：删掉，测试改指 `pruneImages`）
+
 **Phase 4 自查发现**（Claude，写 Phase 6 清单时）：
 - S-1 · SHOULD：新流程不再更新 VPS 上的检出，cron 运行的 `backup.sh` 等会与仓库脱节 —— status: fixed：`production.yml` 新增 `checkout` 任务，核验通过后快进检出——证据在真实发布
 - S-2 · SHOULD：`~/.cache/antelacus-release/` 下的发布包只增不减 —— status: fixed：`release.sh` 部署或回滚后只留最近 10 个——证据在下一次部署
