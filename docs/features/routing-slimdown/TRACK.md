@@ -30,6 +30,7 @@
   - 2026-09-29 · TD-025 走方案 A：由 proxy 在渲染之前判定 404、交给按地址语言输出的 `global-not-found`；页面的 `notFound()` 只作兜底。依据：`notFound()` 不经服务端渲染是 App Router 自 Next 14 起的已知缺陷（上游 #62228、#99287），15.5–16.4 canary 与 Vercel 自家站点均复现；Claude 先荐 B（等上游）后改荐 A · Jason · 级联：routing-slimdown DESIGN
   - 2026-09-29 · 不去上游发帖 · Jason
   - 2026-09-29 · 设计门 20 条发现按 Claude 提议处置（第三区）；Phase 2 关闭 · Jason · 级联：routing-slimdown DESIGN §4、§6；visual-upgrade DESIGN §2.5；release-pipeline DESIGN §9
+  - 2026-09-29 · S-1（应用容器拿到数据库密码）本版修：运维任务的变量不进应用容器 · Jason · 级联：release-pipeline DESIGN §9、`.env.example`
 
 ## 二、批次
 
@@ -86,13 +87,14 @@
 - Batch 4（VPS，本分支脚本在演练目录、`.env` 链接生产的那份）：两次实跑均成功，各产出转储与 24 个存储对象。运行期间采样：`ps` 命令行 9 次，密码 0、密钥 0；只取备份自己的容器的 `docker inspect` 7 次（`postgres:17` 2、`node:24-slim` 5），密码 0、密钥 0；临时文件模式全为 600（13 次），结束后残留 0。比对在 VPS 上进行，只回报次数。对照：常驻的生产应用容器 `antelacus` 的 `docker inspect` 含密码与密钥各 1 处（见 S-1）
 
 **本版自查发现**（Claude）：
-- S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: open（待 Jason 裁定）
+- S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: fixed（Jason 裁定本版修）：`appEnv` 剔掉运维任务的变量（`DATABASE_URL`、备份设置、`HC_PING_*`）再交给容器，单元测试；`.env.staging` 本无这些变量，证据在真实发布
 
 **Phase 4 证据**：（Phase 4 填写）
 
 **Phase 6 boxes**（合并 ≠ 发布）：
 - [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并
 - [ ] 真实发布：*Production* 全绿，公网构建标识 = 合并提交的键，打出 `v2.5.1`
+- [ ] S-1 的证据：发布后生产容器 `antelacus` 的 `docker inspect` 里数据库密码 0 处（在 VPS 上比对、只回报次数），`verify` 全绿
 - [ ] 收缩步（release-pipeline §5.8-e）：删生产 `.env` 与 `.env.staging` 里的 `SUPABASE_ADMIN_EMAILS`（只删这一行、不读其他值）→ 两个环境 `restart` → Jason 登录生产后台并保存一次 → 删 TD-023
 - [ ] CHANGELOG 条目
 - [ ] TECHNICAL_DEBT 定稿：TD-023…TD-026 删除；Batch 2 的临时方案在册

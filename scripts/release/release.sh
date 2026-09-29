@@ -89,13 +89,13 @@ healthy() { # <port> <expected key or "">
 }
 
 run_container() { # <name> <port> <key>
-  # docker --env-file keeps quotes as part of the value; the VPS files are dotenv. A normalised copy, readable
-  # by this user only, exists just long enough for docker to read it.
+  # docker --env-file keeps quotes as part of the value; the VPS files are dotenv. A normalised copy without the
+  # server jobs' variables (appEnv), readable by this user only, exists just long enough for docker to read it.
   local envfile status=0
   envfile="$(mktemp "$STATE_DIR/env.XXXXXX")"
   # Checked explicitly: this function is called inside `if`, where set -e does not stop a failing step.
   if ! node -e 'process.stdout.write(require("fs").readFileSync(process.argv[1], "utf8"))' "$ENV_FILE" \
-    | node --input-type=module -e "import { dockerEnv } from '$HERE/decide.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => process.stdout.write(dockerEnv(t)));" > "$envfile" \
+    | node --input-type=module -e "import { appEnv } from '$HERE/decide.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => process.stdout.write(appEnv(t)));" > "$envfile" \
     || [[ ! -s "$envfile" ]]; then
     rm -f "$envfile"
     echo "release: could not read variables from $ENV_FILE" >&2

@@ -121,6 +121,20 @@ export function pgConnection(envText) {
   return { url: url.toString(), pgpass: `*:*:*:*:${password}\n` };
 }
 
+// The server jobs' variables (.env.example, "Operations on the VPS"): backups and health pings read them from
+// the checkout's .env; the app never does. Kept out of its container, where `docker inspect` would show them —
+// DATABASE_URL carries the database password, a ping URL lets anyone report for the job.
+const JOB_ONLY = ['DATABASE_URL', 'ANTELACUS_DATA_DIR', 'BACKUP_KEEP_DAYS', 'PG_MAJOR'];
+
+/** The app container's env file: the env file as docker reads it, without the server jobs' variables. */
+export function appEnv(text) {
+  const kept = dockerEnv(text).split('\n').filter(Boolean).filter((line) => {
+    const name = line.slice(0, line.indexOf('='));
+    return !JOB_ONLY.includes(name) && !name.startsWith('HC_PING_');
+  });
+  return kept.length ? `${kept.join('\n')}\n` : '';
+}
+
 /** Whether a PR body ticks the signed-in look at staging (REQ §5.4-d): a checked box naming staging and the admin. */
 export function checklistTicked(body) {
   return body.split('\n').some((line) => /^\s*[-*] \[[xX]\]/.test(line) && /staging/i.test(line) && /admin/i.test(line));
@@ -191,7 +205,7 @@ export function afterAdopt({ state, entry }) {
   };
 }
 
-const DECISIONS = { afterAdopt, keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, checklistTicked, stagingEnvProblems, pgConnection, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
+const DECISIONS = { afterAdopt, keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, appEnv, checklistTicked, stagingEnvProblems, pgConnection, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [name, input] = process.argv.slice(2);

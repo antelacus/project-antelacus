@@ -148,3 +148,20 @@ test('release.sh puts no database URL with its password on a command line', asyn
   for (const line of psql) assert.doesNotMatch(line, /DATABASE_URL|db_url/, line);
   assert.match(source, /PGPASSFILE=\/pgpass/);
 });
+
+test('the app container gets its own variables, not the server jobs\' (database password, ping URLs)', async () => {
+  const { appEnv } = await decide();
+  const text = [
+    'NEXT_PUBLIC_SUPABASE_URL="https://x.supabase.co"',
+    'SUPABASE_SERVICE_ROLE_KEY=role',
+    'SITE_VERIFICATION_GOOGLE=g',
+    'DATABASE_URL="postgresql://u:secret@h:5432/postgres"',
+    'ANTELACUS_DATA_DIR=/data',
+    'BACKUP_KEEP_DAYS=14',
+    'PG_MAJOR=17',
+    'HC_PING_BACKUP=https://hc-ping.com/abc',
+    'HC_PING_SITE=https://hc-ping.com/def',
+  ].join('\n');
+  assert.equal(appEnv(text), 'NEXT_PUBLIC_SUPABASE_URL=https://x.supabase.co\nSUPABASE_SERVICE_ROLE_KEY=role\nSITE_VERIFICATION_GOOGLE=g\n');
+  assert.equal(appEnv('DATABASE_URL=x\n'), '', 'only job variables: nothing for the app');
+});
