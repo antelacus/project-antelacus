@@ -33,7 +33,7 @@ project-goodman 已经在同一台 VPS 上跑着预发布，但它只在 `127.0.
   - 由 CI 执行生产迁移（生产迁移由 Claude 执行，§5.7）
 
 ### 1.3 参考
-- 裁定与诊断发现（D-1…D-11）：`docs/features/release-pipeline/TRACK.md` 第一区、第三区
+- 裁定与诊断发现（D-1…D-11）：`docs/features/release-pipeline/TRACK_v2.5.0.md` 第一区、第三区
 - 本版关闭的债务：`docs/TECHNICAL_DEBT.md` TD-021、TD-022
 - 现行部署与恢复：`docs/DEPLOYMENT.md`；nginx：`deploy/nginx/www.antelacus.com.conf`
 - 继续有效的要求：`docs/features/routing-slimdown/REQ.md` §5.3（可缓存）；`docs/features/content-publishing/REQ.md` §5.3（后台发布）；`docs/features/visual-upgrade/REQ.md` §5.5（界面闸门）
@@ -182,7 +182,7 @@ Jason 在笔记本上 push 一个分支 → GitHub Actions 跑闸门、构建镜
   - 没有能写生产数据的凭据进入 CI；
   - 常驻的写库能力只有一处：本项目的 Supabase MCP（可写，限本项目、限数据库与文档两组工具）。免确认的只有迁移和只读核对工具，其余写库 SQL 仍要逐次确认；
   - 外发检查照旧：生产数据进了上下文，往外送任何东西之前都要先停下；
-  - 接受的风险：分支工作流持有 Access 的 service token，任何能推分支的人都能拿到它。它只能打开预发布，而预发布只读；仓库是私有的，只有 Jason 能推。
+  - 接受的风险：分支工作流持有 Access 的 service token 和部署 SSH 密钥，分支上的代码都拿得到。前者只能打开只读的预发布；后者能以部署用户登录 VPS，也就能碰生产容器。能推分支的只有 Jason；仓库公开，但来自 fork 的 PR 拿不到 Secrets。有了第二个能推分支的人，这条就要重议。
 - **可用性**：生产切换镜像时的中断不长于现在的 `compose up`；预发布的任何故障都不影响生产容器。
 - **可缓存**：公开页面仍按 routing-slimdown §5.3 保持可缓存；预发布同样适用。
 

@@ -2,7 +2,7 @@
 
 一个多语言的个人博客与作品集：专栏、闪念、视觉、实验室四类内容；界面随语言切换，内容每篇只有一份。美学是《临湖》——古典内核，现代形式。
 
-站点用 Next.js（App Router），内容存放在 Supabase（PostgreSQL），在站内后台 `/admin` 撰写与发布。它自托管在一台 VPS 上（Docker + nginx），前面是 Cloudflare；推送到 `main` 经闸门检查后自动部署。
+站点用 Next.js（App Router），内容存放在 Supabase（PostgreSQL），在站内后台 `/admin` 撰写与发布。它自托管在一台 VPS 上（Docker + nginx），前面是 Cloudflare；分支推送经闸门检查后自动上预发布站点，合并到 `main` 即把预发布验过的同一个镜像晋升到生产。
 
 ## 在本地运行
 
