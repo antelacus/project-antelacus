@@ -32,6 +32,12 @@ Update this file when:
 - Context: since v2.5.0 an admin is a user whose `app_metadata.role` is `admin`; no code reads `SUPABASE_ADMIN_EMAILS`. The variable stays in the VPS `.env` on purpose — the expand step of an expand/contract change — so that a rollback to a v2.4.x image still has a working admin (release-pipeline DESIGN §9).
 - Revisit when: the first release after v2.5.0 whose kept images (the five rollback targets) are all v2.5.0 or later — then delete the line from the VPS `.env` (the contract step).
 
+### TD-025 - An unknown item's 404 is the framework's bare error document (DEFECT, P2)
+
+- Status: `Open` · Severity: `Medium` · Area: `routing` · Identified: `2026-09-29` (v2.5.0 Batch 7, by the checks TD-021 strengthened)
+- Context: `GET /<locale>/<section>/<unknown slug>` (every section, tags included, production too) answers 404 with `<html id="__next_error__">` — no `lang`, no heading; the site's own page appears only after JavaScript runs, so visitors without it, some assistive technology and crawlers get an empty document. `notFound()` from a page under `[locale]` reaches the top unhandled (`NEXT_HTTP_ERROR_FALLBACK;404`). A malformed slug is answered by the proxy with the global 404, in English under every language. Ten hypotheses were ruled out on a production build (metadata, the page's translations, reads before `notFound()`, `globalNotFound`, ISR vs dynamic, nested boundaries server and client, the layout's backstop, `next/root-params`); a nested `not-found.tsx` is reached but fails differently. `tests/runtime/acceptance.runtime.mjs` §5.4-a and §5.4-d carry `todo` naming this item.
+- Revisit when: the Codex diagnosis of v2.5.0 returns — fix in v2.5.0 if it names a contained change, otherwise v2.5.1.
+
 ### TD-024 - The UI gate is the whole critical path of a push
 
 - Status: `Open` · Severity: `Low` · Area: `tests` · Identified: `2026-09-29` (v2.5.0, run 36538068187)

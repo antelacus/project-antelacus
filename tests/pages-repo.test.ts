@@ -44,3 +44,13 @@ test('a save writes by page and language: a second save of the same pair replace
   assert.equal(fr[0].status, 'published');
   assert.deepEqual(fake.upsertConflicts('site_pages'), ['slug,locale', 'slug,locale']);
 });
+
+// TD-021 C-22: the database side of "the about page is listed only while some language of it is published".
+test('a page whose every language is a draft has no published version, and the sitemap leaves it out', async () => {
+  const { buildSitemapEntries } = await import('../src/lib/sitemap-entries');
+  const drafts = fakeSupabase({ site_pages: [row('en', 'draft'), row('zh-CN', 'draft')] });
+  const versions = await listPublishedPageVersions(asClient(drafts), 'about');
+  assert.deepEqual(versions, []);
+  const entries = buildSitemapEntries({ posts: [], notes: [], photos: [], projects: [], tags: [], about: versions.length > 0 });
+  assert.ok(!entries.some((e) => /\/about$/.test(e.url)), 'the sitemap lists an about page with no published version');
+});

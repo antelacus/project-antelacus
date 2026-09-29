@@ -59,6 +59,13 @@ jobs:
       # proxy 放错位置时构建不报错，只是不注册。Next 16 把 Node 运行时的 proxy 登记在 functions-config-manifest 的 /_middleware 项下
       - name: Proxy is registered
         run: node -e "const m = require('./.next/server/functions-config-manifest.json'); const p = m.functions && m.functions['/_middleware']; if (!p || !p.matchers || !p.matchers.length) { console.error('no proxy entry in functions-config-manifest.json'); process.exit(1) }"
+      # Without a database: the checks of what a visitor sees when it is unreachable run only here (the UI job
+      # and staging have one), so this subset is not covered by the full runs.
+      - name: Runtime acceptance (database-free subset)
+        run: |
+          npx next start -p 3917 &
+          curl --silent --fail --output /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://localhost:3917/og.png
+          BASE_URL=http://localhost:3917 npm run test:runtime
 
   # 界面闸门（visual-upgrade DESIGN §2.5）：本地 Supabase 栈 + 合成内容 + 浏览器检查 + 有库运行时套件，本机与这里同一份脚本
   ui:

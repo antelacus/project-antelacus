@@ -18,8 +18,9 @@ MEMBER_EMAIL="ui-member@example.test"
 # The same build without the service-role key, as staging runs it (§5.8-b/c).
 RO_PORT="${UI_READONLY_PORT:-3919}"
 RO_BASE_URL="http://localhost:$RO_PORT"
-# Only db, auth, rest and kong run (supabase/config.toml switches off what -x cannot keep from being pulled).
-EXCLUDE="storage-api,imgproxy,postgres-meta,mailpit,studio,edge-runtime,logflare,vector,supavisor,realtime"
+# Only db, auth, rest, kong and storage run (storage: an upload lands in the media bucket, REQ release-pipeline
+# §5.10-b); supabase/config.toml switches off what -x cannot keep from being pulled.
+EXCLUDE="imgproxy,postgres-meta,mailpit,studio,edge-runtime,logflare,vector,supavisor,realtime"
 supabase() { npx --no-install supabase "$@"; }
 
 started_colima=0

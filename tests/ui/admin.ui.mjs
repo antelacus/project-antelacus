@@ -108,21 +108,25 @@ test('acceptance release-pipeline §5.8-b/c without the service-role key the adm
   }
 });
 
-test('acceptance release-pipeline §5.10-b an uploaded image lands in the bucket and loads on the page', { todo: 'Batch 7' }, async () => {
-  const { visitAdmin } = await h();
-  await visitAdmin([{ name: 'post editor upload', path: '/admin/content/post/new' }], async (page) => {
+test('acceptance release-pipeline §5.10-b an uploaded image lands in the bucket and loads on the page', async () => {
+  const { visitAdmin, SEED } = await h();
+  // An existing post: an upload is filed under the item's slug, and a new item has none yet.
+  await visitAdmin([{ name: 'post editor upload', path: `/admin/content/post/${SEED.post}` }], async (page) => {
     const [response] = await Promise.all([
       page.waitForResponse((r) => r.url().endsWith('/api/admin/upload')),
-      page.setInputFiles('input[type=file]', 'public/og.png'),
+      page.locator('input[type=file]').first().setInputFiles('public/images/posts/content/2025-07-13-llm-note/image2.png'),
     ]);
-    assert.equal(response.status(), 200, 'the upload failed');
+    assert.equal(response.status(), 200, `the upload failed: ${await response.text()}`);
     const { url } = await response.json();
     const image = await fetch(url);
     assert.equal(image.status, 200, `${url} is not in the bucket`);
+    assert.match(image.headers.get('content-type') ?? '', /^image\//, url);
+    const shown = page.locator(`img[src="${url}"]`);
+    if (await shown.count()) assert.ok(await shown.first().evaluate((img) => img.complete && img.naturalWidth > 0), 'the uploaded image does not load on the page');
   });
 });
 
-test('acceptance release-pipeline §5.10-c after signing out the admin is back at the login page', { todo: 'Batch 7' }, async () => {
+test('acceptance release-pipeline §5.10-c after signing out the admin is back at the login page', async () => {
   const { visitAdmin, BASE } = await h();
   await visitAdmin([{ name: 'sign out', path: '/admin' }], async (page) => {
     await Promise.all([page.waitForURL(/\/admin\/login/), page.getByRole('button', { name: /sign out/i }).click()]);
@@ -131,7 +135,7 @@ test('acceptance release-pipeline §5.10-c after signing out the admin is back a
   });
 });
 
-test('acceptance release-pipeline §5.10-d every content type and the about page have list and editor checks', { todo: 'Batch 7' }, async () => {
+test('acceptance release-pipeline §5.10-d every content type and the about page have list and editor checks', async () => {
   const { ADMIN_TEMPLATES } = await h();
   const paths = ADMIN_TEMPLATES.map((t) => t.path);
   for (const type of ['post', 'note', 'gallery', 'project']) {

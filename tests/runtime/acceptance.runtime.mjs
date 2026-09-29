@@ -39,10 +39,11 @@ const htmlLang = (html) => /<html[^>]*\blang="([^"]*)"/i.exec(html)?.[1] ?? null
 
 test('§5.2-a the page language is the URL language', async () => {
   if (!WITH_DB) return;
-  for (const locale of ['en', 'zh-CN', 'fr']) {
-    const res = await get(`/${locale}/about`);
-    assert.equal(res.status, 200, `/${locale}/about`);
-    assert.equal(htmlLang(await res.text()), locale);
+  // Every page form, not the about page alone (TD-021 C-12).
+  for (const path of ['/en/about', '/zh-CN/about', '/fr/about', '/en', '/zh-HK', '/es/posts', '/fr/notes', '/zh-CN/tags', `/zh-HK/posts/${POST_SLUG}`]) {
+    const res = await get(path);
+    assert.equal(res.status, 200, path);
+    assert.equal(htmlLang(await res.text()), path.split('/')[1], path);
   }
 });
 
@@ -99,10 +100,13 @@ test('only content-hashed files are cached as immutable', async () => {
 });
 
 test('no page preloads a file that does not exist', async () => {
-  const html = await (await get(SHELL)).text();
-  const preloads = [...html.matchAll(/<link\b[^>]*rel="preload"[^>]*>/gi)].map(([tag]) => /href="([^"]+)"/.exec(tag)?.[1]).filter(Boolean);
-  assert.ok(preloads.length >= 1, 'found no preloads at all — the extraction looks broken');
-  for (const href of preloads) assert.equal((await get(href)).status, 200, href);
+  // The 404 shell, the admin and, with a database, the pages readers see (TD-021 C-14).
+  for (const path of [SHELL, '/admin/login', ...(WITH_DB ? ['/en', `/en/posts/${POST_SLUG}`, '/zh-CN/gallery'] : [])]) {
+    const html = await (await get(path)).text();
+    const preloads = [...html.matchAll(/<link\b[^>]*rel="preload"[^>]*>/gi)].map(([tag]) => /href="([^"]+)"/.exec(tag)?.[1]).filter(Boolean);
+    assert.ok(preloads.length >= 1, `${path}: found no preloads at all — the extraction looks broken`);
+    for (const href of preloads) assert.equal((await get(href)).status, 200, `${path}: ${href}`);
+  }
 });
 
 test('the skip link speaks the page language', async () => {
@@ -113,10 +117,13 @@ test('the skip link speaks the page language', async () => {
 });
 
 test('§5.2 rule 5 what is served outside /<locale>/ still is', async () => {
+  // Served means 200 (TD-021 C-15). Only the two routes that read the database may fail without one — and then
+  // with a 500 of their own, not a redirect or a 404.
+  const needsDb = new Set(['/sitemap.xml', '/api/search-index']);
   for (const path of ['/robots.txt', '/sitemap.xml', '/sw.js', '/ads.txt', '/images/common/logo-icon.svg', '/api/search-index', '/admin/login']) {
     const res = await get(path, { 'accept-language': 'es' });
-    // Without a database the two data routes may fail, but they must be reached, not redirected or 404ed.
-    assert.ok(![308, 404].includes(res.status), `${path} → ${res.status}`);
+    const expected = !WITH_DB && needsDb.has(path) ? 500 : 200;
+    assert.equal(res.status, expected, path);
   }
 });
 
@@ -132,6 +139,8 @@ test('§5.2-g an old unprefixed detail URL still leads to the page', async () =>
   const res = await get(`/posts/${POST_SLUG}`);
   assert.equal(res.status, 308);
   assert.equal(locationPath(res), `/en/posts/${POST_SLUG}`);
+  // …and the redirect ends on the page itself (TD-021 C-16).
+  if (WITH_DB) assert.equal((await get(locationPath(res))).status, 200);
 });
 
 test('§5.2-h a remembered manual choice beats the browser; opening a link is not a choice', async () => {
@@ -191,11 +200,18 @@ test('every public page names itself, describes itself, and points to its langua
 
 // ---------- v2.3.0 (docs/features/content-publishing/REQ.md); todo until the named batch lands ----------
 
-test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', async () => {
+// The site's own 404 page under a known language, not any HTML that says 404 (TD-021 C-17, C-18).
+const assertSite404 = async (res, path) => {
+  assert.equal(res.status, 404, path);
+  const html = await res.text();
+  assert.equal(htmlLang(html), path.split('/')[1], `${path}: language`);
+  assert.match(html, /<link[^>]+rel="stylesheet"/, `${path}: not the site shell`);
+  assert.match(html, /<h1 class="scroll-title">[^<]+<\/h1>/, `${path}: not the site's 404 page`);
+};
+
+test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', { todo: 'TD-025: the 404 is the error document' }, async () => {
   if (!WITH_DB) return;
-  const res = await get('/en/posts/this-slug-does-not-exist');
-  assert.equal(res.status, 404);
-  assert.match(await res.text(), /<html/);
+  await assertSite404(await get('/en/posts/this-slug-does-not-exist'), '/en/posts/this-slug-does-not-exist');
 });
 
 test('§5.4-b with the database unreachable, a page answers 500 without the database\'s words', async () => {
@@ -216,12 +232,9 @@ test('§5.4-c the search index never echoes a database error', async () => {
   assert.doesNotMatch(body, /supabase|fetch failed|ECONN/i);
 });
 
-test('§5.4-d a malformed slug is a 404 without the database', async () => {
-  for (const path of ['/en/posts/Bad_Slug', '/en/notes/a.b', '/fr/projects/' + 'x'.repeat(81)]) {
-    const res = await get(path);
-    assert.equal(res.status, 404, path);
-    assert.match(await res.text(), /<html/);
-  }
+test('§5.4-d a malformed slug is a 404 without the database', { todo: 'TD-025: under /fr/ it is the English global 404' }, async () => {
+  // In the database-free run a read would have answered 500: a 404 there shows none happened.
+  for (const path of ['/en/posts/Bad_Slug', '/en/notes/a.b', '/fr/projects/' + 'x'.repeat(81)]) await assertSite404(await get(path), path);
 });
 
 test('§5.5-a security headers are present and x-powered-by is not', async () => {
@@ -263,12 +276,18 @@ test('§5.8-a the language choice is remembered by a server-set cookie for a yea
 });
 
 test('§5.9-a one <main>, and the navigation sits before it', async () => {
-  const paths = ['/admin/login', ...(WITH_DB ? ['/en/about', '/en', '/en/posts', `/en/posts/${POST_SLUG}`] : [])];
-  for (const path of paths) {
+  // A public page must have its navigation, before <main>; the skip link must land on <main> (TD-021 C-21).
+  const pages = [['/admin/login', false], ...(WITH_DB ? [['/en/about', true], ['/en', true], ['/en/posts', true], [`/en/posts/${POST_SLUG}`, true]] : [])];
+  for (const [path, public_] of pages) {
     const html = await (await get(path)).text();
     assert.equal((html.match(/<main\b/g) ?? []).length, 1, path);
     const nav = html.indexOf('<nav');
+    if (public_) assert.ok(nav !== -1, `${path}: no <nav>`);
     if (nav !== -1) assert.ok(nav < html.indexOf('<main'), `${path}: <nav> is inside or after <main>`);
-    assert.ok(html.indexOf('id="main-content"') > (nav === -1 ? 0 : nav), path);
+    const skip = /<a[^>]*class="skip-link"[^>]*href="#([^"]+)"|<a[^>]*href="#([^"]+)"[^>]*class="skip-link"/.exec(html);
+    if (public_) {
+      assert.ok(skip, `${path}: no skip link`);
+      assert.match(html, new RegExp(`<main\\b[^>]*id="${skip[1] ?? skip[2]}"`), `${path}: the skip link does not land on <main>`);
+    }
   }
 });
