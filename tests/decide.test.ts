@@ -99,3 +99,10 @@ test('an adopted image of unknown version is a rollback target only while no con
   assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.0' }] }), null);
   assert.equal(rollbackTarget({ kept, contracts: [], requested: 'new' }), null, 'rolled back onto the image already running');
 });
+
+test('contract steps are read from the texts production ran, markers and all', async () => {
+  const { contractSteps } = await import('../scripts/release/migration-lint.mjs');
+  assert.deepEqual(contractSteps(['create table t (a int);', '-- contract: column c, unused since v2.6.0\nalter table t drop column c;']),
+    [{ unusedSince: '2.6.0' }]);
+  assert.deepEqual(contractSteps([]), []);
+});

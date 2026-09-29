@@ -46,6 +46,7 @@
   - 2026-09-29 · 私有仓库在 GitHub 免费档用不了分支保护；仓库改为公开（作品集），提交历史中的个人邮箱接受公开（Claude 讲明了关联身份的途径；Jason 确认该邮箱防护良好）。公开前检查：296 个提交 gitleaks 0 条；184 次运行日志的命中均为公开值、构建键或本地栈默认密钥 · Jason · 级联：DESIGN §8
   - 2026-09-29 · 分支保护按 Batch 5 的设置开启，管理员也不能绕过（Q16 不留旁路）；流水线自身坏到合不进修复时，在 GitHub 设置里临时关掉保护 · Jason · 级联：`docs/DEPLOYMENT.md`（Batch 8）
   - 2026-09-29 · 批 A：TD-025（未知条目的 404 是 Next 错误外壳，P2）本版内修——十个假设与 Codex 诊断之后未得可控修复，转 B：TD-025 留给 v2.5.1（先为文档外壳做设计再修）；本版收尾时 §5.4-a、§5.4-d 带指向 TD-025 的 todo，作为「版本不得带 todo 收尾」的一次例外 · Jason · 级联：TECHNICAL_DEBT TD-025、`tests/runtime/acceptance.runtime.mjs`
+  - 2026-09-29 · 发布前审查的处置按 Claude 提议（第三区）；Codex 的发现经认可并修复后不再送审，由各自的回归测试或演练关闭——已改治理规则 §2 Gate cadence 与 §3（dotfiles `812b684`） · Jason · 级联：custom-conventions
   - 2026-09-28 · Codex 设计门 15 条发现按 Claude 提议处置（第三区）；不在 CI 里放管理员账号，登录后的检查由 `pr-checklist` 强制打勾，重议条件写进 REQ §1.2；Phase 2 关闭 · Jason · 级联：DESIGN、REQ §1.2、§5.1、§5.4-d、§5.6-c、§5.7-d、§6
 
 ## 二、批次
@@ -147,30 +148,30 @@
 **Phase 4 证据**：（Phase 4 填写）
 
 **评审发现登记**（Codex 发布前审查，xhigh，最终树；J1 `release.sh`+`decide.mjs`、J2 `production.yml`+`.github/actions/vps`、J3 `admin_read.sql`+`admin-auth.ts`、J4 REQ 对验收测试；引文已抽核）：
-- J1-F01 · MUST：预发布与生产各持一把锁，却读写同一个状态文件 —— status: open
-- J1-F02 · MUST：切换成功后写状态失败，`promote` 红而不核验、不回滚 —— status: open
-- J1-F03 · MUST：停掉旧容器后改名失败，生产停着 —— status: open
-- J1-F04 · MUST：中断后重试会先删掉唯一的旧容器 —— status: open
-- J1-F05 · MUST：旧容器在公网核验前就被删，回滚用当前 `.env` 重建，`.env` 改坏时退不回 —— status: open
-- J1-F06 · MUST：回滚的收缩步取自发布包里的迁移，而非生产已执行的记录 —— status: open
-- J1-F07 · MUST：回滚不比对保留镜像的镜像 ID —— status: open
-- J1-F08 · MUST：`if` 里调用 `run_container`，环境文件转换失败被吞掉 —— status: open
-- J1-F09 · SHOULD：状态文件损坏时预发布会把它覆盖掉 —— status: open
-- J1-F10 · SHOULD：自动回滚只看上一个镜像，不继续找兼容的 —— status: open
-- J1-F11 · SHOULD：已验列表挤掉后，生产 `restart` 被拒 —— status: open
-- J2-M1 · MUST：分支代码拿得到部署密钥 —— status: open
-- J2-M2 · MUST：手动回滚可以从任意分支触发，用那个分支的脚本与迁移 —— status: open
-- J2-M3 · MUST：`verify` 被取消时不回滚 —— status: open
-- J2-S1 · SHOULD：没有兼容的回滚目标时坏镜像留在线上（REQ 已写明） —— status: open
-- J3-SEC01…04 · SHOULD：撤销角色后旧令牌到期前仍可读草稿；应用与 RLS 对角色的判断在重新登录前不一致；畸形声明报错而非判否；内容表的写权限依赖 Supabase 默认授予（待核） —— status: open
-- J4-RP001 · MUST：§5.11-a 尚无证据 —— status: open
-- J4-RP002 · MUST：§5.7-c 的单元测试只查名称唯一 —— status: open
-- J4-RP003…009 · SHOULD：§5.4-a/b 无仓库内检查；§5.3-b 在非预发布运行时被跳过；§5.10-b「页面上加载」是可选断言；§5.10-d 只查清单成员；§5.9-c 只查变量名；§5.5-e 未断言精确集合；过时的 todo 注释 —— status: open
-- J4-RP010 · NICE：沙盒里 `mkdtemp` 无权限 —— status: open
+- J1-F01 · MUST：预发布与生产各持一把锁，却读写同一个状态文件 —— status: fixed：一把全局锁，拿不到则等待——演练 R4：两次 restart 同时发起，B 在 A 结束后才开始
+- J1-F02 · MUST：切换成功后写状态失败，`promote` 红而不核验、不回滚 —— status: fixed：状态写成功才删旧容器，写失败即恢复——演练 R2：临时文件位置放目录，写失败后切换前的同一个容器恢复服务
+- J1-F03 · MUST：停掉旧容器后改名失败，生产停着 —— status: fixed：停止或改名失败都把旧容器拉回来——未演练（改名失败无法在 VPS 上安全制造）；恢复路径与 R2 共用
+- J1-F04 · MUST：中断后重试会先删掉唯一的旧容器 —— status: fixed：切换前先修复中断留下的现场——演练 R1：旧容器停掉并改名、原名空缺，restart 先恢复再切换
+- J1-F05 · MUST：旧容器在公网核验前就被删，回滚用当前 `.env` 重建，`.env` 改坏时退不回 —— status: accepted：`.env` 改坏时退回旧镜像也修不好；改回 `.env` 再 `restart`（手册第 9 步）
+- J1-F06 · MUST：回滚的收缩步取自发布包里的迁移，而非生产已执行的记录 —— status: fixed：收缩步取自生产的执行记录，读不到才退回发布包并警告——演练 R6：回滚无警告
+- J1-F07 · MUST：回滚不比对保留镜像的镜像 ID —— status: fixed：回滚比对镜像 ID——演练 R5：标签改指别的镜像后回滚被拒
+- J1-F08 · MUST：`if` 里调用 `run_container`，环境文件转换失败被吞掉 —— status: fixed：显式检查环境文件转换，读不了、转出为空都拒绝——演练 R3：权限 000 与只有注释两种，预发布未动
+- J1-F09 · SHOULD：状态文件损坏时预发布会把它覆盖掉 —— status: fixed：状态损坏时两个环境都拒绝——演练 R7：损坏文件原样保留
+- J1-F10 · SHOULD：自动回滚只看上一个镜像，不继续找兼容的 —— status: fixed：按序找第一个兼容的保留镜像——§5.6-c 单元测试加「版本倒挂」一例
+- J1-F11 · SHOULD：已验列表挤掉后，生产 `restart` 被拒 —— status: fixed：restart 的镜像等于生产当前记录的那个时不查已验列表——未演练（只有生产走这条）
+- J2-M1 · MUST：分支代码拿得到部署密钥 —— status: accepted：只有 Jason 能推分支；fork 的 PR 拿不到 Secrets；风险在 Phase 6 写进 REQ §6
+- J2-M2 · MUST：手动回滚可以从任意分支触发，用那个分支的脚本与迁移 —— status: fixed：手动回滚只在 main 上触发，并检出 main——§5.6-a 测试
+- J2-M3 · MUST：`verify` 被取消时不回滚 —— status: fixed：`verify` 只要不是 success 就回滚——§5.6-a 测试
+- J2-S1 · SHOULD：没有兼容的回滚目标时坏镜像留在线上（REQ 已写明） —— status: accepted：REQ §5.6 已定（没有目标时不自动回滚，运行为红）
+- J3-SEC01…04 · SHOULD：撤销角色后旧令牌到期前仍可读草稿；应用与 RLS 对角色的判断在重新登录前不一致；畸形声明报错而非判否；内容表的写权限依赖 Supabase 默认授予（待核） —— status: accepted：单管理员站点；SEC-04 的写权限在生产上一直正常
+- J4-RP001 · MUST：§5.11-a 尚无证据 —— status: open → Phase 4 的真实发布
+- J4-RP002 · MUST：§5.7-c 的单元测试只查名称唯一 —— status: accepted：每次部署都按名称与内容哈希逐条核对执行记录，缺一条或改过一条即拒绝——持续生效；Phase 6 写进 DESIGN §11
+- J4-RP003…009 · SHOULD：§5.4-a/b 无仓库内检查；§5.3-b 在非预发布运行时被跳过；§5.10-b「页面上加载」是可选断言；§5.10-d 只查清单成员；§5.9-c 只查变量名；§5.5-e 未断言精确集合；过时的 todo 注释 —— status: RP004 fixed（工作流以 staging/production 运行的静态检查）；RP005 fixed（存储桶返回图片、预览渲染出该地址的 `<img>`；浏览器加载在合成环境受 CSP 所限——存储为 http、CSP 只放行 https）；RP007 fixed（格式化程序的测试）；RP008 fixed（精确集合）；RP009 fixed（过时注释删除）；RP003、RP006 accepted（分支保护读出为证；各后台页面由 axe 检查真实打开）
+- J4-RP010 · NICE：沙盒里 `mkdtemp` 无权限 —— status: accepted：沙盒权限，与代码无关
 
 **Phase 4 自查发现**（Claude，写 Phase 6 清单时）：
-- S-1 · SHOULD：新流程不再更新 VPS 上的检出，cron 运行的 `backup.sh` 等会与仓库脱节 —— status: open（`production.yml` 核验通过后快进检出）
-- S-2 · SHOULD：`~/.cache/antelacus-release/` 下的发布包只增不减 —— status: open（`release.sh` 收尾只留最近 10 个）
+- S-1 · SHOULD：新流程不再更新 VPS 上的检出，cron 运行的 `backup.sh` 等会与仓库脱节 —— status: fixed：`production.yml` 新增 `checkout` 任务，核验通过后快进检出——证据在真实发布
+- S-2 · SHOULD：`~/.cache/antelacus-release/` 下的发布包只增不减 —— status: fixed：`release.sh` 部署或回滚后只留最近 10 个——证据在下一次部署
 
 **Phase 6 boxes**（合并 ≠ 发布）：
 - [ ] 切换准备（合并前，Claude）：`release.sh production adopt` 收编 compose 起的容器（旧镜像记为 legacy，留作回滚目标）；生产 nginx 站点文件换成共用片段写法，`nginx -t`、reload，公网 200 与安全头照旧；核对生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（TD-023）

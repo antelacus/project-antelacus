@@ -132,10 +132,12 @@ test('acceptance §5.5-d a tag only when the version changed', async () => {
 
 test('acceptance §5.5-e the cache is purged only when a share image or public/images changed', async () => {
   const { purgeTargets } = await decide();
-  assert.deepEqual(purgeTargets(['src/lib/posts.ts', 'docs/x.md']), []);
-  assert.ok(purgeTargets(['public/images/avatar.jpg']).length > 0, 'public/images changed, nothing purged');
-  assert.ok(purgeTargets(['public/og.png']).length > 0, 'the share image changed, nothing purged');
-  assert.ok(purgeTargets(['src/app/og.png/route.tsx']).length > 0, 'the share image route changed, nothing purged');
+  const shareImages = ['og.png', 'posts', 'notes', 'gallery', 'projects'].map((p) => `www.antelacus.com/${p}`).sort();
+  assert.deepEqual(purgeTargets(['src/lib/posts.ts', 'docs/x.md', 'src/app/[locale]/page.tsx']), []);
+  assert.deepEqual(purgeTargets(['public/images/avatar.jpg']), ['www.antelacus.com/images']);
+  assert.deepEqual(purgeTargets(['public/og.png']).sort(), shareImages);
+  assert.deepEqual(purgeTargets(['src/app/og.png/route.tsx']).sort(), shareImages);
+  assert.deepEqual(purgeTargets(['src/app/posts/[slug]/og.png/route.tsx', 'public/images/x.png']).sort(), [...shareImages, 'www.antelacus.com/images'].sort());
 });
 
 test('acceptance §5.5-f open sign-ups or skipped confirmation turn the Auth check red', async () => {
@@ -156,11 +158,16 @@ test('acceptance §5.6-c after a contract migration, images older than its versi
   assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.1' }] })?.key, 'k2');
   assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.1' }], requested: 'k1' }), null, 'a manual rollback past a contract step went through');
   assert.equal(rollbackTarget({ kept: [kept[0]], contracts: [] }), null, 'nothing to fall back to, yet a target');
+  // Past an incompatible one to the next that fits (versions need not be kept in order).
+  const regressed = [{ key: 'now', version: '2.7.0' }, { key: 'old', version: '2.5.0' }, { key: 'mid', version: '2.6.0' }];
+  assert.equal(rollbackTarget({ kept: regressed, contracts: [{ unusedSince: '2.6.0' }] })?.key, 'mid');
 });
 
 test('acceptance §5.6-a a failed verification rolls production back and stays red; staging does the same', () => {
   const production = read('.github/workflows/production.yml');
-  assert.match(production, /^ {2}rollback:\n(?: {4}.*\n)*? {4}if: always\(\) && \(\(github\.event_name == 'push' && needs\.promote\.result == 'success' && needs\.verify\.result == 'failure'\)/m);
+  // Not only a failed verification: a cancelled one leaves an unverified image in service just the same.
+  assert.match(production, /^ {2}rollback:\n(?: {4}.*\n)*? {4}if: always\(\) && \(\(github\.event_name == 'push' && needs\.promote\.result == 'success' && needs\.verify\.result != 'success'\)/m);
+  assert.match(production, /github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main'/, 'a manual rollback can run from any branch');
   assert.match(production, /release\.sh production rollback/);
   assert.match(production, /An automatic rollback leaves the run red[\s\S]*?exit 1/);
   assert.match(read('.github/workflows/branch.yml'), /release\.sh staging rollback/);
@@ -255,8 +262,21 @@ test('acceptance §5.9-b the gate runs the database function check and checks it
   assert.match(branch, /image-check\.sh plant[\s\S]*docker build[\s\S]*image-check\.sh verify/, 'the image job does not check its image');
 });
 
-test('acceptance §5.9-c both workflows write their step timings to the run summary', () => {
+test('acceptance §5.9-c both workflows write every job\'s and step\'s duration to the run summary', async () => {
   for (const path of ['.github/workflows/branch.yml', '.github/workflows/production.yml']) {
-    assert.match(read(path), /GITHUB_STEP_SUMMARY/, path);
+    assert.match(read(path), /\| node scripts\/release\/timings\.mjs >> "\$GITHUB_STEP_SUMMARY"/, path);
   }
+  // …and the formatter lists each job and each step with its seconds.
+  const { spawnSync } = await import('node:child_process');
+  const jobs = { jobs: [{ name: 'ui', conclusion: 'success', started_at: '2026-09-29T00:00:00Z', completed_at: '2026-09-29T00:06:30Z',
+    steps: [{ name: 'Run scripts/ui-check.sh', conclusion: 'success', started_at: '2026-09-29T00:01:00Z', completed_at: '2026-09-29T00:06:00Z' }] }] };
+  const out = spawnSync('node', ['scripts/release/timings.mjs'], { cwd: ROOT, input: JSON.stringify(jobs), encoding: 'utf8' }).stdout;
+  assert.match(out, /\| \*\*ui\*\* \| success \| 390s \|/);
+  assert.match(out, /Run scripts\/ui-check\.sh \| success \| 300s \|/);
+});
+
+test('acceptance §5.3-b the staging checks run as staging, the production ones as production', () => {
+  // release.runtime.mjs skips its staging-only checks unless told it is on staging.
+  assert.match(read('.github/workflows/branch.yml'), /RELEASE_ENV=staging [^\n]*tests\/runtime\/release\.runtime\.mjs/);
+  assert.match(read('.github/workflows/production.yml'), /RELEASE_ENV=production [^\n]*tests\/runtime\/release\.runtime\.mjs/);
 });

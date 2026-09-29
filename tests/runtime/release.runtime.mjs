@@ -2,7 +2,6 @@
 //   RELEASE_ENV=staging    BASE_URL=https://staging.antelacus.com EXPECTED_KEY=<key> \
 //     CF_ACCESS_CLIENT_ID=… CF_ACCESS_CLIENT_SECRET=… node --test tests/runtime/release.runtime.mjs
 //   RELEASE_ENV=production BASE_URL=https://www.antelacus.com     EXPECTED_KEY=<key> node --test tests/runtime/release.runtime.mjs
-// Each check is marked `todo` with its batch until that batch lands.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 

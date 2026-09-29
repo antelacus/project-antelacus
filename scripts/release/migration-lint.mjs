@@ -71,6 +71,11 @@ export function contractMarker(sql) {
   return match ? { what: match[1], unusedSince: match[2] } : null;
 }
 
+/** The contract steps among migration texts (a file's, or what production's records say it ran). */
+export function contractSteps(texts) {
+  return texts.map(contractMarker).filter(Boolean).map(({ unusedSince }) => ({ unusedSince }));
+}
+
 /** Problems with one migration's text; empty when it is additive or a marked contract step. */
 export function lintMigration(sql) {
   const destructive = topLevelStatements(sql).filter((statement) => DESTRUCTIVE.some((rule) => rule.test(statement)));

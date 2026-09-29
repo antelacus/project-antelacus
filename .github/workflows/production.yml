@@ -90,10 +90,11 @@ jobs:
       - name: Runtime suite with the database
         run: RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs
 
-  # A failed verification rolls back, checks the rolled-back site, and leaves the run red (REQ §5.6).
-  # By hand (workflow_dispatch) it rolls back to the previous kept image or the one named.
+  # A verification that did not succeed — failed or cancelled — rolls back, checks the rolled-back site, and leaves
+  # the run red (REQ §5.6). By hand (workflow_dispatch, from main only) it rolls back to the previous kept image or
+  # the one named.
   rollback:
-    if: always() && ((github.event_name == 'push' && needs.promote.result == 'success' && needs.verify.result == 'failure') || github.event_name == 'workflow_dispatch')
+    if: always() && ((github.event_name == 'push' && needs.promote.result == 'success' && needs.verify.result != 'success') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
     needs: [promote, verify]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -103,7 +104,10 @@ jobs:
       BASE_URL: https://www.antelacus.com
       ROLLBACK_TO: ${{ inputs.rollback_to }}
     steps:
+      # The rollback logic and checks are main's, whatever a manual run was started from.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
@@ -205,9 +209,34 @@ jobs:
           curl --silent --show-error --fail -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/auth/v1/settings" \
             | node --input-type=module -e 'import { authSettingsProblems } from "./scripts/release/decide.mjs"; let t = ""; process.stdin.on("data", (c) => t += c).on("end", () => { const problems = authSettingsProblems(JSON.parse(t)); for (const p of problems) console.error(p); if (problems.length) process.exit(1); console.log("sign-ups closed, email confirmed"); })'
 
+  # The VPS checkout holds the cron jobs' scripts (backup, keep-alive, site check); it follows main.
+  checkout:
+    needs: [promote, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/actions
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      - name: Fast-forward the VPS checkout to this commit
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
+          # Fast-forward only: a checkout someone edited on the server fails here instead of being overwritten.
+          ssh vps "set -e; cd /home/deploy/antelacus; git fetch --quiet origin main; git merge --ff-only --quiet $SHA; git log --oneline -1"
+
   timings:
     if: always()
-    needs: [promote, verify, rollback, tag, purge, auth]
+    needs: [promote, verify, rollback, tag, purge, auth, checkout]
     runs-on: ubuntu-latest
     permissions:
       actions: read

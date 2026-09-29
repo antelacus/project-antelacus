@@ -67,7 +67,7 @@ test('a new item\'s unsaved body survives leaving the editor and coming back wit
   });
 });
 
-// ---------- REQ release-pipeline §5.8, §5.10 — marked `todo` with their batch until it lands ----------
+// ---------- REQ release-pipeline §5.8, §5.10 ----------
 
 test('acceptance release-pipeline §5.8-a RLS: a signed-in non-admin sees no drafts, the admin sees them', async () => {
   const { createClient } = await import('@supabase/supabase-js');
@@ -108,7 +108,7 @@ test('acceptance release-pipeline §5.8-b/c without the service-role key the adm
   }
 });
 
-test('acceptance release-pipeline §5.10-b an uploaded image lands in the bucket and loads on the page', async () => {
+test('acceptance release-pipeline §5.10-b an uploaded image lands in the bucket and the page renders it', async () => {
   const { visitAdmin, SEED } = await h();
   // An existing post: an upload is filed under the item's slug, and a new item has none yet.
   await visitAdmin([{ name: 'post editor upload', path: `/admin/content/post/${SEED.post}` }], async (page) => {
@@ -121,8 +121,14 @@ test('acceptance release-pipeline §5.10-b an uploaded image lands in the bucket
     const image = await fetch(url);
     assert.equal(image.status, 200, `${url} is not in the bucket`);
     assert.match(image.headers.get('content-type') ?? '', /^image\//, url);
-    const shown = page.locator(`img[src="${url}"]`);
-    if (await shown.count()) assert.ok(await shown.first().evaluate((img) => img.complete && img.naturalWidth > 0), 'the uploaded image does not load on the page');
+    // On the page: the body's preview renders it through the site's own Markdown renderer. The browser cannot
+    // load it here — this stack serves storage over http and the CSP admits the storage host over https only,
+    // as production's is — so what loads is proven by the bucket answering above, what renders by this.
+    await page.locator('.cm-content').first().click();
+    await page.keyboard.press('ControlOrMeta+End');
+    await page.keyboard.type(`\n\n![uploaded](${url})\n`);
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    await page.locator(`.admin-preview img[src="${url}"]`).waitFor({ timeout: 10000 });
   });
 });
 

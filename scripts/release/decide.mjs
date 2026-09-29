@@ -148,14 +148,16 @@ export function authSettingsProblems(settings) {
  * and never one whose version is unknown once any contract step exists.
  */
 export function rollbackTarget({ kept, contracts, requested }) {
-  const candidates = requested ? kept.filter((entry) => entry.key === requested) : kept.slice(1, 2);
-  const target = candidates[0];
-  if (!target || (requested && target === kept[0])) return null;
-  for (const { unusedSince } of contracts) {
-    const version = semver(target.version);
-    if (!version || older(version, semver(unusedSince))) return null;
+  const fits = (entry) => contracts.every(({ unusedSince }) => {
+    const version = semver(entry.version);
+    return version !== null && !older(version, semver(unusedSince));
+  });
+  if (requested) {
+    const target = kept.find((entry) => entry.key === requested);
+    return target && target !== kept[0] && fits(target) ? target : null;
   }
-  return target;
+  // The newest kept image that still fits the database, not only the one before the current.
+  return kept.slice(1).find(fits) ?? null;
 }
 
 /** The state after a rollback: the environment runs the target, and the image rolled back from is no longer kept. */

@@ -35,8 +35,9 @@ json_string() { node -e 'process.stdout.write(JSON.stringify(require("fs").readF
 field() { node -e 'const v = JSON.parse(process.argv[1]); const r = process.argv[2].split(".").reduce((o, k) => o?.[k], v); process.stdout.write(r === undefined || r === null ? "" : typeof r === "string" ? r : JSON.stringify(r))' "$1" "$2"; }
 
 mkdir -p "$STATE_DIR"
-exec 9>"$STATE_DIR/releases-$ENV_NAME.lock"
-flock --nonblock 9 || refuse "another $ENV_NAME release holds the lock"
+# One lock for both environments: they read and rewrite the same state file. A second release waits.
+exec 9>"$STATE_DIR/releases.lock"
+flock --wait 900 9 || refuse "another release has held the lock for 15 minutes"
 
 read_state() {
   if [[ ! -e "$STATE" ]]; then echo '{}'; return; fi
@@ -44,14 +45,15 @@ read_state() {
 }
 state_or_refuse() {
   local state
-  if ! state="$(read_state)"; then
-    [[ "$ENV_NAME" == production ]] && refuse "the state file $STATE is damaged; run: release.sh production adopt"
-    state='{}'
-  fi
+  # Damaged, it is left alone by both environments: staging rewriting it would erase production's history.
+  if ! state="$(read_state)"; then refuse "the state file $STATE is damaged; move it aside and run: release.sh production adopt"; fi
   if [[ "$ENV_NAME" == production && ! -e "$STATE" ]]; then refuse "no state file at $STATE; run: release.sh production adopt"; fi
   printf '%s' "$state"
 }
 write_state() { printf '%s\n' "$1" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; }
+# The database's own URL, for read-only queries; the value never reaches output.
+db_url() { grep -m1 '^DATABASE_URL=' "$CHECKOUT/.env" | cut -d= -f2- | tr -d '"'; }
+db_query() { docker run --rm --network host "postgres:$PG_MAJOR" psql "$(db_url)" -At -F $'\t' -c "$1"; }
 
 image_id() { docker image inspect --format '{{.Id}}' "antelacus:$1" 2>/dev/null; }
 
@@ -73,8 +75,14 @@ run_container() { # <name> <port> <key>
   # by this user only, exists just long enough for docker to read it.
   local envfile status=0
   envfile="$(mktemp "$STATE_DIR/env.XXXXXX")"
-  node -e 'process.stdout.write(require("fs").readFileSync(process.argv[1], "utf8"))' "$ENV_FILE" \
-    | node --input-type=module -e "import { dockerEnv } from '$HERE/decide.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => process.stdout.write(dockerEnv(t)));" > "$envfile"
+  # Checked explicitly: this function is called inside `if`, where set -e does not stop a failing step.
+  if ! node -e 'process.stdout.write(require("fs").readFileSync(process.argv[1], "utf8"))' "$ENV_FILE" \
+    | node --input-type=module -e "import { dockerEnv } from '$HERE/decide.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => process.stdout.write(dockerEnv(t)));" > "$envfile" \
+    || [[ ! -s "$envfile" ]]; then
+    rm -f "$envfile"
+    echo "release: could not read variables from $ENV_FILE" >&2
+    return 1
+  fi
   docker run --detach --name "$1" --restart unless-stopped \
     --publish "127.0.0.1:$2:3000" --env-file "$envfile" \
     --log-driver json-file --log-opt max-size=10m --log-opt max-file=3 \
@@ -84,11 +92,9 @@ run_container() { # <name> <port> <key>
 }
 
 check_migrations() {
-  local url records files
-  url="$(grep -m1 '^DATABASE_URL=' "$CHECKOUT/.env" | cut -d= -f2- | tr -d '"')"
-  [[ -n "$url" ]] || refuse "no DATABASE_URL in $CHECKOUT/.env: cannot check migrations"
-  records="$(docker run --rm --network host "postgres:$PG_MAJOR" psql "$url" -At -F $'\t' \
-    -c "select name, md5(array_to_string(statements, '')) from supabase_migrations.schema_migrations" \
+  local records files
+  [[ -n "$(db_url)" ]] || refuse "no DATABASE_URL in $CHECKOUT/.env: cannot check migrations"
+  records="$(db_query "select name, md5(array_to_string(statements, '')) from supabase_migrations.schema_migrations" \
     | node -e 'const rows = require("fs").readFileSync(0, "utf8").trim().split("\n").filter(Boolean).map((l) => l.split("\t")); process.stdout.write(JSON.stringify(rows.map(([name, digest]) => ({ name, digest }))))')" \
     || refuse "could not read the migration records"
   files="$(node -e 'const fs = require("fs"), path = require("path"), crypto = require("crypto"); const dir = process.argv[1]; process.stdout.write(JSON.stringify(fs.readdirSync(dir).filter((f) => /^\d+_[^/]+\.sql$/.test(f)).sort().map((file) => ({ file, digest: crypto.createHash("md5").update(fs.readFileSync(path.join(dir, file), "utf8").replace(/\n+$/, "")).digest("hex") }))))' "$BUNDLE/supabase/migrations")"
@@ -99,37 +105,68 @@ check_migrations() {
   step "migrations: every file has a matching record"
 }
 
-# Try the image on the scratch port, then take over the environment's port; the old container is only
-# stopped and renamed, and comes back if the new one fails. <expected key> is empty for an image from before
-# /api/build existed.
+# A switch cut short (a lost connection, a killed job) leaves the old container as $NAME-previous, possibly with
+# no $NAME at all. Put it back before anything else; with both present, $NAME serves and the other is stale.
+reconcile() {
+  if ! docker inspect "$NAME" >/dev/null 2>&1 && docker inspect "$NAME-previous" >/dev/null 2>&1; then
+    step "an interrupted switch left $NAME-previous: restoring it"
+    docker rename "$NAME-previous" "$NAME" && docker start "$NAME" >/dev/null || refuse "could not restore $NAME-previous; see docker ps -a"
+  elif docker inspect "$NAME-previous" >/dev/null 2>&1; then
+    docker rm -f "$NAME-previous" >/dev/null
+  fi
+}
+
+# The new container out, the old one back in service.
+restore_previous() {
+  docker rm -f "$NAME" >/dev/null 2>&1 || true
+  if docker inspect "$NAME-previous" >/dev/null 2>&1; then docker rename "$NAME-previous" "$NAME" && docker start "$NAME" >/dev/null; fi
+}
+
+# Try the image on the scratch port, then take over the environment's port. The old container is only stopped
+# and renamed, and comes back if any step fails; it is removed by commit_switch once the release is recorded.
+# <expected key> is empty for an image from before /api/build existed.
 switch_to() { # <key> <expected key or "">
   local key="$1" expected="$2"
   step "trying antelacus:$key on :$SCRATCH"
   docker rm -f "$NAME-candidate" >/dev/null 2>&1 || true
-  run_container "$NAME-candidate" "$SCRATCH" "$key"
-  if ! healthy "$SCRATCH" "$expected"; then
+  if ! run_container "$NAME-candidate" "$SCRATCH" "$key" || ! healthy "$SCRATCH" "$expected"; then
     docker logs --tail 60 "$NAME-candidate" >&2 || true
-    docker rm -f "$NAME-candidate" >/dev/null
+    docker rm -f "$NAME-candidate" >/dev/null 2>&1 || true
     refuse "antelacus:$key did not come up healthy on :$SCRATCH; $NAME is untouched"
   fi
   docker rm -f "$NAME-candidate" >/dev/null
 
+  reconcile
   step "switching :$PORT to antelacus:$key"
-  docker rm -f "$NAME-previous" >/dev/null 2>&1 || true
-  local had_previous=0
   if docker inspect "$NAME" >/dev/null 2>&1; then
-    docker stop "$NAME" >/dev/null
-    docker rename "$NAME" "$NAME-previous"
-    had_previous=1
+    docker stop "$NAME" >/dev/null || refuse "could not stop $NAME; it keeps serving"
+    if ! docker rename "$NAME" "$NAME-previous"; then
+      docker start "$NAME" >/dev/null || true
+      refuse "could not rename $NAME; it is started again"
+    fi
   fi
   if ! run_container "$NAME" "$PORT" "$key" || ! healthy "$PORT" "$expected"; then
     docker logs --tail 60 "$NAME" >&2 || true
-    docker rm -f "$NAME" >/dev/null 2>&1 || true
-    if (( had_previous )); then docker rename "$NAME-previous" "$NAME" && docker start "$NAME" >/dev/null; fi
+    restore_previous || true
     refuse "antelacus:$key failed on :$PORT; the previous container is back"
   fi
-  if (( had_previous )); then docker rm "$NAME-previous" >/dev/null; fi
   return 0
+}
+
+# After the switch: record the release, or put the old container back. Only a recorded release loses its fallback.
+record_or_restore() { # <state>
+  if ! write_state "$1"; then
+    restore_previous || true
+    refuse "could not record the release in $STATE; the previous container is back"
+  fi
+  docker rm -f "$NAME-previous" >/dev/null 2>&1 || true
+}
+
+# Each deploy leaves its bundle in ~/.cache/antelacus-release; the ten newest stay (the running one among them).
+prune_bundles() {
+  local dir; dir="$(dirname "$BUNDLE")"
+  [[ "$(basename "$dir")" == antelacus-release ]] || return 0
+  ls -1dt "$dir"/*/ 2>/dev/null | tail -n +11 | while read -r old; do [[ "${old%/}" != "$BUNDLE" ]] && rm -rf "$old"; done || true
 }
 
 deploy() {
@@ -138,11 +175,14 @@ deploy() {
   state="$(state_or_refuse)"
   id="$(image_id "$key")" || refuse "no image antelacus:$key on this machine"
   if [[ "$ENV_NAME" == production ]]; then
-    [[ "$(decide mayPromote "{\"state\":$state,\"key\":\"$key\",\"imageId\":\"$id\"}")" == true ]] \
-      || refuse "antelacus:$key ($id) was never verified on staging"
+    # A restart runs the very image production already runs; anything else must be one staging verified.
+    if [[ -z "$force" || "$id" != "$(field "$state" production.imageId)" ]]; then
+      [[ "$(decide mayPromote "{\"state\":$state,\"key\":\"$key\",\"imageId\":\"$id\"}")" == true ]] \
+        || refuse "antelacus:$key ($id) was never verified on staging"
+    fi
   else
     local problems
-    [[ -e "$ENV_FILE" ]] || refuse "no $ENV_FILE"
+    [[ -r "$ENV_FILE" ]] || refuse "cannot read $ENV_FILE"
     problems="$(decide stagingEnvProblems "$(json_string "$ENV_FILE")")"
     [[ "$problems" == "[]" ]] || refuse "$ENV_FILE holds $problems: staging must not be able to write production"
   fi
@@ -158,8 +198,9 @@ deploy() {
   local entry
   entry="{\"key\":\"$key\",\"imageId\":\"$id\",\"sha\":\"$sha\",\"version\":\"$version\"}"
   state="$(decide afterDeploy "{\"state\":$state,\"env\":\"$ENV_NAME\",\"entry\":$entry}")"
-  write_state "$state"
+  record_or_restore "$state"
   prune "$state"
+  prune_bundles
   step "done"
   echo "serving $key"
 }
@@ -209,21 +250,28 @@ rollback() {
   local requested="${1:-}" state kept contracts target key
   state="$(state_or_refuse)"
   kept="$(decide keptOf "{\"state\":$state,\"env\":\"$ENV_NAME\"}")"
-  # Contract steps production executed: an image older than one of them would read what no longer exists.
-  contracts="$(node --input-type=module -e "
-    import { readdirSync, readFileSync } from 'node:fs';
-    import { contractMarker } from '$HERE/migration-lint.mjs';
-    const dir = '$BUNDLE/supabase/migrations';
-    const found = readdirSync(dir).filter((f) => /^\\d+_[^/]+\\.sql\$/.test(f)).map((f) => contractMarker(readFileSync(dir + '/' + f, 'utf8'))).filter(Boolean);
-    process.stdout.write(JSON.stringify(found.map(({ unusedSince }) => ({ unusedSince }))));")"
+  # Contract steps production executed, read from its migration records (each keeps the text it ran, marker
+  # included): an image older than one would read what no longer exists. Without the database — perhaps the
+  # very outage being rolled back from — the bundle's files stand in, and the run says so.
+  local texts
+  if texts="$(db_query "select coalesce(json_agg(array_to_string(statements, '')), '[]') from supabase_migrations.schema_migrations" 2>/dev/null)" && [[ -n "$texts" ]]; then
+    :
+  else
+    echo "release: warning: the migration records are unreadable; contract steps come from this bundle's files" >&2
+    texts="$(node -e 'const fs = require("fs"), d = process.argv[1]; process.stdout.write(JSON.stringify(fs.readdirSync(d).filter((f) => /^\d+_[^/]+\.sql$/.test(f)).map((f) => fs.readFileSync(d + "/" + f, "utf8"))))' "$BUNDLE/supabase/migrations")"
+  fi
+  contracts="$(printf '%s' "$texts" | node --input-type=module -e "import { contractSteps } from '$HERE/migration-lint.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => process.stdout.write(JSON.stringify(contractSteps(JSON.parse(t)))));")"
   target="$(decide rollbackTarget "{\"kept\":$kept,\"contracts\":$contracts,\"requested\":\"$requested\"}")"
   [[ "$target" != null ]] || refuse "no image to roll back to${requested:+ (asked for $requested)}: none kept, or each is older than a contract step"
   key="$(field "$target" key)"
-  image_id "$key" >/dev/null || refuse "antelacus:$key is kept in the state but not on this machine"
+  local id; id="$(image_id "$key")" || refuse "antelacus:$key is kept in the state but not on this machine"
+  # The tag must still name the image that was kept: a retagged image was never verified.
+  [[ "$id" == "$(field "$target" imageId)" ]] || refuse "antelacus:$key is now $id, not the kept $(field "$target" imageId)"
   step "rolling back to antelacus:$key"
   # The database is never touched: migrations are additive, and a contract step already ruled the target in.
   switch_to "$key" "$([[ "$key" == legacy-* ]] || echo "$key")"
-  write_state "$(decide afterRollback "{\"state\":$state,\"env\":\"$ENV_NAME\",\"target\":$target}")"
+  record_or_restore "$(decide afterRollback "{\"state\":$state,\"env\":\"$ENV_NAME\",\"target\":$target}")"
+  prune_bundles
   step "done"
   echo "serving $key"
 }
