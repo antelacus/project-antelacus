@@ -106,3 +106,14 @@ test('contract steps are read from the texts production ran, markers and all', a
     [{ unusedSince: '2.6.0' }]);
   assert.deepEqual(contractSteps([]), []);
 });
+
+test('adopting production keeps what staging verified, so a PR waiting to merge can still be promoted', async () => {
+  const { afterAdopt, mayPromote } = await decide();
+  const state = { staging: entry('s'), keptStaging: [entry('s')], verified: [{ key: 's', imageId: 'sha256:s' }] };
+  const adopted = afterAdopt({ state, entry: entry('legacy-x', 'unknown') });
+  assert.equal(adopted.production.key, 'legacy-x');
+  assert.deepEqual(adopted.kept.map((k: { key: string }) => k.key), ['legacy-x']);
+  assert.equal(adopted.staging.key, 's', 'staging lost its record');
+  assert.equal(mayPromote({ state: adopted, key: 's', imageId: 'sha256:s' }), true, 'the verified image was forgotten');
+  assert.equal(afterAdopt({ state: {}, entry: entry('p') }).production.key, 'p');
+});

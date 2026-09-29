@@ -167,7 +167,17 @@ export function afterRollback({ state, env = 'production', target }) {
   return { ...state, [env]: target, [list]: (state[list] ?? []).filter((entry) => entry.key !== failed) };
 }
 
-const DECISIONS = { keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
+/** The state after adopting a running production container: staging's records and every verified image stay. */
+export function afterAdopt({ state, entry }) {
+  return {
+    ...state,
+    production: entry,
+    kept: [entry],
+    verified: [{ key: entry.key, imageId: entry.imageId }, ...(state.verified ?? []).filter((v) => v.key !== entry.key)].slice(0, VERIFIED_KEPT),
+  };
+}
+
+const DECISIONS = { afterAdopt, keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [name, input] = process.argv.slice(2);

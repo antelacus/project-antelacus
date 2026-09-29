@@ -241,8 +241,11 @@ adopt() {
   [[ -n "$key" ]] || key="legacy-${id#sha256:}"; key="${key:0:71}"
   version="$(docker exec "$NAME" node -p "require('/app/package.json').version" 2>/dev/null || echo unknown)"
   docker tag "$id" "antelacus:$key"
-  local entry="{\"key\":\"$key\",\"imageId\":\"$id\",\"sha\":\"\",\"version\":\"$version\"}"
-  write_state "{\"production\":$entry,\"kept\":[$entry],\"verified\":[{\"key\":\"$key\",\"imageId\":\"$id\"}]}"
+  local entry="{\"key\":\"$key\",\"imageId\":\"$id\",\"sha\":\"\",\"version\":\"$version\"}" base
+  # Into the state that exists: staging's records and the images it verified (a PR waiting to merge) stay.
+  # A damaged or missing file starts from nothing — that is what adopt is for.
+  base="$(read_state 2>/dev/null)" || base='{}'
+  write_state "$(decide afterAdopt "{\"state\":$base,\"entry\":$entry}")" || refuse "could not write $STATE"
   step "adopted $NAME as antelacus:$key (v$version)"
 }
 
