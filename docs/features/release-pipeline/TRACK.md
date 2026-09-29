@@ -146,6 +146,21 @@
 
 **Phase 4 证据**：（Phase 4 填写）
 
-**Phase 6 boxes**：Phase 4 收尾时写入。
+**Phase 4 自查发现**（Claude，写 Phase 6 清单时）：
+- S-1 · SHOULD：新流程不再更新 VPS 上的检出，cron 运行的 `backup.sh` 等会与仓库脱节 —— status: open（`production.yml` 核验通过后快进检出）
+- S-2 · SHOULD：`~/.cache/antelacus-release/` 下的发布包只增不减 —— status: open（`release.sh` 收尾只留最近 10 个）
+
+**Phase 6 boxes**（合并 ≠ 发布）：
+- [ ] 切换准备（合并前，Claude）：`release.sh production adopt` 收编 compose 起的容器（旧镜像记为 legacy，留作回滚目标）；生产 nginx 站点文件换成共用片段写法，`nginx -t`、reload，公网 200 与安全头照旧；核对生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（TD-023）
+- [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并
+- [ ] 真实发布完全照 `docs/DEPLOYMENT.md` 执行（§5.11-a）：*Production* 全绿（promote、verify、tag、purge、auth），公网构建标识 = 合并提交的键，打出 `v2.5.0`
+- [ ] Jason 重新登录生产后台：新读法下看得到草稿、保存成功
+- [ ] CHANGELOG 条目
+- [ ] TECHNICAL_DEBT 定稿：TD-021、TD-022 删除；TD-023、TD-024、TD-025 在册
+- [ ] 常新文档扫尾：REQ / DESIGN 与交付一致；项目 `CLAUDE.md`、README 仍属实
+- [ ] FEEDBACK 扫尾 · 路线图（v2.5.1 = TD-025）
+- [ ] 各门读数：运行次数 / 改变了输出的拦截次数
+- [ ] 文档预算为绿 · 记忆修剪
+- [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.5.0.md`
 
 ## 四、Session-end pickup
