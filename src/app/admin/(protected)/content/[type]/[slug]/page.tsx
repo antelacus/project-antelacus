@@ -4,7 +4,7 @@ import ContentEditor, { type EditorValue } from '@/components/admin/ContentEdito
 import { stringMetadata } from '@/lib/content-row';
 import type { PhotoRecordRow } from '@/lib/photo-types';
 import type { ProjectRecordRow } from '@/lib/project-types';
-import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
+import { getAdminReadClient } from '@/lib/server/admin-auth';
 import { getAdminRow } from '@/lib/server/content-repo';
 import { contentTypeSchema } from '@/lib/server/database.types';
 
@@ -26,7 +26,7 @@ export default async function AdminContentEditorPage({ params, searchParams }: P
 
   let value: EditorValue | null = null;
   if (slug !== 'new') {
-    const row = await getAdminRow(await getAdminServiceRoleClient(`/admin/content/${type.data}`), type.data, slug);
+    const row = await getAdminRow(await getAdminReadClient(`/admin/content/${type.data}`), type.data, slug);
     if (!row) notFound();
     value = {
       id: row.id,

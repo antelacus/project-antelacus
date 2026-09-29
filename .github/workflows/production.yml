@@ -1,0 +1,257 @@
+name: Production
+
+# A push to main is a promotion (release-pipeline REQ §5.5): no gate and no build here — the merge commit's
+# build input key names an image staging already verified, and release.sh refuses any other. Then the public
+# site is checked; a failed check rolls production back (§5.6). Only documentation changed: nothing to deploy.
+# By hand: roll back to the previous kept image, or to a kept key.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      rollback_to:
+        description: Kept build input key to roll back to (empty = the previous one)
+        required: false
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+      version: ${{ steps.deploy.outputs.version }}
+      previous_version: ${{ steps.before.outputs.version }}
+      previous_sha: ${{ steps.before.outputs.sha }}
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      # Only the key stage runs: it copies the context and hashes it. The application is never built here.
+      - id: key
+        name: Build input key of the merge commit
+        run: |
+          docker build --target key --output type=local,dest="$RUNNER_TEMP/keyout" \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY .
+          echo "key=$(cat "$RUNNER_TEMP/keyout/BUILD_KEY")" >> "$GITHUB_OUTPUT"
+          echo "build input key: $(cat "$RUNNER_TEMP/keyout/BUILD_KEY")"
+      # What production ran before this release: its version decides the tag, its commit what changed.
+      - id: before
+        name: The release before
+        run: |
+          state="$(ssh vps 'cat ~/.local/state/antelacus/releases.json 2>/dev/null || echo {}')"
+          node -e 'let p = {}; try { p = JSON.parse(process.argv[1]).production ?? {}; } catch { console.error("the state file is not JSON: no previous release"); } const ok = (v, re) => (re.test(v ?? "") ? v : ""); console.log(`version=${ok(p.version, /^\d+\.\d+\.\d+$/)}`); console.log(`sha=${ok(p.sha, /^[0-9a-f]{40}$/)}`)' "$state" >> "$GITHUB_OUTPUT"
+      - id: deploy
+        name: Deploy the verified image
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a plain version: $version" >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          tar -cz scripts/release supabase/migrations | ssh vps "set -e; d=\$HOME/.cache/antelacus-release/$SHA; rm -rf \$d; mkdir -p \$d; tar -xz -C \$d; bash \$d/scripts/release/release.sh production deploy ${{ steps.key.outputs.key }} $SHA $version"
+
+  # Through Cloudflare and nginx, as a visitor arrives (REQ §5.5-b). HTML is never cached, so this reaches the new container.
+  verify:
+    needs: promote
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      BASE_URL: https://www.antelacus.com
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Production serves this build
+        run: RELEASE_ENV=production EXPECTED_KEY=${{ needs.promote.outputs.key }} node --test tests/runtime/release.runtime.mjs
+      - name: Runtime suite with the database
+        run: RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs
+
+  # A verification that did not succeed — failed or cancelled — rolls back, checks the rolled-back site answers, and leaves
+  # the run red (REQ §5.6). By hand (workflow_dispatch, from main only) it rolls back to the previous kept image or
+  # the one named.
+  rollback:
+    if: always() && ((github.event_name == 'push' && needs.promote.result == 'success' && needs.verify.result != 'success') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    needs: [promote, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      BASE_URL: https://www.antelacus.com
+      ROLLBACK_TO: ${{ inputs.rollback_to }}
+    steps:
+      # The rollback logic and checks are main's, whatever a manual run was started from.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      - id: back
+        name: Roll production back
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          [[ -z "$ROLLBACK_TO" || "$ROLLBACK_TO" =~ ^(legacy-)?[0-9a-f]{64}$ ]] || { echo "not a build input key: $ROLLBACK_TO" >&2; exit 1; }
+          out="$(tar -cz scripts/release supabase/migrations | ssh vps "set -e; d=\$HOME/.cache/antelacus-release/rollback-$SHA; rm -rf \$d; mkdir -p \$d; tar -xz -C \$d; bash \$d/scripts/release/release.sh production rollback $ROLLBACK_TO")"
+          printf '%s\n' "$out"
+          echo "key=$(printf '%s\n' "$out" | sed -n 's/^serving //p' | tail -1)" >> "$GITHUB_OUTPUT"
+      - name: Production serves the image rolled back to
+        if: ${{ !startsWith(steps.back.outputs.key, 'legacy-') }}
+        run: RELEASE_ENV=production EXPECTED_KEY=${{ steps.back.outputs.key }} node --test tests/runtime/release.runtime.mjs
+      # A smoke check, not the runtime suite: main's suite describes the release that failed, and an older
+      # image would fail it for being older, not for being broken. The image was verified when it shipped.
+      - name: Production answers
+        run: |
+          for path in /en /en/posts /og.png; do
+            curl --silent --show-error --fail --output /dev/null --max-time 15 "$BASE_URL$path"
+            echo "$path: ok"
+          done
+      - name: An automatic rollback leaves the run red
+        if: github.event_name == 'push'
+        run: |
+          echo "production was rolled back to ${{ steps.back.outputs.key }}; the release failed its verification" >&2
+          exit 1
+
+  # After a verified release (REQ §5.5): each is its own job, and a failure here never rolls back.
+  tag:
+    needs: [promote, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Tag a new version
+        env:
+          PREVIOUS: ${{ needs.promote.outputs.previous_version }}
+          NEXT: ${{ needs.promote.outputs.version }}
+        run: |
+          tag="$(node --input-type=module -e 'import { tagFor } from "./scripts/release/decide.mjs"; process.stdout.write(tagFor({ previous: process.env.PREVIOUS || null, next: process.env.NEXT }) ?? "")')"
+          if [[ -z "$tag" ]]; then echo "version unchanged: no tag"; exit 0; fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then echo "$tag already exists"; exit 0; fi
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag"
+          echo "tagged $tag"
+
+  purge:
+    needs: [promote, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Purge the share images and public/images if this release changed them
+        env:
+          PREVIOUS_SHA: ${{ needs.promote.outputs.previous_sha }}
+          CF_PURGE_TOKEN: ${{ secrets.CF_PURGE_TOKEN }}
+          CF_ZONE_ID: ${{ vars.CF_ZONE_ID }}
+        run: |
+          # Without a known previous release every file counts as changed.
+          if [[ -n "$PREVIOUS_SHA" ]] && git cat-file -e "$PREVIOUS_SHA^{commit}" 2>/dev/null; then
+            changed="$(git diff --name-only "$PREVIOUS_SHA" "$GITHUB_SHA")"
+          else
+            changed="$(git ls-files)"
+          fi
+          prefixes="$(printf '%s\n' "$changed" | node --input-type=module -e 'import { purgeTargets } from "./scripts/release/decide.mjs"; let t = ""; process.stdin.on("data", (c) => t += c).on("end", () => process.stdout.write(JSON.stringify(purgeTargets(t.split("\n").filter(Boolean)))))')"
+          if [[ "$prefixes" == "[]" ]]; then echo "no share image or public/images change: nothing to purge"; exit 0; fi
+          echo "purging $prefixes"
+          curl --silent --show-error --fail -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/purge_cache" \
+            -H "Authorization: Bearer $CF_PURGE_TOKEN" -H 'Content-Type: application/json' \
+            --data "{\"prefixes\":$prefixes}" -o /dev/null
+          # The first request after a purge must not be served from the cache.
+          status="$(curl --silent --output /dev/null --dump-header - https://www.antelacus.com/og.png | tr -d '\r' | sed -n 's/^cf-cache-status: //Ip')"
+          echo "/og.png after the purge: ${status:-no cf-cache-status}"
+          [[ "$status" != HIT ]]
+
+  auth:
+    needs: [promote, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts/release
+      - name: Sign-ups are closed and email is confirmed
+        env:
+          SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          curl --silent --show-error --fail -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/auth/v1/settings" \
+            | node --input-type=module -e 'import { authSettingsProblems } from "./scripts/release/decide.mjs"; let t = ""; process.stdin.on("data", (c) => t += c).on("end", () => { let settings; try { settings = JSON.parse(t); } catch { console.error("the Auth settings are not JSON"); process.exit(1); } const problems = authSettingsProblems(settings); for (const p of problems) console.error(p); if (problems.length) process.exit(1); console.log("sign-ups closed, email confirmed"); })'
+
+  # The VPS checkout holds the cron jobs' scripts (backup, keep-alive, site check); it follows main.
+  checkout:
+    needs: [promote, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/actions
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      - name: Fast-forward the VPS checkout to this commit
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
+          # Fast-forward only: a checkout someone edited on the server fails here instead of being overwritten.
+          ssh vps "set -e; cd /home/deploy/antelacus; git fetch --quiet origin main; git merge --ff-only --quiet $SHA; git log --oneline -1"
+
+  timings:
+    if: always()
+    needs: [promote, verify, rollback, tag, purge, auth, checkout]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts/release
+      - name: Step timings to the run summary
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs" | node scripts/release/timings.mjs >> "$GITHUB_STEP_SUMMARY"

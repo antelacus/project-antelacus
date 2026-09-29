@@ -23,12 +23,12 @@ export default function ProjectLinksPanel({ links, onChange, error }: Props) {
       <legend style={{ fontWeight: 600 }}>Links</legend>
       {links.map((link, index) => (
         <div key={index} style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr) auto auto', alignItems: 'center' }}>
-          <input value={link.label} placeholder="Label" onChange={(event) => update(index, { label: event.target.value })} />
-          <input value={link.url} placeholder="https://…" inputMode="url" onChange={(event) => update(index, { url: event.target.value })} />
-          <select value={link.link_type} onChange={(event) => update(index, { link_type: event.target.value as ProjectLinkType })}>
+          <input value={link.label} placeholder="Label" aria-label={`Link ${index + 1} label`} onChange={(event) => update(index, { label: event.target.value })} />
+          <input value={link.url} placeholder="https://…" inputMode="url" aria-label={`Link ${index + 1} URL`} onChange={(event) => update(index, { url: event.target.value })} />
+          <select value={link.link_type} aria-label={`Link ${index + 1} type`} onChange={(event) => update(index, { link_type: event.target.value as ProjectLinkType })}>
             {LINK_TYPES.map((kind) => <option key={kind} value={kind}>{kind}</option>)}
           </select>
-          <button type="button" className="admin-button" onClick={() => onChange(links.filter((_, i) => i !== index))} aria-label="Remove">×</button>
+          <button type="button" className="admin-button" onClick={() => onChange(links.filter((_, i) => i !== index))} aria-label={`Remove link ${index + 1}`}>×</button>
         </div>
       ))}
       {error && <p role="alert" style={{ margin: 0, color: 'var(--color-seal)' }}>{error}</p>}

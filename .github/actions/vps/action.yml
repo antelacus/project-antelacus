@@ -1,0 +1,47 @@
+name: Reach the VPS
+description: >
+  Writes the deploy key and a known_hosts entry whose host key matches DEPLOY_HOST_FINGERPRINT, then
+  makes `ssh vps` reach the deploy user. A host key that does not match stops the job: a connection
+  redirected to an impostor must never receive an image or a command. Every `ssh vps` of a job shares
+  one connection: the VPS firewall drops the sixth new SSH connection from an address within 30 s,
+  and each dropped one costs the client half a minute of retries.
+inputs:
+  host: { required: true }
+  user: { required: true }
+  key: { required: true }
+  fingerprint: { required: true }
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        HOST: ${{ inputs.host }}
+        USER_NAME: ${{ inputs.user }}
+        KEY: ${{ inputs.key }}
+        FINGERPRINT: ${{ inputs.fingerprint }}
+      run: |
+        set -euo pipefail
+        install -d -m 700 ~/.ssh
+        printf '%s\n' "$KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+        want="${FINGERPRINT#SHA256:}"
+        : > ~/.ssh/known_hosts
+        # One key type first: keyscan opens a connection per type, and they count against the rate limit.
+        for types in ed25519 ecdsa,rsa; do
+          while read -r line; do
+            got="$(printf '%s\n' "$line" | ssh-keygen -lf - -E sha256 | awk '{print $2}')"
+            [[ "${got#SHA256:}" == "$want" ]] && printf '%s\n' "$line" >> ~/.ssh/known_hosts
+          done < <(ssh-keyscan -T 15 -t "$types" "$HOST" 2>/dev/null)
+          [[ -s ~/.ssh/known_hosts ]] && break
+        done
+        [[ -s ~/.ssh/known_hosts ]] || { echo "no host key of $HOST matches DEPLOY_HOST_FINGERPRINT" >&2; exit 1; }
+        cat > ~/.ssh/config <<CONFIG
+        Host vps
+          HostName $HOST
+          User $USER_NAME
+          IdentityFile ~/.ssh/deploy_key
+          StrictHostKeyChecking yes
+          ServerAliveInterval 30
+          ControlMaster auto
+          ControlPath ~/.ssh/cm-%C
+          ControlPersist 10m
+        CONFIG

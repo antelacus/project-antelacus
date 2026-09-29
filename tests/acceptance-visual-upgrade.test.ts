@@ -107,11 +107,10 @@ test('acceptance §5.4-a the three React Compiler rules are errors for the site\
 // ---------- §5.5 the gate ----------
 
 test('acceptance §5.5-a the gate runs the UI checks on every push, and a deploy waits for them', () => {
-  const gate = read('.github/workflows/check.yml');
-  assert.match(gate, /^on:\n(?: {2}.*\n)*? {2}push:/m, 'check.yml does not run on push');
-  assert.match(gate, /^ {2}ui:\n(?: {4}.*\n|\n)*? {6}- run: scripts\/ui-check\.sh$/m, 'check.yml has no ui job running the UI gate');
-  // A called workflow is one unit to its caller: `needs: check` waits for every job in check.yml.
-  const deploy = read('.github/workflows/deploy.yml');
-  assert.match(deploy, /^ {2}check:\n {4}uses: \.\/\.github\/workflows\/check\.yml$/m, 'deploy.yml does not call the gate');
-  assert.match(deploy, /^ {4}needs: check$/m, 'the deploy job does not wait for the gate');
+  // Since release-pipeline v2.5.0 the gate is branch.yml; production runs only an image staging verified,
+  // and staging deploys only after the gate, the UI checks included.
+  const gate = read('.github/workflows/branch.yml');
+  assert.match(gate, /^on:\n(?: {2}.*\n)*? {2}push:/m, 'branch.yml does not run on push');
+  assert.match(gate, /^ {2}ui:\n(?: {4}.*\n|\n)*? {6}- run: scripts\/ui-check\.sh$/m, 'branch.yml has no ui job running the UI gate');
+  assert.match(gate, /^ {2}staging-check:\n {4}needs: \[check, ui, image\]$/m, 'staging does not wait for the gate');
 });

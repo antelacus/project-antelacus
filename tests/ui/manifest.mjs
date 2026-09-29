@@ -71,4 +71,13 @@ export const ADMIN_TEMPLATES = [
   { name: 'overview', path: '/admin', text: 'published' },
   { name: 'list', path: '/admin/content/post', text: SEED.draftTitle },
   { name: 'editor', path: `/admin/content/post/${SEED.post}`, text: SEED.postTitle },
+  // Every other content type and the about page (REQ release-pipeline §5.10-d).
+  { name: 'note list', path: '/admin/content/note', text: SEED.noteTitle },
+  { name: 'note editor', path: `/admin/content/note/${SEED.note}`, text: SEED.noteTitle },
+  { name: 'gallery list', path: '/admin/content/gallery', text: SEED.galleryTitle },
+  { name: 'gallery editor', path: `/admin/content/gallery/${SEED.gallery}`, text: SEED.galleryTitle },
+  { name: 'project list', path: '/admin/content/project', text: SEED.projectTitle },
+  { name: 'project editor', path: `/admin/content/project/${SEED.project}`, text: SEED.projectTitle },
+  { name: 'about languages', path: '/admin/pages/about', text: 'en' },
+  { name: 'about editor', path: '/admin/pages/about/en', text: SEED.aboutTitle },
 ];

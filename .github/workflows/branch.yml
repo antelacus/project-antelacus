@@ -1,0 +1,213 @@
+name: Branch
+
+# Every push to a branch other than main, once (release-pipeline REQ §5.9): the gate, one image per build
+# input key, staging, and the staging check that a PR needs to merge. main never runs this: a merge is a
+# promotion of the image verified here (production.yml).
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to put on staging (its gate runs again)
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: branch-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SHA: ${{ inputs.sha || github.sha }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: dummy
+      SUPABASE_SERVICE_ROLE_KEY: dummy
+    steps:
+      # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+          # migration-lint compares against main: an edited migration that production already ran is refused
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # 与 Dockerfile 的基础镜像一致
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Production dependencies must carry no advisory (REQ §5.1-a); dev-only ones are the build machine's business.
+      - run: npm audit --omit=dev
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+      - name: Migrations are additive, and those on main unedited
+        run: node scripts/release/migration-lint.mjs --base origin/main
+      - name: The database function and RLS
+        run: scripts/db-function-check.sh
+      # 构建用占位环境变量：能在这里跑完，即证明构建不依赖 Supabase 可达
+      - name: Build
+        run: npm run build
+      # proxy 放错位置时构建不报错，只是不注册。Next 16 把 Node 运行时的 proxy 登记在 functions-config-manifest 的 /_middleware 项下
+      - name: Proxy is registered
+        run: node -e "const m = require('./.next/server/functions-config-manifest.json'); const p = m.functions && m.functions['/_middleware']; if (!p || !p.matchers || !p.matchers.length) { console.error('no proxy entry in functions-config-manifest.json'); process.exit(1) }"
+      # Without a database: the checks of what a visitor sees when it is unreachable run only here (the UI job
+      # and staging have one), so this subset is not covered by the full runs.
+      - name: Runtime acceptance (database-free subset)
+        run: |
+          npx next start -p 3917 &
+          curl --silent --fail --output /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://localhost:3917/og.png
+          BASE_URL=http://localhost:3917 npm run test:runtime
+
+  # 界面闸门（visual-upgrade DESIGN §2.5）：本地 Supabase 栈 + 合成内容 + 浏览器检查 + 有库运行时套件，本机与这里同一份脚本
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Not cached: the system libraries take ~50 s of the ~52, and they are installed either way.
+      - run: npx playwright install --with-deps chromium webkit
+      - run: scripts/ui-check.sh
+
+  # One image per build input key, built here and never on the VPS; a key the VPS already holds is not rebuilt.
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      - id: key
+        name: Build input key
+        run: |
+          docker build --target key --output type=local,dest="$RUNNER_TEMP/keyout" \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY .
+          echo "key=$(cat "$RUNNER_TEMP/keyout/BUILD_KEY")" >> "$GITHUB_OUTPUT"
+          echo "build input key: $(cat "$RUNNER_TEMP/keyout/BUILD_KEY")"
+      - id: present
+        name: Is the image already on the VPS
+        run: |
+          if ssh vps "docker image inspect antelacus:${{ steps.key.outputs.key }}" >/dev/null 2>&1; then
+            echo "present=true" >> "$GITHUB_OUTPUT"; echo "antelacus:${{ steps.key.outputs.key }} is on the VPS; not rebuilt"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      # REQ §5.1-a: a marked .env is planted in the context, and the built image must hold neither it nor the marker.
+      - name: Build, and prove no .env reached the image
+        if: steps.present.outputs.present == 'false'
+        run: |
+          scripts/release/image-check.sh plant
+          docker build -t "antelacus:${{ steps.key.outputs.key }}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY .
+          scripts/release/image-check.sh verify "antelacus:${{ steps.key.outputs.key }}"
+          # The key inside the image must be the tag's: a file left in the context between the two builds
+          # (a key output written into the checkout did exactly that) would make them differ.
+          inside="$(docker run --rm --entrypoint cat "antelacus:${{ steps.key.outputs.key }}" /app/BUILD_KEY)"
+          [[ "$inside" == "${{ steps.key.outputs.key }}" ]] || { echo "the image says $inside, its tag ${{ steps.key.outputs.key }}" >&2; exit 1; }
+      - name: Send it to the VPS
+        if: steps.present.outputs.present == 'false'
+        run: |
+          start=$(date +%s)
+          docker save "antelacus:${{ steps.key.outputs.key }}" | gzip -1 | ssh vps 'gunzip | docker load'
+          echo "transfer: $(( $(date +%s) - start ))s"
+
+  # Deploy, check and (on a failed check) roll back are one job under one lock: split into jobs, another
+  # branch's deploy could land between them and be checked, verified or rolled back in this one's name.
+  # A required check for merging (DESIGN §8: the job name is what branch protection matches; do not rename it).
+  staging-check:
+    needs: [check, ui, image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    concurrency:
+      group: staging
+      cancel-in-progress: false
+    env:
+      BASE_URL: https://staging.antelacus.com
+      CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      # The release logic that runs is the one this commit carries (DESIGN §2.1).
+      - id: deploy
+        name: Deploy to staging
+        run: |
+          # Both go into a command line on the VPS: only a full commit SHA and a plain version pass.
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
+          version="$(node -p "require('./package.json').version")"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a plain version: $version" >&2; exit 1; }
+          tar -cz scripts/release supabase/migrations | ssh vps "set -e; d=\$HOME/.cache/antelacus-release/$SHA; rm -rf \$d; mkdir -p \$d; tar -xz -C \$d; bash \$d/scripts/release/release.sh staging deploy ${{ needs.image.outputs.key }} $SHA $version"
+      - name: Staging serves this build, behind Access, noindex
+        run: RELEASE_ENV=staging EXPECTED_KEY=${{ needs.image.outputs.key }} node --test tests/runtime/release.runtime.mjs
+      - name: Runtime suite with the database, through nginx and Cloudflare
+        run: RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs
+      # The live nginx is the repository's: staging's site file and the shared file both.
+      - name: Live nginx equals the repository
+        run: |
+          ssh vps 'cat /etc/nginx/sites-enabled/staging.antelacus.com' | diff deploy/nginx/staging.antelacus.com.conf -
+          ssh vps 'cat /etc/nginx/snippets/antelacus-site.conf' | diff deploy/nginx/antelacus-site.conf -
+      - name: Record the image as verified
+        run: ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging verified ${{ needs.image.outputs.key }}"
+      # A failed check after a deploy leaves staging on the image before (REQ §5.6-a: the same rollback as
+      # production's, so it can be rehearsed here). The job stays red: the check failed.
+      - name: Staging back to the image before
+        if: failure() && steps.deploy.outcome == 'success'
+        run: ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging rollback"
+
+  timings:
+    if: always()
+    needs: [check, ui, image, staging-check]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts/release
+      - name: Step timings to the run summary
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs" | node scripts/release/timings.mjs >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,27 @@
+name: PR checklist
+
+# REQ release-pipeline §5.4-d: a PR merges only once its signed-in look at staging is ticked. Machines do not
+# sign in to staging (no admin password in CI); this makes the person's look a condition, not a courtesy.
+# The job name is what branch protection matches: do not rename it.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions: {}
+
+jobs:
+  pr-checklist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts/release
+      # The body is untrusted text: it reaches the script as an environment variable, never as code.
+      - name: The signed-in look at staging is ticked
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          node -e 'import("./scripts/release/decide.mjs").then(({ checklistTicked }) => { if (!checklistTicked(process.env.BODY ?? "")) { console.error("Tick \"Signed in to staging on a phone and looked at the admin\" in the PR description."); process.exit(1); } console.log("ticked"); })'

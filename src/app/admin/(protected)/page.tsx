@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import { CONTENT_TYPE_KEYS, CONTENT_TYPES } from '@/lib/content-types';
-import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
+import { getAdminReadClient } from '@/lib/server/admin-auth';
 import { listAdminSummaries } from '@/lib/server/content-repo';
 import { PAGE_SLUGS } from '@/lib/pages';
 import { listPageVersions } from '@/lib/server/pages-repo';
@@ -9,7 +9,7 @@ import { listPageVersions } from '@/lib/server/pages-repo';
 export const metadata = { title: 'Overview · Admin' };
 
 export default async function AdminDashboardPage() {
-  const client = await getAdminServiceRoleClient('/admin');
+  const client = await getAdminReadClient('/admin');
   const counts = await Promise.all(CONTENT_TYPE_KEYS.map(async (type) => {
     const rows = await listAdminSummaries(client, type);
     return { type, total: rows.length, published: rows.filter((row) => row.status === 'published').length };

@@ -4,21 +4,11 @@ import { z } from 'zod';
 
 const serverSupabaseEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  SUPABASE_ADMIN_EMAILS: z.string().optional(),
 });
 
 type ServerSupabaseEnv = {
   serviceRoleKey: string;
 };
-
-function normalizeEmailList(value: string | undefined): Set<string> {
-  return new Set(
-    (value ?? '')
-      .split(',')
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
 
 function formatEnvError(error: z.ZodError): string {
   return error.issues.map((issue) => issue.message).join(' ');
@@ -38,12 +28,4 @@ export function getSupabaseServiceRoleEnv(): ServerSupabaseEnv {
   return {
     serviceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY,
   };
-}
-
-export function getSupabaseAdminEmails(): Set<string> {
-  return normalizeEmailList(process.env.SUPABASE_ADMIN_EMAILS);
-}
-
-export function hasConfiguredAdminEmails(): boolean {
-  return getSupabaseAdminEmails().size > 0;
 }

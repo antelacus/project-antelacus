@@ -66,3 +66,87 @@ test('a new item\'s unsaved body survives leaving the editor and coming back wit
     await page.locator('.cm-content', { hasText: marker }).waitFor({ timeout: 5000 });
   });
 });
+
+// ---------- REQ release-pipeline §5.8, §5.10 ----------
+
+test('acceptance release-pipeline §5.8-a RLS: a signed-in non-admin sees no drafts, the admin sees them', async () => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const url = process.env.UI_SUPABASE_URL;
+  const key = process.env.UI_SUPABASE_PUBLISHABLE_KEY;
+  assert.ok(url && key && process.env.UI_MEMBER_EMAIL, 'ui-check.sh does not hand over the stack and a non-admin user yet');
+  const drafts = async (email, password) => {
+    const client = createClient(url, key, { auth: { persistSession: false } });
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    assert.equal(error, null, `${email} could not sign in`);
+    const { data } = await client.from('content_items').select('slug').eq('status', 'draft');
+    return data?.length ?? 0;
+  };
+  assert.equal(await drafts(process.env.UI_MEMBER_EMAIL, process.env.UI_MEMBER_PASSWORD), 0, 'a non-admin reads drafts');
+  assert.ok(await drafts(process.env.UI_ADMIN_EMAIL, process.env.UI_ADMIN_PASSWORD) > 0, 'the admin reads no drafts');
+});
+
+test('acceptance release-pipeline §5.8-b/c without the service-role key the admin opens, shows drafts, and refuses to save', async () => {
+  const { SEED } = await h();
+  const base = process.env.UI_READONLY_BASE_URL;
+  assert.ok(base, 'ui-check.sh does not start a read-only instance yet');
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.goto(`${base}/admin/login`);
+    await page.fill('input[name=email]', process.env.UI_ADMIN_EMAIL);
+    await page.fill('input[name=password]', process.env.UI_ADMIN_PASSWORD);
+    await Promise.all([page.waitForURL(`${base}/admin`), page.click('button[type=submit]')]);
+    await page.goto(`${base}/admin/content/post`);
+    assert.ok(await page.getByText(SEED.draftTitle).count(), 'the list shows no draft');
+    await page.goto(`${base}/admin/content/post/${SEED.post}`);
+    // The seeded post is published, so its save button reads "Publish changes".
+    await page.getByRole('button', { name: 'Publish changes', exact: true }).click();
+    await page.getByText('Read-only environment — not saved.').waitFor({ timeout: 5000 });
+  } finally {
+    await browser.close();
+  }
+});
+
+test('acceptance release-pipeline §5.10-b an uploaded image lands in the bucket and the page renders it', async () => {
+  const { visitAdmin, SEED } = await h();
+  // An existing post: an upload is filed under the item's slug, and a new item has none yet.
+  await visitAdmin([{ name: 'post editor upload', path: `/admin/content/post/${SEED.post}` }], async (page) => {
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => r.url().endsWith('/api/admin/upload')),
+      page.locator('input[type=file]').first().setInputFiles('public/images/posts/content/2025-07-13-llm-note/image2.png'),
+    ]);
+    assert.equal(response.status(), 200, `the upload failed: ${await response.text()}`);
+    const { url } = await response.json();
+    const image = await fetch(url);
+    assert.equal(image.status, 200, `${url} is not in the bucket`);
+    assert.match(image.headers.get('content-type') ?? '', /^image\//, url);
+    // On the page: the body's preview renders it through the site's own Markdown renderer. The browser cannot
+    // load it here — this stack serves storage over http and the CSP admits the storage host over https only,
+    // as production's is — so what loads is proven by the bucket answering above, what renders by this.
+    await page.locator('.cm-content').first().click();
+    await page.keyboard.press('ControlOrMeta+End');
+    await page.keyboard.type(`\n\n![uploaded](${url})\n`);
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    await page.locator(`.admin-preview img[src="${url}"]`).waitFor({ timeout: 10000 });
+  });
+});
+
+test('acceptance release-pipeline §5.10-c after signing out the admin is back at the login page', async () => {
+  const { visitAdmin, BASE } = await h();
+  await visitAdmin([{ name: 'sign out', path: '/admin' }], async (page) => {
+    await Promise.all([page.waitForURL(/\/admin\/login/), page.getByRole('button', { name: /sign out/i }).click()]);
+    await page.goto(`${BASE}/admin`);
+    assert.match(new URL(page.url()).pathname, /^\/admin\/login/);
+  });
+});
+
+test('acceptance release-pipeline §5.10-d every content type and the about page have list and editor checks', async () => {
+  const { ADMIN_TEMPLATES } = await h();
+  const paths = ADMIN_TEMPLATES.map((t) => t.path);
+  for (const type of ['post', 'note', 'gallery', 'project']) {
+    assert.ok(paths.includes(`/admin/content/${type}`), `no ${type} list`);
+    assert.ok(paths.some((p) => p.startsWith(`/admin/content/${type}/`)), `no ${type} editor`);
+  }
+  assert.ok(paths.includes('/admin/pages/about') && paths.some((p) => p.startsWith('/admin/pages/about/')), 'no about page list or editor');
+});

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { CONTENT_TYPES } from '@/lib/content-types';
-import { getAdminServiceRoleClient } from '@/lib/server/admin-auth';
+import { getAdminReadClient } from '@/lib/server/admin-auth';
 import { listAdminSummaries } from '@/lib/server/content-repo';
 import { contentTypeSchema } from '@/lib/server/database.types';
 
@@ -14,7 +14,7 @@ export default async function AdminContentListPage({ params }: { params: Promise
   const type = contentTypeSchema.safeParse((await params).type);
   if (!type.success) notFound();
 
-  const rows = await listAdminSummaries(await getAdminServiceRoleClient(`/admin/content/${type.data}`), type.data);
+  const rows = await listAdminSummaries(await getAdminReadClient(`/admin/content/${type.data}`), type.data);
 
   return (
     <section style={{ display: 'grid', gap: '1.5rem' }}>

@@ -11,7 +11,9 @@ NAME="antelacus-db-check"
 docker rm -f "$NAME" >/dev/null 2>&1 || true
 docker run -d --name "$NAME" -e POSTGRES_PASSWORD=check -e POSTGRES_DB=app "postgres:$PG_MAJOR" >/dev/null
 trap 'docker rm -f "$NAME" >/dev/null' EXIT
-for _ in $(seq 1 30); do docker exec "$NAME" pg_isready -U postgres -d app >/dev/null 2>&1 && break; sleep 1; done
+# Over TCP, not the socket: the image's init runs a temporary server on the socket only, which answers
+# before the database exists and is then restarted.
+for _ in $(seq 1 60); do docker exec "$NAME" pg_isready -h 127.0.0.1 -U postgres -d app >/dev/null 2>&1 && break; sleep 1; done
 
 psql() { docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d app -q -t -A "$@"; }
 
@@ -84,4 +86,19 @@ check "an update moves updated_at" "true" "$(psql -c "select (updated_at > '$bef
 psql -c "update public.site_pages set title='Edited in the admin' where slug='about' and locale='en';" >/dev/null
 psql < supabase/migrations/20260923100100_about_content.sql >/dev/null
 check "re-running the about migration keeps an admin edit" "Edited in the admin" "$(psql -c "select title from public.site_pages where slug='about' and locale='en'")"
+# REQ release-pipeline §5.8-a: the admin reads drafts through its session; any other signed-in user does not.
+as_user() { psql -c "set role authenticated; set request.jwt.claims = '$1'; $2" | tail -1; }
+admin_claims='{"role":"authenticated","app_metadata":{"role":"admin"}}'
+member_claims='{"role":"authenticated","app_metadata":{}}'
+drafts="select count(*) from public.content_items where status = 'draft'"
+psql -c "insert into public.site_pages (slug, locale, title, body_markdown, status) values ('rls','en','T','B','draft');" >/dev/null
+check "there are drafts to hide" "true" "$(psql -c "select (($drafts) > 0)::text")"
+check "§5.8-a a signed-in non-admin reads no draft" "0" "$(as_user "$member_claims" "$drafts")"
+check "§5.8-a a user cannot claim admin through the top-level role" "0" "$(as_user '{"role":"admin"}' "$drafts")"
+check "§5.8-a the admin reads every draft" "$(psql -c "$drafts")" "$(as_user "$admin_claims" "$drafts")"
+check "§5.8-a the admin reads a draft page version" "1" "$(as_user "$admin_claims" "select count(*) from public.site_pages where slug='rls' and status='draft'")"
+check "§5.8-a a non-admin does not" "0" "$(as_user "$member_claims" "select count(*) from public.site_pages where slug='rls' and status='draft'")"
+check "§5.8-a anon reads no draft" "0" "$(psql -c "set role anon; $drafts" | tail -1)"
+check "§5.8-a the admin still cannot write" "1" "$( psql -c "set role authenticated; set request.jwt.claims = '$admin_claims'; update public.content_items set title='x';" >/dev/null 2>&1 && echo 0 || echo 1 )"
+check "§5.8-a nor call the save function" "1" "$( psql -c "set role authenticated; set request.jwt.claims = '$admin_claims'; select public.save_content_item('{}'::jsonb);" >/dev/null 2>&1 && echo 0 || echo 1 )"
 echo "all checks passed"
