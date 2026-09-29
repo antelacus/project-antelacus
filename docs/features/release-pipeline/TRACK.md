@@ -43,6 +43,8 @@
   - 2026-09-28 · 加发布手册：不另建文件，`docs/DEPLOYMENT.md` 做成手册；流水线建成后写，Phase 4 的真实发布完全照它执行 · Jason · 级联：本 TRACK 范围 11、REQ §1.2、§5.11
   - 2026-09-28 · DESIGN 审过；删掉 `docker-compose.yml`，容器参数只在发布脚本里定义 · Jason · 级联：DESIGN §2.1、本 TRACK Batch 4
   - 2026-09-29 · 仓库 Variables 存两个 `NEXT_PUBLIC_*` 公开值；Access 放行 antelacus@gmail.com；Cloudflare 的应用、策略、DNS 由 Claude 经 Cloudflare MCP 建，service token 由 Jason 在控制台建（密钥不进对话） · Jason · 级联：`docs/DEPLOYMENT.md`、DESIGN §8
+  - 2026-09-29 · 私有仓库在 GitHub 免费档用不了分支保护；仓库改为公开（作品集），提交历史中的个人邮箱接受公开（Claude 讲明了关联身份的途径；Jason 确认该邮箱防护良好）。公开前检查：296 个提交 gitleaks 0 条；184 次运行日志的命中均为公开值、构建键或本地栈默认密钥 · Jason · 级联：DESIGN §8
+  - 2026-09-29 · 分支保护按 Batch 5 的设置开启，管理员也不能绕过（Q16 不留旁路）；流水线自身坏到合不进修复时，在 GitHub 设置里临时关掉保护 · Jason · 级联：`docs/DEPLOYMENT.md`（Batch 8）
   - 2026-09-28 · Codex 设计门 15 条发现按 Claude 提议处置（第三区）；不在 CI 里放管理员账号，登录后的检查由 `pr-checklist` 强制打勾，重议条件写进 REQ §1.2；Phase 2 关闭 · Jason · 级联：DESIGN、REQ §1.2、§5.1、§5.4-d、§5.6-c、§5.7-d、§6
 
 ## 二、批次
@@ -68,13 +70,13 @@
 - 依赖：Batch 2（lint 先守住这条迁移）
 
 ### Batch 4 — VPS 一侧
-- 状态：in-progress — CI 首次部署预发布成功（运行 36518886837）；只差 Jason 用手机登录预发布与后台（验收判据的真机一项，也实测 Supabase 在预发布域名下的登录）
+- 状态：done — CI 首次部署预发布（36518886837）；Jason 用手机登录预发布与后台，文章与后台正常（真机判据；Supabase 在预发布域名下的登录与 `app_metadata` 角色实测生效）
 - 范围：`scripts/release/release.sh`、`decide.mjs` + 测试、删 `docker-compose.yml`、`src/app/api/build/route.ts`、nginx 共用配置与预发布站点、`.env.staging`、Cloudflare DNS + Access（Jason 在控制台操作）· 覆盖 REQ §5.2、§5.3
 - 验收判据：§5.2-a、§5.3-a/b/c 去 todo 且绿；手动把一个镜像部署到预发布，从手机能打开；实测传输耗时（DESIGN §10 Q2）
 - 依赖：Batch 1
 
 ### Batch 5 — 工作流
-- 状态：in-progress — 三个工作流已上线并跑通（36518886837 全绿）；分支保护待定（私有仓库在 GitHub 免费档不可用，见公开仓库的决定）；`production.yml` 在合并时首跑
+- 状态：done — 三个工作流跑通（36518886837）；分支保护已开（§5.4-a/b 证据见第三区）；`production.yml` 的首跑是 Phase 4 的真实发布
 - 范围：`branch.yml`、`production.yml`、`pr-checklist.yml`，删除 `check.yml`、`deploy.yml`；运行时套件支持 Access；耗时摘要；分支保护（Claude 经 `gh` 改，先给 Jason 看）；PR 模板 · 覆盖 REQ §5.1-c、§5.3-d、§5.4、§5.5-a/b/c、§5.9
 - 验收判据：对应判据去 todo 且绿；§5.4-a/b 以分支保护的读出为证据
 - 依赖：Batch 4
@@ -135,6 +137,7 @@
 - Batch 3（`e5f55ba`）：`db-function-check` 的 §5.8-a 全绿，`is_admin()` 对谁都放行时报红；本机界面闸门 32 过（含 §5.8-a/b/c），运行时 24 过；生产：备份 1 小时 20 分内，`admin_read` 执行并核对（记录内容哈希一致、6 条策略、函数在），唯一用户经邮箱哈希比对确认后标上 `role`；TD-023 登记
 - Batch 4（进行中）：线上生产站点文件与仓库改动前一致；nginx 装上共用片段与预发布站点后 `nginx -t` 通过、reload 后生产 200；首次在 VPS 运行 `release.sh`：迁移核对通过（名称 + 内容哈希），arm64 镜像在临时端口起不来被拒、预发布未动（G-M5 生效）；从笔记本传 104 MB 镜像 16 秒；§5.3-a：不带凭据访问预发布 `/en`、`/api/build`、`/admin/login` 均 302 到 `antelacus-ci.cloudflareaccess.com` 登录页
 - Batch 5（运行 36515820414 → 36518886837）：前四次各拦下一个真问题，全部修复——① `db-function-check` 探测到 Postgres 初始化用的临时服务器（改走 TCP）；② Google Fonts 偶发取不到字体致构建失败（重跑恢复，再现即登记债务）；③ 键的输出目录混进构建上下文，镜像内的键与标签不符，被 `release.sh` 的构建标识核对拒绝、预发布未动（改到 `$RUNNER_TEMP`，image 任务另加「镜像内键 = 标签」检查，删掉 VPS 上标签不符的镜像）；④ 健康检查被 Docker 端口代理的连接重置骗过（改为自循环）；⑤ `docker --env-file` 保留 dotenv 引号，预发布读库页面全 500——生产 `.env` 同样带引号，未修即会在切换时打垮生产（改为规范化后交给 Docker；另加 `restart`）。第五次：镜像复用未重建（同键不重建），预发布部署、`staging-check`（§5.3-a/b/d、有库运行时 24 项、线上 nginx 一致、记为已验过）全绿
+- §5.4-a/b：main 的分支保护读出——必需检查 `staging-check`、`pr-checklist`，strict（须同步），须经 PR，`enforce_admins` 开，禁止强推与删除
 
 **Phase 4 证据**：（Phase 4 填写）
 

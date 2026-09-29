@@ -147,7 +147,7 @@ push 分支 ─► branch.yml
   - `DATABASE_URL` 是会话池（session pooler）连接串，因为直连地址只有 IPv6。
 - **GitHub**：
   - 必需检查按**任务名**匹配，所以 `staging-check` 和 `pr-checklist` 这两个任务名一旦定下就不能改；
-  - 分支保护可以要求分支与 main 同步；
+  - 分支保护可以要求分支与 main 同步；私有仓库在免费档上用不了分支保护（也用不了规则集），所以仓库是公开的；设置为：必需 `staging-check` 与 `pr-checklist`、分支须同步、必须经 PR、管理员也不能绕过、禁止强推与删除；
   - 用 `GITHUB_TOKEN` 打 tag 需要 `contents: write`；
   - 推送 tag 不会触发 `branches` 过滤的工作流。
 - **Docker**：29.8.1。
