@@ -102,10 +102,10 @@ jobs:
       - id: key
         name: Build input key
         run: |
-          docker build --target key --output type=local,dest=keyout \
+          docker build --target key --output type=local,dest="$RUNNER_TEMP/keyout" \
             --build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY .
-          echo "key=$(cat keyout/BUILD_KEY)" >> "$GITHUB_OUTPUT"
-          echo "build input key: $(cat keyout/BUILD_KEY)"
+          echo "key=$(cat "$RUNNER_TEMP/keyout/BUILD_KEY")" >> "$GITHUB_OUTPUT"
+          echo "build input key: $(cat "$RUNNER_TEMP/keyout/BUILD_KEY")"
       - id: present
         name: Is the image already on the VPS
         run: |
@@ -122,6 +122,10 @@ jobs:
           docker build -t "antelacus:${{ steps.key.outputs.key }}" \
             --build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY .
           scripts/release/image-check.sh verify "antelacus:${{ steps.key.outputs.key }}"
+          # The key inside the image must be the tag's: a file left in the context between the two builds
+          # (a key output written into the checkout did exactly that) would make them differ.
+          inside="$(docker run --rm --entrypoint cat "antelacus:${{ steps.key.outputs.key }}" /app/BUILD_KEY)"
+          [[ "$inside" == "${{ steps.key.outputs.key }}" ]] || { echo "the image says $inside, its tag ${{ steps.key.outputs.key }}" >&2; exit 1; }
       - name: Send it to the VPS
         if: steps.present.outputs.present == 'false'
         run: |
