@@ -49,7 +49,7 @@
 - 依赖：Batch 1
 
 ### Batch 3 — 界面闸门分机与并行
-- 状态：done `7264447` — §5.5-c 去 todo；连续 5 次见第三区
+- 状态：done `7264447` — §5.5-c 去 todo；§5.5-d 连续 5 次全绿（第三区）
 - 范围：`tests/ui/manifest.mjs`（`SHARDS`、`requiredCoverage`、`coverageFor` 移入）、`tests/ui/harness.mjs`（环境并行）、`tests/ui/coverage.ui.mjs`（按份对账）、`scripts/ui-check.sh`（`UI_SHARD`）、`.github/workflows/branch.yml`（矩阵）、删 TD-024 · 覆盖 visual-upgrade §5.5-c/d
 - 验收判据：§5.5-c 去 todo 且绿；每份各植入违例一次变红（运行号）；同一提交连续 5 次全绿；推送到预发布验过的耗时前后对比记入第三区
 - 依赖：none（与 Batch 1、2 可并行，合并时后到者重跑）
@@ -86,7 +86,7 @@
 **批次证据**：
 - Batch 4（VPS，本分支脚本在演练目录、`.env` 链接生产的那份）：两次实跑均成功，各产出转储与 24 个存储对象。运行期间采样：`ps` 命令行 9 次，密码 0、密钥 0；只取备份自己的容器的 `docker inspect` 7 次（`postgres:17` 2、`node:24-slim` 5），密码 0、密钥 0；临时文件模式全为 600（13 次），结束后残留 0。比对在 VPS 上进行，只回报次数。对照：常驻的生产应用容器 `antelacus` 的 `docker inspect` 含密码与密钥各 1 处（见 S-1）
 
-- Batch 3（`7264447`）：推送到预发布验过 7 分 50 秒 → 5 分 20 秒（运行 36586549143 → 36587784209；界面闸门 6 分 31 秒 → public 4 分 18 秒、admin 4 分 44 秒）；本机不分片全套 130 秒，axe 四环境 32 秒 → 13 秒；`UI_SHARD` 拼错即拒绝（本机试跑）；两份各自的植入违例自检均过
+- Batch 3（`7264447`）：推送到预发布验过 7 分 50 秒 → 5 分 20 秒（运行 36586549143 → 36587784209；界面闸门 6 分 31 秒 → public 4 分 18 秒、admin 4 分 44 秒）；本机不分片全套 130 秒，axe 四环境 32 秒 → 13 秒；`UI_SHARD` 拼错即拒绝（本机试跑）；两份各自的植入违例自检均过；§5.5-d：同一提交（运行 36587784209）第 1–5 次尝试全绿，两份界面闸门与 `staging-check` 次次通过
 
 **本版自查发现**（Claude）：
 - S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: fixed（Jason 裁定本版修）：`appEnv` 剔掉运维任务的变量（`DATABASE_URL`、备份设置、`HC_PING_*`）再交给容器，单元测试；`.env.staging` 本无这些变量，证据在真实发布
