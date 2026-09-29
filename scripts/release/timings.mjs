@@ -5,7 +5,13 @@ import { readFileSync } from 'node:fs';
 const seconds = (from, to) => (from && to ? Math.round((Date.parse(to) - Date.parse(from)) / 1000) : null);
 const cell = (value) => (value === null ? '—' : `${value}s`);
 
-const { jobs = [] } = JSON.parse(readFileSync(0, 'utf8'));
+let jobs = [];
+try {
+  ({ jobs = [] } = JSON.parse(readFileSync(0, 'utf8')));
+} catch {
+  console.error('timings: the jobs are not JSON');
+  process.exit(1);
+}
 const lines = ['| job / step | conclusion | duration |', '|---|---|---|'];
 for (const job of jobs) {
   lines.push(`| **${job.name}** | ${job.conclusion ?? job.status} | ${cell(seconds(job.started_at, job.completed_at))} |`);

@@ -15,14 +15,14 @@ The site runs on one VPS as a Docker container behind nginx, with Cloudflare in 
 What CI does by itself is in `.github/workflows/branch.yml` and `production.yml`; below is only what a person (or Claude) does, and where to read what happened. Every run's summary page has a table of each job's and step's duration.
 
 1. **Migrations first.** If the change needs a new migration, it is applied to production before the branch is pushed (who and how: the project `CLAUDE.md`, Environment and deployment). Pushed first, the staging deploy refuses and names the migration.
-2. **Push the branch.** Actions → *Branch*: `check` and `ui` (the gate), `image`, `staging`, `staging-check`. Green `staging-check` means `https://staging.antelacus.com` runs this commit and its image is recorded as verified. Red:
+2. **Push the branch.** Actions → *Branch*: `check` and `ui` (the gate), `image`, `staging-check` (deploys staging, checks it, and rolls it back if the check fails). Green `staging-check` means `https://staging.antelacus.com` runs this commit and its image is recorded as verified. Red:
    - `check` or `ui`: fix and push again;
-   - `staging`: the log's last `release:` line says why (an unverified or missing image, a missing migration, a health check); staging is untouched;
-   - `staging-check`: staging has already rolled back to the image before (`staging-rollback`); the failing check says what is wrong.
+   - `staging-check`, at *Deploy to staging*: the log's last `release:` line says why (a missing image, a missing migration, a health check); staging is untouched;
+   - `staging-check`, at a later step: staging has already rolled back to the image before (its last step); the failing step says what is wrong.
 3. **Look at staging on a phone.** Open `https://staging.antelacus.com` (Cloudflare Access sends a code to antelacus@gmail.com). Read a real post; sign in to `/admin`: the lists show drafts, and a save answers `Read-only environment — not saved.` A fault that shows only when signed in shows only here.
 4. **Open the PR** into `main`; tick the signed-in look in its description. It merges only when `staging-check` and `pr-checklist` are green and the branch is up to date with `main` — *Update branch* is a new push, so step 2 runs again.
 5. **Merge.** Actions → *Production*: `promote` starts the verified image (it builds nothing and refuses an image staging did not verify), `verify` checks the public site, then `tag` (a new version gets `v<version>`), `purge` (only when share images or `public/images` changed) and `auth` (sign-ups must stay closed). All green: released.
-6. **If `verify` fails**, `rollback` has already put production back on the previous image and checked it; the run is red on purpose. Production is safe; fix on a branch and start again at step 2.
+6. **If `verify` fails**, `rollback` has already put production back on the previous image and checked that it serves that build and answers; the run is red on purpose. Production is safe; fix on a branch and start again at step 2.
 7. **If `auth` fails**, open Supabase → Authentication → Sign In / Providers: sign-ups off, email confirmation on. Nothing is rolled back — the code is not at fault. **If `purge` or `tag` fails**, redo it by hand; production is untouched.
 8. **Roll back by hand** (a fault found later): Actions → *Production* → *Run workflow*, `rollback_to` empty for the previous image or a key from `release.sh production status`. It refuses an image older than a contract step. The database is never rolled back.
 9. **After editing a `.env` on the VPS**, recreate the container with the same image: `ssh vps-deploy`, then `bash ~/.cache/antelacus-release/<any recent sha>/scripts/release/release.sh production restart` (or `staging`).

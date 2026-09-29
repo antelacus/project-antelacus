@@ -25,7 +25,8 @@ docs
 tests
 supabase
 deploy
-Dockerfile
+# The Dockerfile stays in: it is a build input (the base image, the steps), so it is part of the key.
+# .dockerignore itself is out — what it changes is the context, which the key already covers.
 .dockerignore
 
 # The key stage runs scripts/release/build-key.mjs; nothing else under scripts/ is read by the build.

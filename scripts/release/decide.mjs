@@ -3,15 +3,6 @@
 //   node scripts/release/decide.mjs <decision> '<json input>'   — prints the answer as JSON
 import { pathToFileURL } from 'node:url';
 
-const KEEP = 5;
-
-/** Which production images to keep (newest first, at most five) and which to delete; never the one staging runs. */
-export function retention({ production, staging }) {
-  const keep = production.slice(0, KEEP);
-  const remove = production.slice(KEEP).filter((key) => key !== staging);
-  return { keep, remove };
-}
-
 /** Variables that must not be in staging's env file: staging reads production and must never write it. */
 export function stagingEnvProblems(envText) {
   const forbidden = ['SUPABASE_SERVICE_ROLE_KEY'];
@@ -54,6 +45,8 @@ export function afterVerified({ state, key, imageId }) {
   return { ...state, verified };
 }
 
+const KEEP = 5;
+
 // Each environment keeps its last five images as rollback targets: production's are what a rollback may
 // return to; staging's exist so a rollback can be rehearsed there with the same logic (REQ §5.6-a).
 const KEPT = { production: 'kept', staging: 'keptStaging' };
@@ -61,8 +54,8 @@ const KEPT = { production: 'kept', staging: 'keptStaging' };
 /** The state after a deploy to an environment succeeded: it runs the entry, which heads its kept images. */
 export function afterDeploy({ state, env, entry }) {
   const list = KEPT[env];
-  const kept = [entry, ...(state[list] ?? []).filter((k) => k.key !== entry.key)];
-  return { ...state, [env]: entry, [list]: retention({ production: kept.map((k) => k.key), staging: null }).keep.map((key) => kept.find((k) => k.key === key)) };
+  const kept = [entry, ...(state[list] ?? []).filter((k) => k.key !== entry.key)].slice(0, KEEP);
+  return { ...state, [env]: entry, [list]: kept };
 }
 
 /** An environment's rollback targets, newest (the running image) first. */
@@ -75,8 +68,14 @@ export function mayPromote({ state, key, imageId }) {
   return (state.verified ?? []).some((entry) => entry.key === key && entry.imageId === imageId);
 }
 
-/** Image tags to delete: everything but production's kept images, what staging runs, and recently verified images. */
-export function pruneImages({ images, state }) {
+// Another run may have just loaded an image it has yet to deploy; nothing in the state names it until then.
+const PRUNE_AFTER_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Image tags to delete: everything but the kept, running and verified images, and anything built in the last
+ * six hours. `images` are `{ key, created }`, `created` as Docker reports it; one it cannot date is kept.
+ */
+export function pruneImages({ images, state, now }) {
   const protectedKeys = new Set([
     ...(state.kept ?? []).map((entry) => entry.key),
     ...(state.keptStaging ?? []).map((entry) => entry.key),
@@ -84,7 +83,8 @@ export function pruneImages({ images, state }) {
     state.staging?.key,
     state.production?.key,
   ].filter(Boolean));
-  return images.filter((key) => !protectedKeys.has(key));
+  const old = (created) => now - Date.parse(created) > PRUNE_AFTER_MS;
+  return images.filter(({ key, created }) => !protectedKeys.has(key) && old(created)).map(({ key }) => key);
 }
 
 /**
@@ -105,6 +105,20 @@ export function dockerEnv(text) {
     lines.push(`${match[1]}=${value}`);
   }
   return lines.length ? `${lines.join('\n')}\n` : '';
+}
+
+/**
+ * The database connection in an env file, split so the password never reaches a command line (`ps`, `docker
+ * inspect`): the URL without it, and a pgpass line that holds it. Null without a DATABASE_URL.
+ */
+export function pgConnection(envText) {
+  const line = dockerEnv(envText).split('\n').find((l) => l.startsWith('DATABASE_URL='));
+  const value = line?.slice('DATABASE_URL='.length);
+  if (!value) return null;
+  const url = new URL(value);
+  const password = decodeURIComponent(url.password).replace(/[\\:]/g, '\\$&');
+  url.password = '';
+  return { url: url.toString(), pgpass: `*:*:*:*:${password}\n` };
 }
 
 /** Whether a PR body ticks the signed-in look at staging (REQ §5.4-d): a checked box naming staging and the admin. */
@@ -177,7 +191,7 @@ export function afterAdopt({ state, entry }) {
   };
 }
 
-const DECISIONS = { afterAdopt, keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
+const DECISIONS = { afterAdopt, keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, checklistTicked, stagingEnvProblems, pgConnection, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [name, input] = process.argv.slice(2);

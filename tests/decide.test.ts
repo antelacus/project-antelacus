@@ -51,7 +51,19 @@ test('a staging deploy touches only staging', async () => {
 test('pruning spares kept, verified, staging and production images', async () => {
   const { pruneImages } = await decide();
   const state = { production: entry('p'), kept: [entry('p'), entry('k')], staging: entry('s'), verified: [{ key: 'v', imageId: 'x' }] };
-  assert.deepEqual(pruneImages({ images: ['p', 'k', 's', 'v', 'old1', 'old2'], state }), ['old1', 'old2']);
+  const images = ['p', 'k', 's', 'v', 'old1', 'old2'].map((key) => ({ key, created: '2026-09-01T00:00:00.123456789Z' }));
+  assert.deepEqual(pruneImages({ images, state, now: Date.parse('2026-10-01T00:00:00Z') }), ['old1', 'old2']);
+});
+
+test('pruning spares an image another run has just loaded and not yet deployed', async () => {
+  const { pruneImages } = await decide();
+  const now = Date.parse('2026-10-01T12:00:00Z');
+  const images = [
+    { key: 'fresh', created: '2026-10-01T07:00:00Z' }, // built five hours ago: its run may still deploy it
+    { key: 'stale', created: '2026-10-01T05:00:00Z' },
+    { key: 'undated', created: '' },
+  ];
+  assert.deepEqual(pruneImages({ images, state: {}, now }), ['stale']);
 });
 
 test('an env file reaches docker without the quotes, comments and export of dotenv', async () => {
@@ -116,4 +128,23 @@ test('adopting production keeps what staging verified, so a PR waiting to merge 
   assert.equal(adopted.staging.key, 's', 'staging lost its record');
   assert.equal(mayPromote({ state: adopted, key: 's', imageId: 'sha256:s' }), true, 'the verified image was forgotten');
   assert.equal(afterAdopt({ state: {}, entry: entry('p') }).production.key, 'p');
+});
+
+test('the database password leaves the URL for a pgpass line, escaped as libpq reads it', async () => {
+  const { pgConnection } = await decide();
+  const env = 'SUPABASE_SERVICE_ROLE_KEY=x\nDATABASE_URL="postgresql://postgres.ref:p%40ss:w%5Cd@pooler.example.com:5432/postgres?sslmode=require"\n';
+  const c = pgConnection(env);
+  assert.equal(c.url, 'postgresql://postgres.ref@pooler.example.com:5432/postgres?sslmode=require');
+  assert.equal(c.pgpass, '*:*:*:*:p@ss\\:w\\\\d\n');
+  assert.doesNotMatch(c.url, /p%40ss/, 'the password is still in the URL');
+  assert.equal(pgConnection('OTHER=1\n'), null);
+});
+
+test('release.sh puts no database URL with its password on a command line', async () => {
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(new URL('../scripts/release/release.sh', import.meta.url), 'utf8');
+  const psql = source.split('\n').filter((line) => /\bpsql\b/.test(line) && !line.trim().startsWith('#'));
+  assert.ok(psql.length > 0);
+  for (const line of psql) assert.doesNotMatch(line, /DATABASE_URL|db_url/, line);
+  assert.match(source, /PGPASSFILE=\/pgpass/);
 });

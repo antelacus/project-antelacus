@@ -60,7 +60,7 @@ jobs:
         name: The release before
         run: |
           state="$(ssh vps 'cat ~/.local/state/antelacus/releases.json 2>/dev/null || echo {}')"
-          node -e 'const p = JSON.parse(process.argv[1]).production ?? {}; const ok = (v, re) => (re.test(v ?? "") ? v : ""); console.log(`version=${ok(p.version, /^\d+\.\d+\.\d+$/)}`); console.log(`sha=${ok(p.sha, /^[0-9a-f]{40}$/)}`)' "$state" >> "$GITHUB_OUTPUT"
+          node -e 'let p = {}; try { p = JSON.parse(process.argv[1]).production ?? {}; } catch { console.error("the state file is not JSON: no previous release"); } const ok = (v, re) => (re.test(v ?? "") ? v : ""); console.log(`version=${ok(p.version, /^\d+\.\d+\.\d+$/)}`); console.log(`sha=${ok(p.sha, /^[0-9a-f]{40}$/)}`)' "$state" >> "$GITHUB_OUTPUT"
       - id: deploy
         name: Deploy the verified image
         env:
@@ -90,7 +90,7 @@ jobs:
       - name: Runtime suite with the database
         run: RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs
 
-  # A verification that did not succeed — failed or cancelled — rolls back, checks the rolled-back site, and leaves
+  # A verification that did not succeed — failed or cancelled — rolls back, checks the rolled-back site answers, and leaves
   # the run red (REQ §5.6). By hand (workflow_dispatch, from main only) it rolls back to the previous kept image or
   # the one named.
   rollback:
@@ -129,8 +129,14 @@ jobs:
       - name: Production serves the image rolled back to
         if: ${{ !startsWith(steps.back.outputs.key, 'legacy-') }}
         run: RELEASE_ENV=production EXPECTED_KEY=${{ steps.back.outputs.key }} node --test tests/runtime/release.runtime.mjs
-      - name: Runtime suite with the database
-        run: RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs
+      # A smoke check, not the runtime suite: main's suite describes the release that failed, and an older
+      # image would fail it for being older, not for being broken. The image was verified when it shipped.
+      - name: Production answers
+        run: |
+          for path in /en /en/posts /og.png; do
+            curl --silent --show-error --fail --output /dev/null --max-time 15 "$BASE_URL$path"
+            echo "$path: ok"
+          done
       - name: An automatic rollback leaves the run red
         if: github.event_name == 'push'
         run: |
@@ -207,7 +213,7 @@ jobs:
           SUPABASE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           curl --silent --show-error --fail -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/auth/v1/settings" \
-            | node --input-type=module -e 'import { authSettingsProblems } from "./scripts/release/decide.mjs"; let t = ""; process.stdin.on("data", (c) => t += c).on("end", () => { const problems = authSettingsProblems(JSON.parse(t)); for (const p of problems) console.error(p); if (problems.length) process.exit(1); console.log("sign-ups closed, email confirmed"); })'
+            | node --input-type=module -e 'import { authSettingsProblems } from "./scripts/release/decide.mjs"; let t = ""; process.stdin.on("data", (c) => t += c).on("end", () => { let settings; try { settings = JSON.parse(t); } catch { console.error("the Auth settings are not JSON"); process.exit(1); } const problems = authSettingsProblems(settings); for (const p of problems) console.error(p); if (problems.length) process.exit(1); console.log("sign-ups closed, email confirmed"); })'
 
   # The VPS checkout holds the cron jobs' scripts (backup, keep-alive, site check); it follows main.
   checkout:

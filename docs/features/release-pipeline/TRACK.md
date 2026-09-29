@@ -47,6 +47,7 @@
   - 2026-09-29 · 分支保护按 Batch 5 的设置开启，管理员也不能绕过（Q16 不留旁路）；流水线自身坏到合不进修复时，在 GitHub 设置里临时关掉保护 · Jason · 级联：`docs/DEPLOYMENT.md`（Batch 8）
   - 2026-09-29 · 批 A：TD-025（未知条目的 404 是 Next 错误外壳，P2）本版内修——十个假设与 Codex 诊断之后未得可控修复，转 B：TD-025 留给 v2.5.1（先为文档外壳做设计再修）；本版收尾时 §5.4-a、§5.4-d 带指向 TD-025 的 todo，作为「版本不得带 todo 收尾」的一次例外 · Jason · 级联：TECHNICAL_DEBT TD-025、`tests/runtime/acceptance.runtime.mjs`
   - 2026-09-29 · 发布前审查的处置按 Claude 提议（第三区）；Codex 的发现经认可并修复后不再送审，由各自的回归测试或演练关闭——已改治理规则 §2 Gate cadence 与 §3（dotfiles `812b684`） · Jason · 级联：custom-conventions
+  - 2026-09-29 · `/code-review` 的 R-1…R-10 按 Claude 提议处置（第三区）；修完即开版本 PR · Jason · 级联：本 TRACK 第三区
   - 2026-09-28 · Codex 设计门 15 条发现按 Claude 提议处置（第三区）；不在 CI 里放管理员账号，登录后的检查由 `pr-checklist` 强制打勾，重议条件写进 REQ §1.2；Phase 2 关闭 · Jason · 级联：DESIGN、REQ §1.2、§5.1、§5.4-d、§5.6-c、§5.7-d、§6
 
 ## 二、批次
@@ -169,17 +170,17 @@
 - J4-RP003…009 · SHOULD：§5.4-a/b 无仓库内检查；§5.3-b 在非预发布运行时被跳过；§5.10-b「页面上加载」是可选断言；§5.10-d 只查清单成员；§5.9-c 只查变量名；§5.5-e 未断言精确集合；过时的 todo 注释 —— status: RP004 fixed（工作流以 staging/production 运行的静态检查）；RP005 fixed（存储桶返回图片、预览渲染出该地址的 `<img>`；浏览器加载在合成环境受 CSP 所限——存储为 http、CSP 只放行 https）；RP007 fixed（格式化程序的测试）；RP008 fixed（精确集合）；RP009 fixed（过时注释删除）；RP003、RP006 accepted（分支保护读出为证；各后台页面由 axe 检查真实打开）
 - J4-RP010 · NICE：沙盒里 `mkdtemp` 无权限 —— status: accepted：沙盒权限，与代码无关
 
-**评审发现登记**（`/code-review` high，`main...feat/release-pipeline`，同模型，整版一次；待 Jason 处置）：
-- R-1 · MUST：`.dockerignore` 排除了 `Dockerfile`，只改 Dockerfile 时键不变，改动永不构建上线 —— status: open（提议：修，Dockerfile 进上下文 + 静态测试）
-- R-2 · MUST：`pruneImages` 删掉别的运行刚载入、尚未部署的镜像 —— status: open（提议：只清理 6 小时以上的）
-- R-3 · MUST：`staging` 与 `staging-check` 分成两个任务，中间可插入别的分支部署，检查核对错镜像、回滚掉别人的部署 —— status: open（提议：合成一个名为 `staging-check` 的任务）
-- R-4 · SHOULD：回滚后用 main 最新的运行时套件检查旧镜像，回滚成功也报红 —— status: open（提议：回滚后只核对构建标识 + 冒烟）
-- R-5 · SHOULD：同分支新推送取消正在切换预发布的运行，预发布短暂停服 —— status: open（提议：接受，R-6 修好后下一次运行自动修复）
-- R-6 · MUST：两个容器都在时 `reconcile` 默认新容器是好的而删掉旧的——由修 F04 时引入 —— status: open（提议：以状态文件记录的镜像为准）
-- R-7 · MUST：`DATABASE_URL`（含密码）出现在 `docker run` 命令行上，`ps`/`docker inspect` 可见；`db_url` 自写解析 —— status: open（提议：pgpass 临时文件挂载 + `dockerEnv` 解析；`backup.sh` 同样写法登记为 TD）
+**评审发现登记**（`/code-review` high，`main...feat/release-pipeline`，同模型，整版一次；按 Claude 提议处置，第一区裁定）：
+- R-1 · MUST：`.dockerignore` 排除了 `Dockerfile`，只改 Dockerfile 时键不变，改动永不构建上线 —— status: fixed：Dockerfile 进构建上下文——§5.1-b 加断言，旧 `.dockerignore` 下报红
+- R-2 · MUST：`pruneImages` 删掉别的运行刚载入、尚未部署的镜像 —— status: fixed：只清理构建于 6 小时之前的镜像，取不到时间的保留——单元测试；预发布演练中只清掉 5 天前无人引用的标签
+- R-3 · MUST：`staging` 与 `staging-check` 分成两个任务，中间可插入别的分支部署，检查核对错镜像、回滚掉别人的部署 —— status: fixed：部署、检查、回滚合成一个 `staging-check` 任务——静态测试；证据在推送后的 *Branch* 运行
+- R-4 · SHOULD：回滚后用 main 最新的运行时套件检查旧镜像，回滚成功也报红 —— status: fixed：回滚后只核对构建标识 + 三个地址的冒烟——静态测试
+- R-5 · SHOULD：同分支新推送取消正在切换预发布的运行，预发布短暂停服 —— status: accepted：只影响预发布；R-6 修好后下一次运行自动修复
+- R-6 · MUST：两个容器都在时 `reconcile` 默认新容器是好的而删掉旧的——由修 F04 时引入 —— status: fixed：以状态文件记录的镜像为准，两个都不是则拒绝——演练 R8：未记录的新容器与已记录的旧容器并存，restart 先恢复旧容器再切换（「新容器即记录的镜像」一例的演练被自动模式拦下，那条路径与修复前相同）
+- R-7 · MUST：`DATABASE_URL`（含密码）出现在 `docker run` 命令行上，`ps`/`docker inspect` 可见；`db_url` 自写解析 —— status: fixed：密码经只本用户可读的 pgpass 临时文件交给 `psql`，URL 由 `dockerEnv` 解析（`pgConnection` 单元测试）——演练 R8 中迁移核对经此读到记录；`backup.sh` 登记为 TD-026
 - R-8 · SHOULD：`CLAUDE.md` 仍写管理员是 `SUPABASE_ADMIN_EMAILS` 里的邮箱 —— status: fixed（暂停时随手修，T0 文件会误导下一次会话）
-- R-9 · SHOULD：几处 `JSON.parse` 未包 try-catch（项目规则） —— status: open（提议：修）
-- R-10 · SHOULD：`retention()` 的删除列表无人使用，与 `pruneImages` 重复，§5.2-a 测的正是它 —— status: open（提议：删掉，测试改指 `pruneImages`）
+- R-9 · SHOULD：几处 `JSON.parse` 未包 try-catch（项目规则） —— status: fixed：`release.sh`、`timings.mjs`、`production.yml` 共 6 处包上 try-catch
+- R-10 · SHOULD：`retention()` 的删除列表无人使用，与 `pruneImages` 重复，§5.2-a 测的正是它 —— status: fixed：`retention()` 删除，`afterDeploy` 自己截取五个；§5.2-a 改测 `afterDeploy` + `pruneImages`
 
 **Phase 4 自查发现**（Claude，写 Phase 6 清单时）：
 - S-1 · SHOULD：新流程不再更新 VPS 上的检出，cron 运行的 `backup.sh` 等会与仓库脱节 —— status: fixed：`production.yml` 新增 `checkout` 任务，核验通过后快进检出——证据在真实发布

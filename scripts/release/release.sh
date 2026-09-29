@@ -32,7 +32,9 @@ refuse() { echo "release: $*" >&2; exit 1; }
 step() { echo "release[$ENV_NAME] $(date -u +%H:%M:%S) $*"; }
 decide() { node "$HERE/decide.mjs" "$1" "$2"; }
 json_string() { node -e 'process.stdout.write(JSON.stringify(require("fs").readFileSync(process.argv[1], "utf8")))' "$1"; }
-field() { node -e 'const v = JSON.parse(process.argv[1]); const r = process.argv[2].split(".").reduce((o, k) => o?.[k], v); process.stdout.write(r === undefined || r === null ? "" : typeof r === "string" ? r : JSON.stringify(r))' "$1" "$2"; }
+field() { node -e 'let v; try { v = JSON.parse(process.argv[1]); } catch { console.error(`release: not JSON where ${process.argv[2]} was read`); process.exit(1); } const r = process.argv[2].split(".").reduce((o, k) => o?.[k], v); process.stdout.write(r === undefined || r === null ? "" : typeof r === "string" ? r : JSON.stringify(r))' "$1" "$2"; }
+# A JSON list of plain strings, one per line.
+lines() { node -e 'let a; try { a = JSON.parse(process.argv[1]); } catch { console.error("release: not a JSON list"); process.exit(1); } for (const x of a) console.log(x)' "$1"; }
 
 mkdir -p "$STATE_DIR"
 # One lock for both environments: they read and rewrite the same state file. A second release waits.
@@ -51,9 +53,23 @@ state_or_refuse() {
   printf '%s' "$state"
 }
 write_state() { printf '%s\n' "$1" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; }
-# The database's own URL, for read-only queries; the value never reaches output.
-db_url() { grep -m1 '^DATABASE_URL=' "$CHECKOUT/.env" | cut -d= -f2- | tr -d '"'; }
-db_query() { docker run --rm --network host "postgres:$PG_MAJOR" psql "$(db_url)" -At -F $'\t' -c "$1"; }
+# A read-only query on production's database. The password goes to psql in a pgpass file readable by this
+# user only, never on a command line (`ps`, `docker inspect`); the file lives as long as the query.
+db_query() {
+  local pgpass url status=0
+  pgpass="$(mktemp "$STATE_DIR/pgpass.XXXXXX")"
+  if ! url="$(node --input-type=module -e "
+      import { pgConnection } from '$HERE/decide.mjs'; import { readFileSync, writeFileSync } from 'node:fs';
+      const c = pgConnection(readFileSync(0, 'utf8'));
+      if (!c) { console.error('release: no DATABASE_URL in $CHECKOUT/.env'); process.exit(1); }
+      writeFileSync(process.argv[1], c.pgpass, { mode: 0o600 }); process.stdout.write(c.url);" "$pgpass" < "$CHECKOUT/.env")"; then
+    rm -f "$pgpass"; return 1
+  fi
+  docker run --rm --network host -v "$pgpass:/pgpass:ro" -e PGPASSFILE=/pgpass "postgres:$PG_MAJOR" \
+    psql "$url" -At -F $'\t' -c "$1" || status=$?
+  rm -f "$pgpass"
+  return "$status"
+}
 
 image_id() { docker image inspect --format '{{.Id}}' "antelacus:$1" 2>/dev/null; }
 
@@ -93,7 +109,6 @@ run_container() { # <name> <port> <key>
 
 check_migrations() {
   local records files
-  [[ -n "$(db_url)" ]] || refuse "no DATABASE_URL in $CHECKOUT/.env: cannot check migrations"
   records="$(db_query "select name, md5(array_to_string(statements, '')) from supabase_migrations.schema_migrations" \
     | node -e 'const rows = require("fs").readFileSync(0, "utf8").trim().split("\n").filter(Boolean).map((l) => l.split("\t")); process.stdout.write(JSON.stringify(rows.map(([name, digest]) => ({ name, digest }))))')" \
     || refuse "could not read the migration records"
@@ -106,13 +121,27 @@ check_migrations() {
 }
 
 # A switch cut short (a lost connection, a killed job) leaves the old container as $NAME-previous, possibly with
-# no $NAME at all. Put it back before anything else; with both present, $NAME serves and the other is stale.
+# no $NAME at all. Put it back before anything else. With both present, the state file says which is the
+# release: the switch records the new image before it removes the old container, so an unrecorded $NAME is
+# a candidate that never passed.
 reconcile() {
-  if ! docker inspect "$NAME" >/dev/null 2>&1 && docker inspect "$NAME-previous" >/dev/null 2>&1; then
+  docker inspect "$NAME-previous" >/dev/null 2>&1 || return 0
+  if ! docker inspect "$NAME" >/dev/null 2>&1; then
     step "an interrupted switch left $NAME-previous: restoring it"
     docker rename "$NAME-previous" "$NAME" && docker start "$NAME" >/dev/null || refuse "could not restore $NAME-previous; see docker ps -a"
-  elif docker inspect "$NAME-previous" >/dev/null 2>&1; then
+    return 0
+  fi
+  local recorded current previous
+  recorded="$(field "$(read_state)" "$ENV_NAME.imageId")"
+  current="$(docker inspect --format '{{.Image}}' "$NAME")"
+  previous="$(docker inspect --format '{{.Image}}' "$NAME-previous")"
+  if [[ -n "$recorded" && "$current" == "$recorded" ]]; then
     docker rm -f "$NAME-previous" >/dev/null
+  elif [[ -n "$recorded" && "$previous" == "$recorded" ]]; then
+    step "an interrupted switch left an unrecorded $NAME: restoring $NAME-previous"
+    restore_previous || refuse "could not restore $NAME-previous; see docker ps -a"
+  else
+    refuse "$NAME and $NAME-previous both exist and the state records neither; see release.sh $ENV_NAME status"
   fi
 }
 
@@ -206,10 +235,13 @@ deploy() {
 }
 
 prune() {
-  local images remove
-  images="$(docker image ls antelacus --format '{{.Tag}}' | node -e 'process.stdout.write(JSON.stringify(require("fs").readFileSync(0, "utf8").split("\n").filter((t) => t && t !== "<none>")))')"
-  remove="$(decide pruneImages "{\"images\":$images,\"state\":$1}")"
-  for tag in $(field "{\"r\":$remove}" r | node -e 'for (const t of JSON.parse(require("fs").readFileSync(0, "utf8"))) console.log(t)'); do
+  local tag images remove
+  # Each tag with its build time; one Docker cannot date (gone meanwhile) gets none, and is kept.
+  images="$(for tag in $(docker image ls antelacus --format '{{.Tag}}' | grep -v '^<none>$'); do
+      printf '%s\t%s\n' "$tag" "$(docker image inspect --format '{{.Created}}' "antelacus:$tag" 2>/dev/null || true)"
+    done | node -e 'process.stdout.write(JSON.stringify(require("fs").readFileSync(0, "utf8").split("\n").filter(Boolean).map((l) => { const [key, created] = l.split("\t"); return { key, created }; })))')"
+  remove="$(decide pruneImages "{\"images\":$images,\"state\":$1,\"now\":$(date +%s)000}")"
+  for tag in $(lines "$remove"); do
     docker image rm "antelacus:$tag" >/dev/null 2>&1 && step "removed image antelacus:$tag" || true
   done
 }
@@ -263,7 +295,7 @@ rollback() {
     echo "release: warning: the migration records are unreadable; contract steps come from this bundle's files" >&2
     texts="$(node -e 'const fs = require("fs"), d = process.argv[1]; process.stdout.write(JSON.stringify(fs.readdirSync(d).filter((f) => /^\d+_[^/]+\.sql$/.test(f)).map((f) => fs.readFileSync(d + "/" + f, "utf8"))))' "$BUNDLE/supabase/migrations")"
   fi
-  contracts="$(printf '%s' "$texts" | node --input-type=module -e "import { contractSteps } from '$HERE/migration-lint.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => process.stdout.write(JSON.stringify(contractSteps(JSON.parse(t)))));")"
+  contracts="$(printf '%s' "$texts" | node --input-type=module -e "import { contractSteps } from '$HERE/migration-lint.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => { let texts; try { texts = JSON.parse(t); } catch { console.error('release: the migration texts are not JSON'); process.exit(1); } process.stdout.write(JSON.stringify(contractSteps(texts))); });")" || refuse "could not read the contract steps"
   target="$(decide rollbackTarget "{\"kept\":$kept,\"contracts\":$contracts,\"requested\":\"$requested\"}")"
   [[ "$target" != null ]] || refuse "no image to roll back to${requested:+ (asked for $requested)}: none kept, or each is older than a contract step"
   key="$(field "$target" key)"

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, matchesGlob, relative } from 'node:path';
 
 // REQ docs/features/release-pipeline/REQ.md — the criteria a unit test can carry. Each is marked `todo`
 // with its batch until that batch lands; the version cannot close with a mark left. Criteria that need a
@@ -56,6 +56,9 @@ test('acceptance §5.1-b the build input key changes with build inputs only', as
     'a build argument change kept the key');
   const ignored = read('.dockerignore').split('\n').map((line) => line.trim());
   for (const entry of ['docs', '*.md', '.github', 'tests']) assert.ok(ignored.includes(entry), `.dockerignore does not exclude ${entry}`);
+  // The Dockerfile is a build input: excluded, a change to it alone would keep the key and never be built.
+  const excluding = ignored.filter((p) => p && !p.startsWith('#') && !p.startsWith('!') && matchesGlob('Dockerfile', p));
+  assert.deepEqual(excluding, [], '.dockerignore excludes the Dockerfile from the key');
   assert.match(read('Dockerfile'), /AS key\b/, 'no key stage');
 });
 
@@ -71,12 +74,14 @@ test('acceptance §5.1-c no deploy path builds on the VPS', () => {
 // ---------- §5.2 传输与保留 ----------
 
 test('acceptance §5.2-a six production deploys keep the last five, never the image staging runs', async () => {
-  const { retention } = await decide();
-  const history = ['k6', 'k5', 'k4', 'k3', 'k2', 'k1']; // newest first
-  const { keep, remove } = retention({ production: history, staging: 'k1' });
-  assert.deepEqual(keep, ['k6', 'k5', 'k4', 'k3', 'k2']);
-  assert.deepEqual(remove, [], 'k1 is removed while staging still runs it');
-  assert.deepEqual(retention({ production: history, staging: 'k6' }).remove, ['k1']);
+  const { afterDeploy, pruneImages } = await decide();
+  let state: Record<string, unknown> = {};
+  for (const key of ['k1', 'k2', 'k3', 'k4', 'k5', 'k6']) state = afterDeploy({ state, env: 'production', entry: { key, imageId: key } });
+  assert.deepEqual((state.kept as { key: string }[]).map((k) => k.key), ['k6', 'k5', 'k4', 'k3', 'k2']);
+  const now = Date.parse('2026-10-01T00:00:00Z');
+  const images = ['k1', 'k2', 'k3', 'k4', 'k5', 'k6'].map((key) => ({ key, created: '2026-09-01T00:00:00Z' }));
+  assert.deepEqual(pruneImages({ images, state: { ...state, staging: { key: 'k1' } }, now }), [], 'k1 is removed while staging still runs it');
+  assert.deepEqual(pruneImages({ images, state: { ...state, staging: { key: 'k6' } }, now }), ['k1']);
 });
 
 // ---------- §5.3 预发布站点 ----------
@@ -171,7 +176,17 @@ test('acceptance §5.6-a a failed verification rolls production back and stays r
   assert.match(production, /release\.sh production rollback/);
   assert.match(production, /An automatic rollback leaves the run red[\s\S]*?exit 1/);
   assert.match(read('.github/workflows/branch.yml'), /release\.sh staging rollback/);
+  // After a rollback only the build and a smoke check: main's runtime suite would fail the older image for its age.
+  const rollbackJob = production.slice(production.indexOf('\n  rollback:'), production.indexOf('\n  tag:'));
+  assert.doesNotMatch(rollbackJob, /acceptance\.runtime\.mjs/, 'the rollback runs main\'s runtime suite against an older image');
   // The rehearsal on staging itself is Phase 4 evidence (TRACK).
+});
+
+test('staging is deployed, checked and rolled back in one job, so no other deploy lands in between', () => {
+  const branch = read('.github/workflows/branch.yml');
+  const jobs = branch.split(/\n(?=  [a-z-]+:\n)/).filter((block) => /release\.sh staging (deploy|verified|rollback)/.test(block));
+  assert.equal(jobs.length, 1, 'the staging deploy, its check and its rollback are split across jobs');
+  assert.match(jobs[0], /^\s*staging-check:/);
 });
 
 // ---------- §5.7 迁移纪律 ----------

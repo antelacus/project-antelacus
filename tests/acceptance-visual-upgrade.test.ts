@@ -112,5 +112,5 @@ test('acceptance §5.5-a the gate runs the UI checks on every push, and a deploy
   const gate = read('.github/workflows/branch.yml');
   assert.match(gate, /^on:\n(?: {2}.*\n)*? {2}push:/m, 'branch.yml does not run on push');
   assert.match(gate, /^ {2}ui:\n(?: {4}.*\n|\n)*? {6}- run: scripts\/ui-check\.sh$/m, 'branch.yml has no ui job running the UI gate');
-  assert.match(gate, /^ {2}staging:\n {4}needs: \[check, ui, image\]$/m, 'staging does not wait for the gate');
+  assert.match(gate, /^ {2}staging-check:\n {4}needs: \[check, ui, image\]$/m, 'staging does not wait for the gate');
 });

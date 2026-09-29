@@ -141,39 +141,13 @@ jobs:
           docker save "antelacus:${{ steps.key.outputs.key }}" | gzip -1 | ssh vps 'gunzip | docker load'
           echo "transfer: $(( $(date +%s) - start ))s"
 
-  staging:
-    needs: [check, ui, image]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    concurrency:
-      group: staging
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ env.SHA }}
-      - uses: ./.github/actions/vps
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          user: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
-      # The release logic that runs is the one this commit carries (DESIGN §2.1).
-      - name: Deploy to staging
-        run: |
-          # Both go into a command line on the VPS: only a full commit SHA and a plain version pass.
-          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
-          version="$(node -p "require('./package.json').version")"
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a plain version: $version" >&2; exit 1; }
-          tar -cz scripts/release supabase/migrations | ssh vps "set -e; d=\$HOME/.cache/antelacus-release/$SHA; rm -rf \$d; mkdir -p \$d; tar -xz -C \$d; bash \$d/scripts/release/release.sh staging deploy ${{ needs.image.outputs.key }} $SHA $version"
-
+  # Deploy, check and (on a failed check) roll back are one job under one lock: split into jobs, another
+  # branch's deploy could land between them and be checked, verified or rolled back in this one's name.
   # A required check for merging (DESIGN §8: the job name is what branch protection matches; do not rename it).
   staging-check:
-    needs: [image, staging]
+    needs: [check, ui, image]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: read
     concurrency:
@@ -196,6 +170,15 @@ jobs:
           user: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      # The release logic that runs is the one this commit carries (DESIGN §2.1).
+      - id: deploy
+        name: Deploy to staging
+        run: |
+          # Both go into a command line on the VPS: only a full commit SHA and a plain version pass.
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
+          version="$(node -p "require('./package.json').version")"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a plain version: $version" >&2; exit 1; }
+          tar -cz scripts/release supabase/migrations | ssh vps "set -e; d=\$HOME/.cache/antelacus-release/$SHA; rm -rf \$d; mkdir -p \$d; tar -xz -C \$d; bash \$d/scripts/release/release.sh staging deploy ${{ needs.image.outputs.key }} $SHA $version"
       - name: Staging serves this build, behind Access, noindex
         run: RELEASE_ENV=staging EXPECTED_KEY=${{ needs.image.outputs.key }} node --test tests/runtime/release.runtime.mjs
       - name: Runtime suite with the database, through nginx and Cloudflare
@@ -206,40 +189,16 @@ jobs:
           ssh vps 'cat /etc/nginx/sites-enabled/staging.antelacus.com' | diff deploy/nginx/staging.antelacus.com.conf -
           ssh vps 'cat /etc/nginx/snippets/antelacus-site.conf' | diff deploy/nginx/antelacus-site.conf -
       - name: Record the image as verified
-        run: |
-          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
-          ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging verified ${{ needs.image.outputs.key }}"
-
-  # A failed staging check leaves staging on the image before (REQ §5.6-a: the same rollback as production's,
-  # so it can be rehearsed here). The run stays red: the check failed.
-  staging-rollback:
-    if: failure() && needs.staging.result == 'success' && needs.staging-check.result == 'failure'
-    needs: [staging, staging-check]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    concurrency:
-      group: staging
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ env.SHA }}
-      - uses: ./.github/actions/vps
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          user: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+        run: ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging verified ${{ needs.image.outputs.key }}"
+      # A failed check after a deploy leaves staging on the image before (REQ §5.6-a: the same rollback as
+      # production's, so it can be rehearsed here). The job stays red: the check failed.
       - name: Staging back to the image before
-        run: |
-          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
-          ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging rollback"
+        if: failure() && steps.deploy.outcome == 'success'
+        run: ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging rollback"
 
   timings:
     if: always()
-    needs: [check, ui, image, staging, staging-check, staging-rollback]
+    needs: [check, ui, image, staging-check]
     runs-on: ubuntu-latest
     permissions:
       actions: read

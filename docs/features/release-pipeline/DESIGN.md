@@ -44,8 +44,9 @@ push 分支 ─► branch.yml
         ├─ 有：跳过构建和传输（同一个键永不重建）
         └─ 没有：docker build（只带 NEXT_PUBLIC_*）→ 断言镜像里没有 .env 和标记
                  → docker save | gzip | ssh ─► VPS: docker load
-  三项都绿 ─► release.sh staging deploy <键> ─► 预发布容器 :3003
-        └─► staging-check：经 https://staging.antelacus.com（带 service token）
+  三项都绿 ─► staging-check（部署、检查、回滚在同一个任务里，中间插不进别的部署）
+        release.sh staging deploy <键> ─► 预发布容器 :3003
+        └─► 经 https://staging.antelacus.com（带 service token）
               构建标识 = 键 · 有库运行时套件 · 经 SSH 比对线上 nginx 与仓库
               通过 → 状态文件记下「这个键的这个镜像 ID 在预发布上验过」
               ═► 合并的必需检查，与 pr-checklist 一起
@@ -54,7 +55,7 @@ push 分支 ─► branch.yml
   └─► release.sh production deploy <键>
         （镜像不存在，或它的镜像 ID 没在预发布上验过 → 拒绝）
         └─► verify：经 https://www.antelacus.com  构建标识 = 键 · 有库运行时套件
-              ├─ 失败 ─► release.sh production rollback ─► 再核验 ─► 运行为红
+              ├─ 失败 ─► release.sh production rollback ─► 核对构建标识 + 冒烟 ─► 运行为红
               └─ 通过 ─► 版本号变了则打 tag
                          相关路径变了则清缓存，清完再取一次确认是新的
                          Auth 核对（红也不回滚）
