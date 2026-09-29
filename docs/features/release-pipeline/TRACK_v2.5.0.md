@@ -105,17 +105,17 @@
 ## 三、门与发布
 
 **评审发现登记**（Phase 0 诊断，在两次 Codex 门的额度之外；Codex xhigh，只读；全文 `codex resume 01a0d3e0-220e-75b3-8f5e-04d4ca150604`；引文已逐条对源核实；D-11 为 Claude 实测）：
-- D-1 · SHOULD（Codex 原定 MUST）：生产拓扑（镜像、VPS `.env`、nginx、Cloudflare）不在任何检查路径上 —— status: open → 范围 2、3
-- D-2 · SHOULD（原 MUST）：生产迁移手动执行、无闸门；`db-function-check.sh` 不在任何工作流里 —— status: open → 范围 5
-- D-3 · SHOULD（原 MUST）：部署成功只代表 `localhost:3002/` 有响应；生产运行时套件靠手动 —— status: open → 范围 4
-- D-4 · SHOULD（原 MUST）：没有应用回滚；健康检查失败只打印日志 —— status: open → 范围 2、4
-- D-5 · SHOULD：同一提交的闸门跑多遍（分支 push、PR、main 上 `Check` 与 `Deploy` 调用各一遍） —— status: open → 范围 6
-- D-6 · SHOULD：两个任务各自 `npm ci`；不读库的运行时子集被有库全量覆盖。（第二次构建不是冗余：`NEXT_PUBLIC_*` 构建时定型，换后端须重建） —— status: open → 范围 6。更正：「被有库全量覆盖」不成立——§5.4-b/c（数据库不可达）只在不连库时运行；Batch 5 删掉该子集，Batch 7 已加回 `check` 任务
-- D-7 · SHOULD：TD-021 的弱断言；后台界面清单只有 4 个模板，上传、登出、其余内容类型无检查 —— status: open → 范围 7
-- D-8 · SHOULD：Auth 设置、Cloudflare 缓存清除、打 tag 靠手动；post-merge 钩子只提醒 —— status: open → 范围 8
-- D-9 · SHOULD（部分待核）：预发布与生产同机的隔离与容量；本地栈 ES256 与生产可能的 HS256 登录行为不同 —— status: open → 范围 2、3，待核项见第一区
-- D-10 · NICE：没有按步骤的耗时基线 —— status: open → 范围 9
-- D-11 · SHOULD：Next standalone 输出复制 `.env`，`Dockerfile` 把它带进最终镜像，含 service-role 密钥（假 `.env` 本机构建实测；JS 文件中无密钥） —— status: open → 范围 1
+- D-1 · SHOULD（Codex 原定 MUST）：生产拓扑（镜像、VPS `.env`、nginx、Cloudflare）不在任何检查路径上 —— status: fixed（Batch 4、5）→ 范围 2、3
+- D-2 · SHOULD（原 MUST）：生产迁移手动执行、无闸门；`db-function-check.sh` 不在任何工作流里 —— status: fixed（Batch 2、5）→ 范围 5
+- D-3 · SHOULD（原 MUST）：部署成功只代表 `localhost:3002/` 有响应；生产运行时套件靠手动 —— status: fixed（Batch 5）→ 范围 4
+- D-4 · SHOULD（原 MUST）：没有应用回滚；健康检查失败只打印日志 —— status: fixed（Batch 4、6）→ 范围 2、4
+- D-5 · SHOULD：同一提交的闸门跑多遍（分支 push、PR、main 上 `Check` 与 `Deploy` 调用各一遍） —— status: fixed（Batch 5）→ 范围 6
+- D-6 · SHOULD：两个任务各自 `npm ci`；不读库的运行时子集被有库全量覆盖。（第二次构建不是冗余：`NEXT_PUBLIC_*` 构建时定型，换后端须重建） —— status: fixed（Batch 5、7）→ 范围 6。更正：「被有库全量覆盖」不成立——§5.4-b/c（数据库不可达）只在不连库时运行；Batch 5 删掉该子集，Batch 7 已加回 `check` 任务
+- D-7 · SHOULD：TD-021 的弱断言；后台界面清单只有 4 个模板，上传、登出、其余内容类型无检查 —— status: fixed（Batch 7）→ 范围 7
+- D-8 · SHOULD：Auth 设置、Cloudflare 缓存清除、打 tag 靠手动；post-merge 钩子只提醒 —— status: fixed（Batch 6）→ 范围 8
+- D-9 · SHOULD（部分待核）：预发布与生产同机的隔离与容量；本地栈 ES256 与生产可能的 HS256 登录行为不同 —— status: fixed（Batch 4（预发布容器限额；预发布上实际登录））→ 范围 2、3，待核项见第一区
+- D-10 · NICE：没有按步骤的耗时基线 —— status: fixed（Batch 5）→ 范围 9
+- D-11 · SHOULD：Next standalone 输出复制 `.env`，`Dockerfile` 把它带进最终镜像，含 service-role 密钥（假 `.env` 本机构建实测；JS 文件中无密钥） —— status: fixed（Batch 1）→ 范围 1
 
 **评审发现登记**（Codex 设计门，xhigh，DESIGN + REQ；全文 `codex resume 01a0e604-0b26-71d3-9222-40fea1e2dde4`；引文已逐条对源核实）：
 - G-M1 · MUST：构建输入键不是产物的身份——同一个键重建会得到不同的镜像（基础镜像、npm 下载），标签会被覆盖；`BUILD_KEY` 作为环境变量可被 `.env` 覆盖 —— status: fixed `0609c26`：同一个键永不重建；生产只接受预发布验过的镜像 ID；键写成镜像里的文件（DESIGN §2.2、§7-2；REQ §5.1）
@@ -148,6 +148,7 @@
 
 **Phase 4 证据**：
 - 切换准备（2026-09-29）：生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（数行，未读值）；`release.sh production adopt`（发布包 `2646688`）把 compose 起的容器记为 `legacy-8f2f3756…`（v2.4.1），预发布记录与已验列表保留，旧状态文件留作 `releases.json.bak-pre-adopt`；生产 nginx 站点文件换成共用片段写法（Jason 亲手执行：先备份到 `/root/www.antelacus.com.bak-20260929`，`nginx -t` 通过后 reload），公网 `/en`、`/en/posts`、`/og.png`、`/admin/login` 均 200，安全头与 CSP 照旧、无 `noindex`，线上文件 = 仓库
+- 真实发布（运行 36568040078，§5.11-a、§5.5）：合并提交 `edb90e2` 的键 `fbb91f38…` 即预发布验过的那个，未重建；`promote` 迁移核对通过、临时端口试启动、切换共 7 秒；`verify` 构建标识一致、有库运行时 22 过 + 2 todo（TD-025）；`tag` 打出 `v2.5.0`；`purge` 因 adopt 的条目没有提交号而按「全部改动」清缓存，清后 `/og.png` 为 MISS；`auth` 注册关闭、邮箱确认开启；`checkout` 快进 VPS 检出到 `edb90e2`；`rollback` 跳过。公网 `/api/build` = `fbb91f38…`
 
 **评审发现登记**（Codex 发布前审查，xhigh，最终树；J1 `release.sh`+`decide.mjs`、J2 `production.yml`+`.github/actions/vps`、J3 `admin_read.sql`+`admin-auth.ts`、J4 REQ 对验收测试；引文已抽核）：
 - J1-F01 · MUST：预发布与生产各持一把锁，却读写同一个状态文件 —— status: fixed：一把全局锁，拿不到则等待——演练 R4：两次 restart 同时发起，B 在 A 结束后才开始
@@ -161,13 +162,13 @@
 - J1-F09 · SHOULD：状态文件损坏时预发布会把它覆盖掉 —— status: fixed：状态损坏时两个环境都拒绝——演练 R7：损坏文件原样保留
 - J1-F10 · SHOULD：自动回滚只看上一个镜像，不继续找兼容的 —— status: fixed：按序找第一个兼容的保留镜像——§5.6-c 单元测试加「版本倒挂」一例
 - J1-F11 · SHOULD：已验列表挤掉后，生产 `restart` 被拒 —— status: fixed：restart 的镜像等于生产当前记录的那个时不查已验列表——未演练（只有生产走这条）
-- J2-M1 · MUST：分支代码拿得到部署密钥 —— status: accepted：只有 Jason 能推分支；fork 的 PR 拿不到 Secrets；风险在 Phase 6 写进 REQ §6
+- J2-M1 · MUST：分支代码拿得到部署密钥 —— status: accepted：只有 Jason 能推分支；fork 的 PR 拿不到 Secrets；风险已写进 REQ §6
 - J2-M2 · MUST：手动回滚可以从任意分支触发，用那个分支的脚本与迁移 —— status: fixed：手动回滚只在 main 上触发，并检出 main——§5.6-a 测试
 - J2-M3 · MUST：`verify` 被取消时不回滚 —— status: fixed：`verify` 只要不是 success 就回滚——§5.6-a 测试
 - J2-S1 · SHOULD：没有兼容的回滚目标时坏镜像留在线上（REQ 已写明） —— status: accepted：REQ §5.6 已定（没有目标时不自动回滚，运行为红）
 - J3-SEC01…04 · SHOULD：撤销角色后旧令牌到期前仍可读草稿；应用与 RLS 对角色的判断在重新登录前不一致；畸形声明报错而非判否；内容表的写权限依赖 Supabase 默认授予（待核） —— status: accepted：单管理员站点；SEC-04 的写权限在生产上一直正常
-- J4-RP001 · MUST：§5.11-a 尚无证据 —— status: open → Phase 4 的真实发布
-- J4-RP002 · MUST：§5.7-c 的单元测试只查名称唯一 —— status: accepted：每次部署都按名称与内容哈希逐条核对执行记录，缺一条或改过一条即拒绝——持续生效；Phase 6 写进 DESIGN §11
+- J4-RP001 · MUST：§5.11-a 尚无证据 —— status: fixed：Phase 4 的真实发布（运行 36568040078）
+- J4-RP002 · MUST：§5.7-c 的单元测试只查名称唯一 —— status: accepted：每次部署都按名称与内容哈希逐条核对执行记录，缺一条或改过一条即拒绝——持续生效；已写进 DESIGN §11
 - J4-RP003…009 · SHOULD：§5.4-a/b 无仓库内检查；§5.3-b 在非预发布运行时被跳过；§5.10-b「页面上加载」是可选断言；§5.10-d 只查清单成员；§5.9-c 只查变量名；§5.5-e 未断言精确集合；过时的 todo 注释 —— status: RP004 fixed（工作流以 staging/production 运行的静态检查）；RP005 fixed（存储桶返回图片、预览渲染出该地址的 `<img>`；浏览器加载在合成环境受 CSP 所限——存储为 http、CSP 只放行 https）；RP007 fixed（格式化程序的测试）；RP008 fixed（精确集合）；RP009 fixed（过时注释删除）；RP003、RP006 accepted（分支保护读出为证；各后台页面由 axe 检查真实打开）
 - J4-RP010 · NICE：沙盒里 `mkdtemp` 无权限 —— status: accepted：沙盒权限，与代码无关
 
@@ -189,43 +190,20 @@
 
 **Phase 6 boxes**（合并 ≠ 发布）：
 - [x] 切换准备（合并前，Claude）：`release.sh production adopt` 收编 compose 起的容器（旧镜像记为 legacy，留作回滚目标）；生产 nginx 站点文件换成共用片段写法，`nginx -t`、reload，公网 200 与安全头照旧；核对生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（TD-023）
-- [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并（#14 已开，`/code-review` 已处置）
-- [ ] 真实发布完全照 `docs/DEPLOYMENT.md` 执行（§5.11-a）：*Production* 全绿（promote、verify、tag、purge、auth），公网构建标识 = 合并提交的键，打出 `v2.5.0`
-- [ ] Jason 重新登录生产后台：新读法下看得到草稿、保存成功
-- [ ] CHANGELOG 条目
-- [ ] TECHNICAL_DEBT 定稿：TD-021、TD-022 删除；TD-023、TD-024、TD-025 在册
-- [ ] 常新文档扫尾：REQ / DESIGN 与交付一致；项目 `CLAUDE.md`、README 仍属实
-- [ ] FEEDBACK 扫尾 · 路线图（v2.5.1 = TD-025）
-- [ ] 各门读数：运行次数 / 改变了输出的拦截次数
-- [ ] 文档预算为绿 · 记忆修剪
-- [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.5.0.md`
-
-## 四、Session-end pickup
-
-### Session-end pickup (2026-09-29)
-
-**Working tree state at session close**:
-- Branch: `feat/release-pipeline`. HEAD (parent of the `/pause` commit landing this pickup): `6320e32`（登记 `/code-review` 发现；`CLAUDE.md` 按角色写管理员）
-- Working tree: clean
-
-**Where work stands**:
-- Phase 0–3 ✅；Batch 1–8 见第二区（全部 done / Batch 8 待真实发布）。Phase 4 🔲：Codex 发布前审查已处置并修复（第三区 J1–J4，演练 R1–R7）；`/code-review` 的 10 条已登记（第三区 R-1…R-10），**待 Jason 处置**
-- 已提议的处置：R-5 接受，R-8 已修，其余修（各配回归测试或演练，按治理规则不再送审）。R-6 是修 J1-F04 时引入的
-- 之后：切换准备（Phase 6 清单第一项：`release.sh production adopt`——已修为合并进现有状态并在副本上演练过；生产 nginx 站点换共用片段写法；核对 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`）→ 经 Jason 同意开版本 PR → Jason 照 `docs/DEPLOYMENT.md` 合并，真实发布即 §5.11-a 证据
-
-**Test / lint state**: green — lint 0、tsc 0、单元 141 过；本机界面闸门 35 过、运行时 22 过 + 2 todo（TD-025，裁定例外）；CI `5ec3d52` 全绿
-
-**Reconciliation (对账)** — 本版此前没有 pickup，无旧条目
-
-**First action for next session**: 请 Jason 对第三区 R-1…R-10 的提议处置表态；认可后依次修 R-1、R-2、R-3、R-4、R-6、R-7、R-9、R-10（R-7 另把 `backup.sh` 的同样写法登记为 TD），每条带回归测试或预发布演练，推送后看 *Branch* 运行全绿。
-
-**Decisions awaiting Project Lead**:
-1. `/code-review` 发现的处置（第三区 R-1…R-10 各条的「提议」）
-2. 修完之后，同意开版本 PR
-
-**Reference state** (verify before relying on):
-- 记忆：`feedback-reply-in-chinese.md`（中文答复）· `feedback-vps-reachable.md`（`ssh vps-deploy` 可用）· `reference-mac-proxy-fake-ip.md`
-- 预发布跑 `antelacus:1a79ad9b…`（已验过）；生产仍是 compose 起的 v2.4.1 容器 `antelacus`，**状态文件里还没有生产条目**（adopt 未在真文件上运行）
-- 没有进行中的 Codex 任务；VPS 上 `~/.cache/antelacus-release/` 有一个 `manual-p4` 手工演练包，可删
-- 界面闸门约 6.4 分，推送到预发布验过约 7 分；数字见第三区耗时一条
-
+- [x] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并（#14，合并提交 `edb90e2`）
+- [x] 真实发布完全照 `docs/DEPLOYMENT.md` 执行（§5.11-a）：*Production* 全绿（promote、verify、tag、purge、auth），公网构建标识 = 合并提交的键，打出 `v2.5.0`
+- [x] Jason 重新登录生产后台：新读法下看得到草稿、保存成功
+- [x] CHANGELOG 条目
+- [x] TECHNICAL_DEBT 定稿：TD-021、TD-022 删除；TD-023、TD-024、TD-025、TD-026 在册
+- [x] 常新文档扫尾：REQ §6 的接受风险（仓库已公开、部署密钥）；DESIGN §10 的三个问题答案移进 §8、§9 不用镜像仓库的理由、§11 的 §5.7-c；README 的部署一句；`CLAUDE.md` 属实
+- [x] FEEDBACK 扫尾 · 路线图：没有 FEEDBACK 条目；v2.5.1 = TD-025，写在它的 Revisit when
+- [x] 各门读数（运行次数 / 改变了输出的拦截次数）：
+  - *Branch* 闸门：24 次 / 4（Batch 5 的 ①③④⑤；② 为字体偶发，另 1 次红是回滚演练）；其中界面闸门另拦下 2 处（`select` 无名称、TD-025）
+  - `release.sh` 的拒绝：arm64 镜像试启动失败（G-M5）、镜像内键与标签不符（Batch 5 ③），各 1 次，生产与预发布均未受影响
+  - Codex：3 次（诊断、设计门、发布前）/ 设计门 10 条 MUST 与发布前 J1–J4 的 13 条修复改变了代码
+  - `/code-review`：1 次 / 9 条修复（R-1…R-4、R-6…R-10）
+  - `pr-checklist`：3 次 / 0（2 次红是勾选之前，按设计）
+  - 迁移 lint：每次推送 / 0（本版没有破坏性迁移；植入证据见 Batch 2）——不退役：它守的是罕见事件，拦截为 0 是常态；若出现第一条收缩步它仍未报红，即视为失效
+  - *Production*：1 次 / 0（首次真实发布全绿）
+- [x] 文档预算为绿 · 记忆修剪
+- [x] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.5.0.md`

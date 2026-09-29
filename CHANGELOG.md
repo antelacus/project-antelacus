@@ -4,6 +4,20 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.5.0 - 2026-09-29
+
+### Added
+- A staging site, `staging.antelacus.com`, beside production behind the same web server and Cloudflare, open only to the owner. Every pushed change lands there first, with real content, and can be checked on a phone; its admin signs in and shows drafts but cannot save.
+- Merging a change puts the exact build staging checked on the live site, checks the public site, and rolls back by itself if that check fails. A rollback by hand is one button. New versions are tagged, changed share images purged from Cloudflare's cache, and the sign-up settings checked, all without manual steps.
+- `docs/DEPLOYMENT.md` is the release handbook, step by step.
+
+### Changed
+- The admin reads through the signed-in session: an admin is marked on the account itself, no longer by an email list in the server's configuration.
+- The site's image no longer contains any secret, and is built once, never on the server.
+
+### Fixed
+- The project-link type selector in the admin has an accessible name.
+
 ## v2.4.1 - 2026-09-24
 
 ### Fixed

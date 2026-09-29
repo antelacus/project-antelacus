@@ -133,19 +133,21 @@ push 分支 ─► branch.yml
   - HTML 页面不被缓存（`cf-cache-status: DYNAMIC`），被缓存的只有 `/og.png` 和 `/images/`（一天），所以经公网核验读到的就是新容器；
   - Access 免费档就能保护单个子域，CI 用 service token 通过，策略动作必须是 Service Auth；团队域名 `antelacus-ci.cloudflareaccess.com`，登录方式为邮箱验证码；
   - service token 的 Client Secret 只在创建时出现一次：由 Jason 在控制台创建并直接填进 GitHub，不经过 API，免得它进入对话；
-  - 清缓存的方式见 §10 Q1；
+  - 免费档可以按前缀清缓存，所以 `/og.png` 的各语言路由不必逐个列出；
   - `goodman.antelacus.com` 和本站在同一个 zone 里，所以「清除全部缓存」会连带清掉它。
 - **Supabase**：
   - 迁移执行记录按**执行时刻**编号，和文件名的时间戳不同，所以按名称匹配；
   - 执行记录的 `statements` 存着 SQL 原文（整条迁移为一个元素），等于去掉末尾换行的文件内容；7 条已全部登记，内容与仓库一致；
   - `list_tables` 给的行数是统计估计值，核对要用精确计数；
-  - `GET /auth/v1/settings` 是公开接口，返回 `disable_signup`、`mailer_autoconfirm`；托管版是否只凭公开密钥就放行见 §10 Q3；
-  - 后台只用密码登录，预发布域名推断不需要配置回调地址，以预发布上的一次真实登录为准；
+  - `GET /auth/v1/settings` 是公开接口，只凭公开密钥就返回 `disable_signup`、`mailer_autoconfirm`；
+  - 后台只用密码登录，预发布域名不需要配置回调地址（在预发布上实际登录过）；
   - JWT 里的 `app_metadata` 要等下次刷新令牌才会更新：改完角色要重新登录。撤销角色后，旧令牌在过期前（默认一小时）仍然有效。
 - **VPS**：
   - 6 核，内存可用 5 GiB，端口 3000–3002 已占用，3003 空闲，临时端口从 3004 起；
   - deploy 用户读不了证书，也改不了 nginx，这两件事要用 root；deploy 用户能读 `/etc/nginx/sites-enabled/`；
-  - `DATABASE_URL` 是会话池（session pooler）连接串，因为直连地址只有 IPv6。
+  - `DATABASE_URL` 是会话池（session pooler）连接串，因为直连地址只有 IPv6；
+  - 防火墙对 SSH 限频（`ufw LIMIT`：同一地址 30 秒内第 6 次新连接被丢弃，客户端要重试半分钟），所以 CI 每个任务只做一次 keyscan、所有 `ssh vps` 复用一条连接（`.github/actions/vps`）。限频是有意保留的；
+  - 从 GitHub 的机器把镜像传到 VPS 只要十几秒，不需要只传变化层。
 - **GitHub**：
   - 必需检查按**任务名**匹配，所以 `staging-check` 和 `pr-checklist` 这两个任务名一旦定下就不能改；
   - 分支保护可以要求分支与 main 同步；私有仓库在免费档上用不了分支保护（也用不了规则集），所以仓库是公开的；设置为：必需 `staging-check` 与 `pr-checklist`、分支须同步、必须经 PR、管理员也不能绕过、禁止强推与删除；
@@ -162,13 +164,11 @@ push 分支 ─► branch.yml
 - **登录后的检查**：不在 CI 里放管理员账号。Jason 在预发布上手动看，由 `pr-checklist` 强制打勾。重议条件见 REQ §1.2。
 - **预发布的缓存**：预发布有自己的 `unstable_cache`，生产保存之后，预发布最多晚半小时看到变化。这可以接受，手册里写明即可。
 - **耗时读数**：每个工作流最后一步用 `gh api` 取本次运行各任务、各步骤的耗时，写进 `$GITHUB_STEP_SUMMARY`（需要 `actions: read`）。发布脚本各段的耗时由它自己打印。
-- **不用镜像仓库**，因为仓库是私有的，VPS 拉取私有镜像只能用 classic 令牌，而它能读账号下全部私有镜像（REQ §1.2）。
+- **不用镜像仓库**（REQ §1.2）：经 SSH 传输已经够快；用镜像仓库的话，要么把镜像公开，要么让 VPS 持有 classic 令牌，而这种令牌能读账号下全部私有镜像。
 - **手册跟着流程一起改**：改变发布流程的批次（Batch 4、5、6），在同一个批次里更新 `docs/DEPLOYMENT.md` 里对应的部分；Batch 8 只做通读和 Phase 4 的实跑。
 
 ## 10 开放设计问题
-- Q1 **清缓存用哪种方式**：按文件清（所有档都有）还是按前缀清（免费档是否可用待查）？`/og.png` 有多种语言的路由，按文件清就要列全它们的地址。Batch 6 开工前查清。
-- Q2 **从 GitHub 的机器传 130 MB 到 VPS 要多久**：Batch 4 实测。太慢的话，就改成只传镜像的变化层。
-- Q3 **托管版 Supabase 的 `/auth/v1/settings` 是否只凭公开密钥就放行**：Batch 6 实测；不行的话，Auth 核对就换一种不需要新凭据的做法。
+N/A —— 当前没有开放问题。
 
 ## 11 验收判据的归属
 | REQ § | 在哪里验证 |
@@ -178,6 +178,6 @@ push 分支 ─► branch.yml
 | 5.8-a/b/c、5.10-b/c/d | `tests/ui/admin.ui.mjs`，由界面闸门运行 |
 | 5.4-a/b | 证据：分支保护的读出，记进 TRACK 第三区 |
 | 5.6-a/b | 证据：在预发布上演练自动回滚和手动回滚的运行号 |
-| 5.7-c 的执行记录 | 证据：`list_migrations` 的读出 |
+| 5.7-c 的执行记录 | 证据：`list_migrations` 的读出；此后每次部署由 `release.sh` 按名称与内容哈希逐条核对，缺一条或改过一条即拒绝（单元测试只查名称唯一） |
 | 5.10-a | 证据：TD-021 每一条「植入 → 变红」的运行号 |
 | 5.11-a | 证据：Phase 4 真实发布的记录 |
