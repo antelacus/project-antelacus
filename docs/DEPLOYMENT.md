@@ -10,13 +10,27 @@ The site runs on one VPS as a Docker container behind nginx, with Cloudflare in 
 - `deploy/nginx/`: `antelacus-site.conf` (installed as `/etc/nginx/snippets/antelacus-site.conf`) is everything the two sites share; `www.antelacus.com.conf` and `staging.antelacus.com.conf` add only their name, their upstream and staging's noindex.
 - `scripts/supabase-keepalive.sh`, `scripts/backup.sh`, `scripts/sync-bucket.mjs`, `scripts/site-check.sh`: the cron jobs (below).
 
-## Deploy
+## Release, step by step
 
-A push to any branch but `main` runs `.github/workflows/branch.yml`: the gate, then one image per build input key — built on the runner, never on the VPS, sent over the deploy SSH key and loaded there — then staging, then `staging-check` against `https://staging.antelacus.com` (through Access, nginx and Cloudflare). When that passes, the image is recorded as verified. A merge to `main` runs `.github/workflows/production.yml`: it computes the merge commit's key and has `release.sh production deploy` start that image, which it refuses unless staging verified exactly that image; then it checks the public site. The run summary of each workflow lists every step's duration. Nothing unpushed reaches the server.
+What CI does by itself is in `.github/workflows/branch.yml` and `production.yml`; below is only what a person (or Claude) does, and where to read what happened. Every run's summary page has a table of each job's and step's duration.
 
-First-time setup on the VPS: copy `.env.example` to `.env` and fill it in; `grep '^NEXT_PUBLIC_' .env > .env.staging`; as root, copy `deploy/nginx/antelacus-site.conf` into `/etc/nginx/snippets/` and the two site files into `sites-available`, enable them, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`. A container already running as `antelacus` is taken over with `scripts/release/release.sh production adopt`.
+1. **Migrations first.** If the change needs a new migration, it is applied to production before the branch is pushed (who and how: the project `CLAUDE.md`, Environment and deployment). Pushed first, the staging deploy refuses and names the migration.
+2. **Push the branch.** Actions → *Branch*: `check` and `ui` (the gate), `image`, `staging`, `staging-check`. Green `staging-check` means `https://staging.antelacus.com` runs this commit and its image is recorded as verified. Red:
+   - `check` or `ui`: fix and push again;
+   - `staging`: the log's last `release:` line says why (an unverified or missing image, a missing migration, a health check); staging is untouched;
+   - `staging-check`: staging has already rolled back to the image before (`staging-rollback`); the failing check says what is wrong.
+3. **Look at staging on a phone.** Open `https://staging.antelacus.com` (Cloudflare Access sends a code to antelacus@gmail.com). Read a real post; sign in to `/admin`: the lists show drafts, and a save answers `Read-only environment — not saved.` A fault that shows only when signed in shows only here.
+4. **Open the PR** into `main`; tick the signed-in look in its description. It merges only when `staging-check` and `pr-checklist` are green and the branch is up to date with `main` — *Update branch* is a new push, so step 2 runs again.
+5. **Merge.** Actions → *Production*: `promote` starts the verified image (it builds nothing and refuses an image staging did not verify), `verify` checks the public site, then `tag` (a new version gets `v<version>`), `purge` (only when share images or `public/images` changed) and `auth` (sign-ups must stay closed). All green: released.
+6. **If `verify` fails**, `rollback` has already put production back on the previous image and checked it; the run is red on purpose. Production is safe; fix on a branch and start again at step 2.
+7. **If `auth` fails**, open Supabase → Authentication → Sign In / Providers: sign-ups off, email confirmation on. Nothing is rolled back — the code is not at fault. **If `purge` or `tag` fails**, redo it by hand; production is untouched.
+8. **Roll back by hand** (a fault found later): Actions → *Production* → *Run workflow*, `rollback_to` empty for the previous image or a key from `release.sh production status`. It refuses an image older than a contract step. The database is never rolled back.
+9. **After editing a `.env` on the VPS**, recreate the container with the same image: `ssh vps-deploy`, then `bash ~/.cache/antelacus-release/<any recent sha>/scripts/release/release.sh production restart` (or `staging`).
+10. **If the pipeline itself is broken** so that not even its fix can merge: GitHub → Settings → Branches → edit the rule for `main`, lift it for that one merge, restore it, and write down why in the version's TRACK.
 
-Database changes ship as files in `supabase/migrations/`. They are applied to production **before** the code that needs them is deployed; who applies them and how is in the project `CLAUDE.md` (Environment and deployment). `scripts/db-function-check.sh` applies every migration to a throwaway Postgres and exercises the save function; run it after editing a migration.
+**First-time setup on the VPS:** copy `.env.example` to `.env` and fill it in; `grep '^NEXT_PUBLIC_' .env > .env.staging`; as root, copy `deploy/nginx/antelacus-site.conf` into `/etc/nginx/snippets/` and the two site files into `sites-available`, enable them, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`. A container already running as `antelacus` is taken over with `release.sh production adopt` before the first merge.
+
+`scripts/db-function-check.sh` applies every migration to a throwaway Postgres and checks the save function and RLS; the gate runs it.
 
 ## Staging access
 

@@ -88,13 +88,13 @@
 - 依赖：Batch 5
 
 ### Batch 7 — 覆盖补强
-- 状态：open
+- 状态：in-progress — `a59fad1`（36542412260 全绿）；§5.4-a/d 因 TD-025 暂标 todo，待 Codex 诊断后定
 - 范围：`tests/runtime/acceptance.runtime.mjs`（TD-021）、`tests/ui/`（上传、登出、其余内容类型、关于页）、`supabase/config.toml` 与 `ui-check.sh`（打开存储服务）· 覆盖 REQ §5.10
 - 验收判据：§5.10-a…d 去 todo 且绿；TD-021 每一条都有「植入 → 变红」的证据
 - 依赖：Batch 3（后台读法已换）
 
 ### Batch 8 — 发布手册
-- 状态：open
+- 状态：in-progress — `docs/DEPLOYMENT.md` 的「Release, step by step」已写；§5.11-a 由 Phase 4 的真实发布证明
 - 范围：`docs/DEPLOYMENT.md`、项目 `CLAUDE.md` 的 Commands 与部署段落 · 覆盖 REQ §5.11
 - 验收判据：§5.11-a 由 Phase 4 的真实发布来证明
 - 依赖：Batch 6
@@ -107,7 +107,7 @@
 - D-3 · SHOULD（原 MUST）：部署成功只代表 `localhost:3002/` 有响应；生产运行时套件靠手动 —— status: open → 范围 4
 - D-4 · SHOULD（原 MUST）：没有应用回滚；健康检查失败只打印日志 —— status: open → 范围 2、4
 - D-5 · SHOULD：同一提交的闸门跑多遍（分支 push、PR、main 上 `Check` 与 `Deploy` 调用各一遍） —— status: open → 范围 6
-- D-6 · SHOULD：两个任务各自 `npm ci`；不读库的运行时子集被有库全量覆盖。（第二次构建不是冗余：`NEXT_PUBLIC_*` 构建时定型，换后端须重建） —— status: open → 范围 6
+- D-6 · SHOULD：两个任务各自 `npm ci`；不读库的运行时子集被有库全量覆盖。（第二次构建不是冗余：`NEXT_PUBLIC_*` 构建时定型，换后端须重建） —— status: open → 范围 6。更正：「被有库全量覆盖」不成立——§5.4-b/c（数据库不可达）只在不连库时运行；Batch 5 删掉该子集，Batch 7 已加回 `check` 任务
 - D-7 · SHOULD：TD-021 的弱断言；后台界面清单只有 4 个模板，上传、登出、其余内容类型无检查 —— status: open → 范围 7
 - D-8 · SHOULD：Auth 设置、Cloudflare 缓存清除、打 tag 靠手动；post-merge 钩子只提醒 —— status: open → 范围 8
 - D-9 · SHOULD（部分待核）：预发布与生产同机的隔离与容量；本地栈 ES256 与生产可能的 HS256 登录行为不同 —— status: open → 范围 2、3，待核项见第一区
@@ -141,6 +141,7 @@
 - §5.6-b 手动回滚（预发布，演练分支 `rehearsal/rollback`，已删）：在新键 `1ed105f9…` 上点名退回 `fdb36a84…`，6 秒，报出的构建标识一致，被退下的镜像移出可回滚列表
 - §5.6-a 自动回滚（运行 36535649445）：第三个键部署成功、§5.3-d 通过，故意失败的检查报红，`staging-rollback` 5 秒内退回 `fdb36a84…`，运行为红；生产全程未动
 - 耗时：SSH 慢是 VPS 防火墙的频率限制（`ufw LIMIT`：30 秒内同一地址第 6 次新连接被丢弃），限制保留，改为每个任务一次 keyscan、一条复用连接——`image` 82→17 秒、部署预发布 79→8 秒、预发布检查 95→22 秒，推送到「预发布验过」9.5→7.2 分（36529993385 → 36538068187）；关键路径只剩界面闸门（约 6.6 分），浏览器已缓存。axe 并行与界面闸门分机并行未做，收益与成本见 TECHNICAL_DEBT
+- Batch 7（`a59fad1`，36542412260）：TD-021 九处补强各经「正常为绿、植入即红」（C-12/14/15/16/17/18/21×2 对假站点，C-22 对单元输入）；存储上传端到端（§5.10-b）、登出（§5.10-c）、后台各类型与关于页入清单，axe 判定 68→76 个组合（§5.10-d）。新覆盖找出两处：项目链接行的 `select` 无名称（axe `select-name`，已修）；未知条目的 404 是 Next 裸错误文档（TD-025，P2，十个假设已排除，Codex 诊断中）。浏览器缓存命中但只省约 2 秒——装系统库（50 秒）才是大头
 
 **Phase 4 证据**：（Phase 4 填写）
 
