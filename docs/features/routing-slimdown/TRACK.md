@@ -26,6 +26,7 @@
   - 2026-09-29 · 本版文档归 routing-slimdown（上线后修订、契约不变，就地改） · Jason · 级联：本 TRACK
   - 2026-09-29 · TD-024 不设速度硬指标，耗时前后对比记进 TRACK；稳定 = 同一提交连续 5 次全绿 · Jason · 级联：visual-upgrade REQ §5.5-c/d
   - 2026-09-29 · 「已知语言 + 未知栏目」的英文 404 一并纳入：带语言前缀的 404 一律用那种语言 · Jason · 级联：routing-slimdown REQ §5.2 规则 8、§5.2-i；content-publishing REQ §5.4
+  - 2026-09-29 · REQ 定稿，Phase 1 关闭 · Jason · 级联：各 REQ
 
 ## 二、批次
 
