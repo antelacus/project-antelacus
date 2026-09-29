@@ -45,6 +45,7 @@
   - 2026-09-29 · 仓库 Variables 存两个 `NEXT_PUBLIC_*` 公开值；Access 放行 antelacus@gmail.com；Cloudflare 的应用、策略、DNS 由 Claude 经 Cloudflare MCP 建，service token 由 Jason 在控制台建（密钥不进对话） · Jason · 级联：`docs/DEPLOYMENT.md`、DESIGN §8
   - 2026-09-29 · 私有仓库在 GitHub 免费档用不了分支保护；仓库改为公开（作品集），提交历史中的个人邮箱接受公开（Claude 讲明了关联身份的途径；Jason 确认该邮箱防护良好）。公开前检查：296 个提交 gitleaks 0 条；184 次运行日志的命中均为公开值、构建键或本地栈默认密钥 · Jason · 级联：DESIGN §8
   - 2026-09-29 · 分支保护按 Batch 5 的设置开启，管理员也不能绕过（Q16 不留旁路）；流水线自身坏到合不进修复时，在 GitHub 设置里临时关掉保护 · Jason · 级联：`docs/DEPLOYMENT.md`（Batch 8）
+  - 2026-09-29 · 批 A：TD-025（未知条目的 404 是 Next 错误外壳，P2）本版内修——十个假设与 Codex 诊断之后未得可控修复，转 B：TD-025 留给 v2.5.1（先为文档外壳做设计再修）；本版收尾时 §5.4-a、§5.4-d 带指向 TD-025 的 todo，作为「版本不得带 todo 收尾」的一次例外 · Jason · 级联：TECHNICAL_DEBT TD-025、`tests/runtime/acceptance.runtime.mjs`
   - 2026-09-28 · Codex 设计门 15 条发现按 Claude 提议处置（第三区）；不在 CI 里放管理员账号，登录后的检查由 `pr-checklist` 强制打勾，重议条件写进 REQ §1.2；Phase 2 关闭 · Jason · 级联：DESIGN、REQ §1.2、§5.1、§5.4-d、§5.6-c、§5.7-d、§6
 
 ## 二、批次
@@ -88,7 +89,7 @@
 - 依赖：Batch 5
 
 ### Batch 7 — 覆盖补强
-- 状态：in-progress — `a59fad1`（36542412260 全绿）；§5.4-a/d 因 TD-025 暂标 todo，待 Codex 诊断后定
+- 状态：done `a59fad1` — §5.4-a/d 按裁定带 TD-025 的 todo（v2.5.1 去掉）
 - 范围：`tests/runtime/acceptance.runtime.mjs`（TD-021）、`tests/ui/`（上传、登出、其余内容类型、关于页）、`supabase/config.toml` 与 `ui-check.sh`（打开存储服务）· 覆盖 REQ §5.10
 - 验收判据：§5.10-a…d 去 todo 且绿；TD-021 每一条都有「植入 → 变红」的证据
 - 依赖：Batch 3（后台读法已换）
