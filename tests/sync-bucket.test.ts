@@ -38,3 +38,14 @@ test('planSync reuses a file only when size and modification time both match, an
   assert.deepEqual(plan.reuse.map((o) => (o as { path: string }).path), ['a.jpg']);
   assert.deepEqual(plan.fetch.map((o) => (o as { path: string }).path), ['b.jpg', 'c.jpg', 'd.jpg', 'e.jpg'], 'e.jpg: same size, newer upload');
 });
+
+test('the service-role key comes from a mounted file when one is named, else from the environment', async () => {
+  const { serviceRoleKey } = await import('../scripts/sync-bucket.mjs') as unknown as { serviceRoleKey: (env: Record<string, string | undefined>, read: (path: string) => string) => string | undefined };
+  const files: Record<string, string> = { '/run/secrets/service-role': 'from-file\n' };
+  const read = (path: string) => files[path];
+  assert.equal(serviceRoleKey({ SUPABASE_SERVICE_ROLE_KEY_FILE: '/run/secrets/service-role' }, read), 'from-file');
+  assert.equal(serviceRoleKey({ SUPABASE_SERVICE_ROLE_KEY: 'from-env' }, read), 'from-env');
+  // The file wins: the backup passes only the file, and a stray variable must not override it.
+  assert.equal(serviceRoleKey({ SUPABASE_SERVICE_ROLE_KEY_FILE: '/run/secrets/service-role', SUPABASE_SERVICE_ROLE_KEY: 'stray' }, read), 'from-file');
+  assert.equal(serviceRoleKey({}, read), undefined);
+});

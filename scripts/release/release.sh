@@ -40,6 +40,8 @@ mkdir -p "$STATE_DIR"
 # One lock for both environments: they read and rewrite the same state file. A second release waits.
 exec 9>"$STATE_DIR/releases.lock"
 flock --wait 900 9 || refuse "another release has held the lock for 15 minutes"
+# The pgpass and env files of a run killed before it could remove them: with the lock held, none is in use.
+rm -f "$STATE_DIR"/pgpass.* "$STATE_DIR"/env.*
 
 read_state() {
   if [[ ! -e "$STATE" ]]; then echo '{}'; return; fi

@@ -237,7 +237,7 @@ test('acceptance §5.7-d changing a migration that is already on main turns the 
   assert.deepEqual(changedAppliedMigrations({ changed: [{ status: 'M', path: 'src/lib/posts.ts' }], onMain }), []);
 });
 
-test('acceptance §5.7-e the backup puts neither the database password nor the service-role key on a command line', { todo: 'v2.5.1 Batch 4' }, () => {
+test('acceptance §5.7-e the backup puts neither the database password nor the service-role key on a command line', () => {
   const backup = read('scripts/backup.sh');
   // pg_dump gets a URL without the password and a pgpass file; nothing hands it DATABASE_URL itself.
   const dockerLines = backup.split('\n').filter((line) => /docker run|pg_dump|psql/.test(line) && !line.trim().startsWith('#'));

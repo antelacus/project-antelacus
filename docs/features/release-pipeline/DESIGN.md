@@ -165,7 +165,7 @@ push 分支 ─► branch.yml
 - **预发布的缓存**：预发布有自己的 `unstable_cache`，生产保存之后，预发布最多晚半小时看到变化。这可以接受，手册里写明即可。
 - **耗时读数**：每个工作流最后一步用 `gh api` 取本次运行各任务、各步骤的耗时，写进 `$GITHUB_STEP_SUMMARY`（需要 `actions: read`）。发布脚本各段的耗时由它自己打印。
 - **不用镜像仓库**（REQ §1.2）：经 SSH 传输已经够快；用镜像仓库的话，要么把镜像公开，要么让 VPS 持有 classic 令牌，而这种令牌能读账号下全部私有镜像。
-- **备份不把密钥放上命令行**（REQ §5.7-e）：`scripts/backup.sh` 的 `pg_dump` 与 `release.sh` 的 `psql` 同一做法——`pgConnection` 拆出不带密码的地址和一行 pgpass，pgpass 写进只本用户可读的临时文件、挂进容器，用完即删。存储镜像的容器同理：service-role 密钥写进临时文件挂进去，`sync-bucket.mjs` 从 `SUPABASE_SERVICE_ROLE_KEY_FILE` 读。不用 `-e` 或 `--env-file`：环境变量会出现在 `docker inspect` 里。临时文件建好即注册 `EXIT` 清理（保留原失败码），中途失败或被终止也不残留；`release.sh` 的 `db_query` 同样。
+- **备份不把密钥放上命令行**（REQ §5.7-e）：`scripts/backup.sh` 的 `pg_dump` 与 `release.sh` 的 `psql` 同一做法——`pgConnection` 拆出不带密码的地址和一行 pgpass，pgpass 写进只本用户可读的临时文件、挂进容器，用完即删。存储镜像的容器同理：service-role 密钥写进临时文件挂进去，`sync-bucket.mjs` 从 `SUPABASE_SERVICE_ROLE_KEY_FILE` 读。不用 `-e` 或 `--env-file`：环境变量会出现在 `docker inspect` 里。临时文件放在只有部署用户能进的目录里：`backup.sh` 每次退出时删除（被终止时也经 `exit` 走到这一步），`release.sh` 的文件建在命令替换的子 shell 里、那里的退出清理不可靠，改为每次运行在持锁之后先删掉上一次残留的——两个脚本都在开跑时清掉被强杀留下的文件。
 - **手册跟着流程一起改**：改变发布流程的批次（Batch 4、5、6），在同一个批次里更新 `docs/DEPLOYMENT.md` 里对应的部分；Batch 8 只做通读和 Phase 4 的实跑。
 
 ## 10 开放设计问题

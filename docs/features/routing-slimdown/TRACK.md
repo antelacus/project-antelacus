@@ -54,7 +54,7 @@
 - 依赖：none（与 Batch 1、2 可并行，合并时后到者重跑）
 
 ### Batch 4 — 备份的密钥
-- 状态：open
+- 状态：done（本提交）— §5.7-e 去 todo；VPS 实跑证据见第三区
 - 范围：`scripts/backup.sh`、`scripts/sync-bucket.mjs`（`SUPABASE_SERVICE_ROLE_KEY_FILE`）+ 测试；`docs/DEPLOYMENT.md` 的备份段；删 TD-026 · 覆盖 release-pipeline §5.7-e
 - 验收判据：§5.7-e 去 todo 且绿；VPS 上实跑一次 `backup.sh`，期间采样 `ps` 与 `docker inspect` 不含两个密钥（在 VPS 上比对、只回报次数），产出转储与存储镜像
 - 依赖：none
@@ -81,6 +81,12 @@
 - J2-B3 · SHOULD（待核）：0600 文件与容器内 UID —— status: no change：v2.5.0 部署已如此读取
 - J2-B4 · SHOULD：源码检查证明不了运行时不泄露 —— status: → Batch 4：实跑加查权限与失败后不残留
 - J2-B5 · NICE（待核）：cron 的最小环境 —— status: no change：每日备份一直按时产出
+
+**批次证据**：
+- Batch 4（VPS，本分支脚本在演练目录、`.env` 链接生产的那份）：两次实跑均成功，各产出转储与 24 个存储对象。运行期间采样：`ps` 命令行 9 次，密码 0、密钥 0；只取备份自己的容器的 `docker inspect` 7 次（`postgres:17` 2、`node:24-slim` 5），密码 0、密钥 0；临时文件模式全为 600（13 次），结束后残留 0。比对在 VPS 上进行，只回报次数。对照：常驻的生产应用容器 `antelacus` 的 `docker inspect` 含密码与密钥各 1 处（见 S-1）
+
+**本版自查发现**（Claude）：
+- S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: open（待 Jason 裁定）
 
 **Phase 4 证据**：（Phase 4 填写）
 
