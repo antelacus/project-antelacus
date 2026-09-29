@@ -31,12 +31,6 @@ Update this file when:
 - Context: from push to a verified staging takes about 7 minutes, 6.6 of them the UI job: starting the local Supabase stack (~75 s, mostly image pulls), the build (~20 s) and 61 browser checks (~200 s), of which axe over every template in four contexts takes ~75 s run one after another, and "nothing moves while the reader does nothing" ~37 s by design. Two levers were measured and left: running the four axe contexts concurrently (~35 s; touches the harness, risk of flakiness) and sharding the browser checks over two runners (~2 min; minutes are free on a public repository, but `tests/ui/coverage.ui.mjs` reconciles coverage in one process and would have to merge results across jobs).
 - Revisit when: a push-to-staging wait of about 7 minutes gets in the way of a real change, or the UI checks grow by a third.
 
-### TD-026 - `backup.sh` puts the database URL, password included, on a command line
-
-- Status: `Open` · Severity: `Low` · Area: `deploy` · Identified: `2026-09-29` (v2.5.0 `/code-review`, R-7)
-- Context: `scripts/backup.sh` runs `pg_dump … "$DATABASE_URL"` in a `docker run`, so the password is in the argument list any user of the VPS can read with `ps` while the dump runs, and in the container's config (`docker inspect`) until `--rm` removes it. Its storage mirror passes `SUPABASE_SERVICE_ROLE_KEY` with `-e`, which `docker inspect` shows while that container runs. Only the deploy user and root log in to the VPS. `release.sh` no longer does this: `db_query` hands the password to `psql` in a pgpass file (`pgConnection` in `scripts/release/decide.mjs`), the pattern to reuse here.
-- Revisit when: `backup.sh` is next changed, or anything other than the deploy user starts running on the VPS.
-
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
