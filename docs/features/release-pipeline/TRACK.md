@@ -146,7 +146,8 @@
 - 耗时：SSH 慢是 VPS 防火墙的频率限制（`ufw LIMIT`：30 秒内同一地址第 6 次新连接被丢弃），限制保留，改为每个任务一次 keyscan、一条复用连接——`image` 82→17 秒、部署预发布 79→8 秒、预发布检查 95→22 秒，推送到「预发布验过」9.5→7.2 分（36529993385 → 36538068187）；关键路径只剩界面闸门（约 6.6 分），浏览器已缓存。axe 并行与界面闸门分机并行未做，收益与成本见 TECHNICAL_DEBT
 - Batch 7（`a59fad1`，36542412260）：TD-021 九处补强各经「正常为绿、植入即红」（C-12/14/15/16/17/18/21×2 对假站点，C-22 对单元输入）；存储上传端到端（§5.10-b）、登出（§5.10-c）、后台各类型与关于页入清单，axe 判定 68→76 个组合（§5.10-d）。新覆盖找出两处：项目链接行的 `select` 无名称（axe `select-name`，已修）；未知条目的 404 是 Next 裸错误文档（TD-025，P2，十个假设已排除，Codex 诊断中）。浏览器缓存命中但只省约 2 秒——装系统库（50 秒）才是大头
 
-**Phase 4 证据**：（Phase 4 填写）
+**Phase 4 证据**：
+- 切换准备（2026-09-29）：生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（数行，未读值）；`release.sh production adopt`（发布包 `2646688`）把 compose 起的容器记为 `legacy-8f2f3756…`（v2.4.1），预发布记录与已验列表保留，旧状态文件留作 `releases.json.bak-pre-adopt`；生产 nginx 站点文件换成共用片段写法（Jason 亲手执行：先备份到 `/root/www.antelacus.com.bak-20260929`，`nginx -t` 通过后 reload），公网 `/en`、`/en/posts`、`/og.png`、`/admin/login` 均 200，安全头与 CSP 照旧、无 `noindex`，线上文件 = 仓库
 
 **评审发现登记**（Codex 发布前审查，xhigh，最终树；J1 `release.sh`+`decide.mjs`、J2 `production.yml`+`.github/actions/vps`、J3 `admin_read.sql`+`admin-auth.ts`、J4 REQ 对验收测试；引文已抽核）：
 - J1-F01 · MUST：预发布与生产各持一把锁，却读写同一个状态文件 —— status: fixed：一把全局锁，拿不到则等待——演练 R4：两次 restart 同时发起，B 在 A 结束后才开始
@@ -187,8 +188,8 @@
 - S-2 · SHOULD：`~/.cache/antelacus-release/` 下的发布包只增不减 —— status: fixed：`release.sh` 部署或回滚后只留最近 10 个——证据在下一次部署
 
 **Phase 6 boxes**（合并 ≠ 发布）：
-- [ ] 切换准备（合并前，Claude）：`release.sh production adopt` 收编 compose 起的容器（旧镜像记为 legacy，留作回滚目标）；生产 nginx 站点文件换成共用片段写法，`nginx -t`、reload，公网 200 与安全头照旧；核对生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（TD-023）
-- [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并
+- [x] 切换准备（合并前，Claude）：`release.sh production adopt` 收编 compose 起的容器（旧镜像记为 legacy，留作回滚目标）；生产 nginx 站点文件换成共用片段写法，`nginx -t`、reload，公网 200 与安全头照旧；核对生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（TD-023）
+- [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并（#14 已开，`/code-review` 已处置）
 - [ ] 真实发布完全照 `docs/DEPLOYMENT.md` 执行（§5.11-a）：*Production* 全绿（promote、verify、tag、purge、auth），公网构建标识 = 合并提交的键，打出 `v2.5.0`
 - [ ] Jason 重新登录生产后台：新读法下看得到草稿、保存成功
 - [ ] CHANGELOG 条目
