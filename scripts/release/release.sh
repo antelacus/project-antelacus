@@ -2,6 +2,7 @@
 # The one entry point for putting an image into service on the VPS (release-pipeline DESIGN §2.1, §4, §6).
 #   release.sh <staging|production> deploy <key> [<sha>] [<version>]
 #   release.sh staging verified <key>        — staging-check passed: production may now run this image
+#   release.sh <staging|production> restart     — the running image again, e.g. after its env file changed
 #   release.sh <staging|production> status
 #   release.sh production adopt              — rebuild the state file from the running container
 # CI sends this directory (scripts/release/ and supabase/migrations/ of the commit being deployed) and runs
@@ -23,7 +24,7 @@ case "$ENV_NAME" in
               # A staging fault must never starve production (REQ §6).
               LIMITS=(--memory 768m --cpus 1 --pids-limit 256) ;;
   production) NAME=antelacus;         PORT=3002; SCRATCH=3012; ENV_FILE="$CHECKOUT/.env"; LIMITS=() ;;
-  *) echo "usage: release.sh <staging|production> <deploy|verified|status|adopt> …" >&2; exit 2 ;;
+  *) echo "usage: release.sh <staging|production> <deploy|restart|verified|status|adopt> …" >&2; exit 2 ;;
 esac
 
 refuse() { echo "release: $*" >&2; exit 1; }
@@ -67,10 +68,18 @@ healthy() { # <port> <expected key or "">
 }
 
 run_container() { # <name> <port> <key>
+  # docker --env-file keeps quotes as part of the value; the VPS files are dotenv. A normalised copy, readable
+  # by this user only, exists just long enough for docker to read it.
+  local envfile status=0
+  envfile="$(mktemp "$STATE_DIR/env.XXXXXX")"
+  node -e 'process.stdout.write(require("fs").readFileSync(process.argv[1], "utf8"))' "$ENV_FILE" \
+    | node --input-type=module -e "import { dockerEnv } from '$HERE/decide.mjs'; let t = ''; process.stdin.on('data', (c) => t += c).on('end', () => process.stdout.write(dockerEnv(t)));" > "$envfile"
   docker run --detach --name "$1" --restart unless-stopped \
-    --publish "127.0.0.1:$2:3000" --env-file "$ENV_FILE" \
+    --publish "127.0.0.1:$2:3000" --env-file "$envfile" \
     --log-driver json-file --log-opt max-size=10m --log-opt max-file=3 \
-    "${LIMITS[@]}" "antelacus:$3" >/dev/null
+    "${LIMITS[@]}" "antelacus:$3" >/dev/null || status=$?
+  rm -f "$envfile"
+  return "$status"
 }
 
 check_migrations() {
@@ -90,7 +99,7 @@ check_migrations() {
 }
 
 deploy() {
-  local key="${1:?usage: release.sh $ENV_NAME deploy <key> [<sha>] [<version>]}" sha="${2:-}" version="${3:-}"
+  local key="${1:?usage: release.sh $ENV_NAME deploy <key> [<sha>] [<version>]}" sha="${2:-}" version="${3:-}" force="${4:-}"
   local state id serving
   state="$(state_or_refuse)"
   id="$(image_id "$key")" || refuse "no image antelacus:$key on this machine"
@@ -106,7 +115,7 @@ deploy() {
   check_migrations
 
   serving="$(docker inspect --format '{{.Image}}' "$NAME" 2>/dev/null || true)"
-  if [[ "$serving" == "$id" ]] && [[ "$(decide shouldDeploy "{\"serving\":\"$(field "$state" "$ENV_NAME.key")\",\"next\":\"$key\"}")" == false ]]; then
+  if [[ -z "$force" && "$serving" == "$id" ]] && [[ "$(decide shouldDeploy "{\"serving\":\"$(field "$state" "$ENV_NAME.key")\",\"next\":\"$key\"}")" == false ]]; then
     step "already serving $key"; echo "serving $key"; return 0
   fi
 
@@ -186,10 +195,19 @@ adopt() {
   step "adopted $NAME as antelacus:$key (v$version)"
 }
 
+restart() {
+  local state key
+  state="$(state_or_refuse)"
+  key="$(field "$state" "$ENV_NAME.key")"
+  [[ -n "$key" ]] || refuse "no recorded $ENV_NAME release to restart"
+  deploy "$key" "$(field "$state" "$ENV_NAME.sha")" "$(field "$state" "$ENV_NAME.version")" force
+}
+
 case "$COMMAND" in
   deploy)   deploy "${@:3}" ;;
+  restart)  restart ;;
   verified) verified "${@:3}" ;;
   status)   status ;;
   adopt)    adopt ;;
-  *) echo "usage: release.sh <staging|production> <deploy|verified|status|adopt> …" >&2; exit 2 ;;
+  *) echo "usage: release.sh <staging|production> <deploy|restart|verified|status|adopt> …" >&2; exit 2 ;;
 esac

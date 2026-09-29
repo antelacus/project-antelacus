@@ -77,12 +77,32 @@ export function pruneImages({ images, state }) {
   return images.filter((key) => !protectedKeys.has(key));
 }
 
+/**
+ * An env file as `docker run --env-file` needs it. Docker takes every character after `=` literally, while
+ * the VPS files follow dotenv (quoted values, `export`, comments) — read as-is, a quoted URL is invalid.
+ */
+export function dockerEnv(text) {
+  const lines = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const match = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
+    if (!match) continue;
+    let value = match[2];
+    const quoted = /^(['"])(.*)\1$/.exec(value);
+    if (quoted) value = quoted[2];
+    else value = value.replace(/\s+#.*$/, '');
+    lines.push(`${match[1]}=${value}`);
+  }
+  return lines.length ? `${lines.join('\n')}\n` : '';
+}
+
 /** Whether a PR body ticks the signed-in look at staging (REQ §5.4-d): a checked box naming staging and the admin. */
 export function checklistTicked(body) {
   return body.split('\n').some((line) => /^\s*[-*] \[[xX]\]/.test(line) && /staging/i.test(line) && /admin/i.test(line));
 }
 
-const DECISIONS = { checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
+const DECISIONS = { dockerEnv, checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [name, input] = process.argv.slice(2);

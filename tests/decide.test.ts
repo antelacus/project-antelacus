@@ -51,3 +51,24 @@ test('pruning spares kept, verified, staging and production images', async () =>
   const state = { production: entry('p'), kept: [entry('p'), entry('k')], staging: entry('s'), verified: [{ key: 'v', imageId: 'x' }] };
   assert.deepEqual(pruneImages({ images: ['p', 'k', 's', 'v', 'old1', 'old2'], state }), ['old1', 'old2']);
 });
+
+test('an env file reaches docker without the quotes, comments and export of dotenv', async () => {
+  const { dockerEnv } = await decide();
+  const text = [
+    '# a comment',
+    'NEXT_PUBLIC_SUPABASE_URL="https://x.supabase.co"',
+    "KEY='single quoted'",
+    'export PORT=3000',
+    'BARE=value # trailing comment',
+    'HASH="a#b"',
+    '',
+    'not a line',
+  ].join('\n');
+  assert.equal(dockerEnv(text), [
+    'NEXT_PUBLIC_SUPABASE_URL=https://x.supabase.co',
+    'KEY=single quoted',
+    'PORT=3000',
+    'BARE=value',
+    'HASH=a#b',
+  ].join('\n') + '\n');
+});
