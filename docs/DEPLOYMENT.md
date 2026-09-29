@@ -12,7 +12,7 @@ The site runs on one VPS as a Docker container behind nginx, with Cloudflare in 
 
 ## Deploy
 
-A push to `main` deploys: the gate (`.github/workflows/check.yml`) must pass, then `.github/workflows/deploy.yml` SSHes to the VPS and runs `docker compose up -d --build`, then checks health. Nothing unpushed reaches the server. Verify a deploy by comparing the served SHA with `main`.
+A push to any branch but `main` runs `.github/workflows/branch.yml`: the gate, then one image per build input key — built on the runner, never on the VPS, sent over the deploy SSH key and loaded there — then staging, then `staging-check` against `https://staging.antelacus.com` (through Access, nginx and Cloudflare). When that passes, the image is recorded as verified. A merge to `main` runs `.github/workflows/production.yml`: it computes the merge commit's key and has `release.sh production deploy` start that image, which it refuses unless staging verified exactly that image; then it checks the public site. The run summary of each workflow lists every step's duration. Nothing unpushed reaches the server.
 
 First-time setup on the VPS: copy `.env.example` to `.env` and fill it in; `grep '^NEXT_PUBLIC_' .env > .env.staging`; as root, copy `deploy/nginx/antelacus-site.conf` into `/etc/nginx/snippets/` and the two site files into `sites-available`, enable them, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`. A container already running as `antelacus` is taken over with `scripts/release/release.sh production adopt`.
 

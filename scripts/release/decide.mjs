@@ -77,7 +77,12 @@ export function pruneImages({ images, state }) {
   return images.filter((key) => !protectedKeys.has(key));
 }
 
-const DECISIONS = { retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
+/** Whether a PR body ticks the signed-in look at staging (REQ §5.4-d): a checked box naming staging and the admin. */
+export function checklistTicked(body) {
+  return body.split('\n').some((line) => /^\s*[-*] \[[xX]\]/.test(line) && /staging/i.test(line) && /admin/i.test(line));
+}
+
+const DECISIONS = { checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [name, input] = process.argv.slice(2);

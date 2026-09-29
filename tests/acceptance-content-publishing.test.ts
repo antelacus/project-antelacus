@@ -34,8 +34,8 @@ const renderToHtml = async (markdown: string): Promise<string> => {
 // ---------- §5.1 dependency upgrade ----------
 
 test('acceptance §5.1-a the gate audits production dependencies', () => {
-  const gate = read('.github/workflows/check.yml');
-  assert.match(gate, /npm audit --omit=dev/, 'check.yml has no production audit step');
+  const gate = read('.github/workflows/branch.yml');
+  assert.match(gate, /npm audit --omit=dev/, 'branch.yml has no production audit step');
 });
 
 // ---------- §5.2 body rendering ----------
@@ -175,8 +175,8 @@ test('acceptance §5.5-c the canonical origin is one constant with www', () => {
 
 test('acceptance §5.5-d the image Node major equals the gate\'s and is still maintained', () => {
   const image = /^FROM node:(\d+)/m.exec(read('Dockerfile'))?.[1];
-  const gate = /node-version:\s*(\d+)/.exec(read('.github/workflows/check.yml'))?.[1];
-  assert.equal(image, gate, 'Dockerfile and check.yml disagree on Node');
+  const gate = /node-version:\s*(\d+)/.exec(read('.github/workflows/branch.yml'))?.[1];
+  assert.equal(image, gate, 'Dockerfile and branch.yml disagree on Node');
   // Node 20 left maintenance in April 2026; 22 is maintained to April 2027, 24 is the active LTS.
   assert.ok(Number(image) >= 22, `node:${image} is past end-of-life`);
 });

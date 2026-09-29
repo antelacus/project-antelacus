@@ -1,0 +1,88 @@
+name: Production
+
+# A push to main is a promotion (release-pipeline REQ §5.5): no gate and no build here — the merge commit's
+# build input key names an image staging already verified, and release.sh refuses any other. Then the
+# public site is checked. Only documentation changed: nothing to deploy.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+permissions: {}
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      # 钉死到提交 SHA：标签可以被改指向别的代码，SHA 不能
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      # Only the key stage runs: it copies the context and hashes it. The application is never built here.
+      - id: key
+        name: Build input key of the merge commit
+        run: |
+          docker build --target key --output type=local,dest=keyout \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY .
+          echo "key=$(cat keyout/BUILD_KEY)" >> "$GITHUB_OUTPUT"
+          echo "build input key: $(cat keyout/BUILD_KEY)"
+      - name: Deploy the verified image
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a plain version: $version" >&2; exit 1; }
+          tar -cz scripts/release supabase/migrations | ssh vps "set -e; d=\$HOME/.cache/antelacus-release/$SHA; rm -rf \$d; mkdir -p \$d; tar -xz -C \$d; bash \$d/scripts/release/release.sh production deploy ${{ steps.key.outputs.key }} $SHA $version"
+
+  # Through Cloudflare and nginx, as a visitor arrives (REQ §5.5-b).
+  verify:
+    needs: promote
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      BASE_URL: https://www.antelacus.com
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Production serves this build
+        run: RELEASE_ENV=production EXPECTED_KEY=${{ needs.promote.outputs.key }} node --test tests/runtime/release.runtime.mjs
+      - name: Runtime suite with the database
+        run: RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs
+
+  timings:
+    if: always()
+    needs: [promote, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts/release
+      - name: Step timings to the run summary
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs" | node scripts/release/timings.mjs >> "$GITHUB_STEP_SUMMARY"

@@ -2,6 +2,7 @@
 //   BASE_URL=http://localhost:3000 npm run test:runtime          — a local build; pages that need the database are left out
 //   BASE_URL=https://www.antelacus.com RUNTIME_DB=1 npm run test:runtime — production, everything
 //   scripts/ui-check.sh                                          — everything, against the seeded local stack
+//   BASE_URL=https://staging.antelacus.com RUNTIME_DB=1 CF_ACCESS_CLIENT_ID=… CF_ACCESS_CLIENT_SECRET=… — staging (branch.yml)
 // Every public page reads the database; without one, only the proxy, the 404 page and the admin render.
 // A build's route table is not evidence of cacheability; these response headers are.
 //
@@ -21,7 +22,11 @@ const POST_SLUG = '2025-07-13-llm-note';
 // A page in the site's own document without the database: the 404.
 const SHELL = '/essays';
 
-const get = (path, headers = {}) => fetch(BASE + path, { redirect: 'manual', headers });
+// Staging sits behind Cloudflare Access: the service token, when given, rides on every request.
+const ACCESS = process.env.CF_ACCESS_CLIENT_ID
+  ? { 'CF-Access-Client-Id': process.env.CF_ACCESS_CLIENT_ID, 'CF-Access-Client-Secret': process.env.CF_ACCESS_CLIENT_SECRET ?? '' }
+  : {};
+const get = (path, headers = {}) => fetch(BASE + path, { redirect: 'manual', headers: { ...ACCESS, ...headers } });
 // A tag in use wherever the suite runs (production has no `seed`), plain enough to need no encoding.
 const someTag = async () => {
   const tags = (await (await get('/api/search-index')).json()).flatMap((item) => item.tags);

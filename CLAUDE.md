@@ -11,7 +11,7 @@ The scripts are in `package.json`. What the names do not tell you:
 - `npm run build` must succeed without reaching Supabase; the gate builds with placeholder env vars to prove it.
 - `npm run test:ui` — the UI gate, `scripts/ui-check.sh`: a local Supabase stack (Docker; on a Mac it starts colima if needed) seeded from `supabase/seed.sql`, a build against it, then `tests/ui/` and the runtime suite with the database. It tears down everything it started and refuses any address off this machine. Takes a few minutes. `UI_SERVE=1 npm run test:ui` serves the same seeded site for a look by hand instead of checking it.
 
-**The gate** is `.github/workflows/check.yml` (jobs `check` and `ui`): every push and PR runs it, and `.github/workflows/deploy.yml` deploys only after it passes. Before pushing, run what it runs first: `npm run lint && npx tsc --noEmit && npm run test`. At a version close, also `python3 scripts/check_doc_budget.py` (retired from the gate, still the budget).
+**The gate** is the `check` and `ui` jobs of `.github/workflows/branch.yml`, run once per push to any branch but `main`; the same workflow then builds the image and puts it on staging, and its `staging-check` job is required to merge. `.github/workflows/production.yml` promotes that image when `main` moves. Before pushing, run the fast part yourself: `npm run lint && npx tsc --noEmit && npm run test`; the UI gate is CI's. At a version close, also `python3 scripts/check_doc_budget.py` (retired from the gate, still the budget).
 
 ## Architecture
 
@@ -63,7 +63,7 @@ The public site's styles are all in `src/app/globals.css`, never in its componen
 
 Variables: `.env.example`. The real `.env` exists only on the VPS. `SUPABASE_SERVICE_ROLE_KEY` is server-only; nothing secret goes in a `NEXT_PUBLIC_*` variable.
 
-A push to `main` deploys: gate → SSH to the VPS → `docker compose up -d --build` → health check. Details: `docs/DEPLOYMENT.md`, `deploy/nginx/www.antelacus.com.conf`.
+A push to a branch deploys staging; a merge to `main` promotes the image staging verified — no build on the VPS, ever (`scripts/release/release.sh`). The release, step by step: `docs/DEPLOYMENT.md`.
 
 **Production migrations are Claude's to apply and check, without asking** (Jason's standing ruling), through the Supabase MCP in `.mcp.json` — writable, scoped to this project. Apply each one before pushing the code that needs it, every time in this order:
 

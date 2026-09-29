@@ -59,7 +59,7 @@ test('acceptance §5.1-b the build input key changes with build inputs only', as
   assert.match(read('Dockerfile'), /AS key\b/, 'no key stage');
 });
 
-test('acceptance §5.1-c no deploy path builds on the VPS', { todo: 'Batch 5' }, () => {
+test('acceptance §5.1-c no deploy path builds on the VPS', () => {
   for (const path of ['scripts/release/release.sh', '.github/workflows/production.yml']) {
     const source = read(path);
     // Only the key stage may run where production is decided: it copies the context and hashes it.
@@ -91,11 +91,11 @@ test('acceptance §5.3-c staging refuses an env file that holds the service-role
 
 // ---------- §5.4 预发布检查与合并条件 ----------
 
-test('acceptance §5.4-c the PR template asks for the signed-in look at staging', { todo: 'Batch 5' }, () => {
+test('acceptance §5.4-c the PR template asks for the signed-in look at staging', () => {
   assert.match(read('.github/pull_request_template.md'), /- \[ \][^\n]*staging[^\n]*admin/i);
 });
 
-test('acceptance §5.4-d the PR check is red until the signed-in look is ticked', { todo: 'Batch 5' }, async () => {
+test('acceptance §5.4-d the PR check is red until the signed-in look is ticked', async () => {
   const { checklistTicked } = await decide();
   const template = read('.github/pull_request_template.md');
   assert.equal(checklistTicked(template), false, 'the untouched template passes');
@@ -106,10 +106,13 @@ test('acceptance §5.4-d the PR check is red until the signed-in look is ticked'
 
 // ---------- §5.5 晋升与部署后核验 ----------
 
-test('acceptance §5.5-a a push to main runs no gate and builds nothing', { todo: 'Batch 5' }, () => {
+test('acceptance §5.5-a a push to main runs no gate and builds nothing', () => {
   const source = read('.github/workflows/production.yml');
   assert.match(source, /branches:\s*\[\s*main\s*\]/);
-  assert.doesNotMatch(source, /npm run (build|lint|test)|npx tsc|ui-check|docker build|uses: \.\/\.github\/workflows\/branch\.yml/);
+  assert.doesNotMatch(source, /npm run (build|lint|test)|npx tsc|ui-check|uses: \.\/\.github\/workflows\/branch\.yml/);
+  // The key stage alone may run: it copies the context and hashes it.
+  const builds = source.split('\n').filter((line) => /docker build/.test(line) && !/--target key\b/.test(line));
+  assert.deepEqual(builds, [], 'production.yml builds the application');
   assert.match(read('.github/workflows/branch.yml'), /branches-ignore:\s*\[\s*main\s*\]/);
 });
 
@@ -229,7 +232,7 @@ test('acceptance §5.8-d the service-role client is reached only from write path
 
 // ---------- §5.9 闸门只跑一遍 ----------
 
-test('acceptance §5.9-a the gate runs once per push, never for a PR', { todo: 'Batch 5' }, () => {
+test('acceptance §5.9-a the gate runs once per push, never for a PR', () => {
   const workflows = readdirSync(join(ROOT, '.github/workflows'));
   assert.ok(!workflows.includes('check.yml') && !workflows.includes('deploy.yml'), 'the old workflows are still there');
   const branch = read('.github/workflows/branch.yml');
@@ -237,13 +240,13 @@ test('acceptance §5.9-a the gate runs once per push, never for a PR', { todo: '
   assert.doesNotMatch(branch, /pull_request/);
 });
 
-test('acceptance §5.9-b the gate runs the database function check and checks its image', { todo: 'Batch 5' }, () => {
+test('acceptance §5.9-b the gate runs the database function check and checks its image', () => {
   const branch = read('.github/workflows/branch.yml');
   assert.match(branch, /scripts\/db-function-check\.sh/);
   assert.match(branch, /image-check\.sh plant[\s\S]*docker build[\s\S]*image-check\.sh verify/, 'the image job does not check its image');
 });
 
-test('acceptance §5.9-c both workflows write their step timings to the run summary', { todo: 'Batch 5' }, () => {
+test('acceptance §5.9-c both workflows write their step timings to the run summary', () => {
   for (const path of ['.github/workflows/branch.yml', '.github/workflows/production.yml']) {
     assert.match(read(path), /GITHUB_STEP_SUMMARY/, path);
   }
