@@ -54,8 +54,14 @@ write_state() { printf '%s\n' "$1" > "$STATE.tmp" && mv "$STATE.tmp" "$STATE"; }
 image_id() { docker image inspect --format '{{.Id}}' "antelacus:$1" 2>/dev/null; }
 
 healthy() { # <port> <expected key or "">
-  local port="$1" expected="$2"
-  curl --silent --fail --output /dev/null --retry 30 --retry-connrefused --retry-delay 1 --max-time 10 "http://127.0.0.1:$port/og.png" || return 1
+  local port="$1" expected="$2" up=0
+  # Our own loop, not curl --retry: Docker's port proxy accepts the connection before the app listens and
+  # then resets it (curl exit 56), which curl does not count as worth retrying.
+  for _ in $(seq 1 60); do
+    if curl --silent --fail --output /dev/null --max-time 10 "http://127.0.0.1:$port/og.png"; then up=1; break; fi
+    sleep 1
+  done
+  (( up )) || return 1
   [[ -z "$expected" ]] && return 0
   [[ "$(curl --silent --fail --max-time 10 "http://127.0.0.1:$port/api/build")" == "{\"key\":\"$expected\"}" ]]
 }
