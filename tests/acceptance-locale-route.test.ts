@@ -48,10 +48,35 @@ test('routing-slimdown §5.2 rule 8 under a language, an address that cannot exi
     assert.deepEqual(decide({ pathname }), notFoundIn('fr'), pathname);
   }
   assert.deepEqual(decide({ pathname: '/zh-HK/garbage' }), notFoundIn('zh-HK'));
-  // What can exist passes: the home page, every section's list, and (until content is looked up) details and tags.
-  for (const pathname of ['/fr', '/fr/', '/fr/posts', '/fr/posts/', '/fr/about', '/fr/tags', '/fr/posts/ok-slug', '/fr/tags/Some%20Tag',
-    '/fr/tags/%E4%B8%AD%E6%96%87', '/fr/tags/a%2Fb']) {
-    assert.deepEqual(decide({ pathname }), pass, pathname);
+  // The home page and every section's list pass; whether a piece, a tag or the about page exists is looked up.
+  for (const pathname of ['/fr', '/fr/', '/fr/posts', '/fr/posts/', '/fr/tags', '/fr/tags/']) assert.deepEqual(decide({ pathname }), pass, pathname);
+  const lookup = (item: object) => ({ kind: 'lookup', locale: 'fr', item });
+  assert.deepEqual(decide({ pathname: '/fr/about' }), lookup({ section: 'about' }));
+  assert.deepEqual(decide({ pathname: '/fr/about/' }), lookup({ section: 'about' }));
+  for (const section of ['posts', 'notes', 'gallery', 'projects']) {
+    assert.deepEqual(decide({ pathname: `/fr/${section}/ok-slug` }), lookup({ section, slug: 'ok-slug' }), section);
+  }
+  // A tag is decoded once, as the tag page decodes it.
+  assert.deepEqual(decide({ pathname: '/fr/tags/Some%20Tag' }), lookup({ section: 'tags', tag: 'Some Tag' }));
+  assert.deepEqual(decide({ pathname: '/fr/tags/%E4%B8%AD%E6%96%87' }), lookup({ section: 'tags', tag: '中文' }));
+  assert.deepEqual(decide({ pathname: '/fr/tags/a%2Fb' }), lookup({ section: 'tags', tag: 'a/b' }));
+  assert.deepEqual(decide({ pathname: '/fr/tags/100%25' }), lookup({ section: 'tags', tag: '100%' }));
+});
+
+test('routing-slimdown §5.2 rule 8 whether looked-up content exists is read from the content index', async () => {
+  const { isPublished, parseRouteIndex } = await import('../src/i18n/route-decision');
+  const index = { posts: ['a-post'], notes: [], gallery: ['an-album'], projects: [], tags: ['中文', 'a/b'], about: false };
+  assert.equal(isPublished({ section: 'posts', slug: 'a-post' }, index), true);
+  assert.equal(isPublished({ section: 'posts', slug: 'an-album' }, index), false, 'a slug of another type');
+  assert.equal(isPublished({ section: 'gallery', slug: 'an-album' }, index), true);
+  assert.equal(isPublished({ section: 'tags', tag: '中文' }, index), true);
+  assert.equal(isPublished({ section: 'tags', tag: 'a' }, index), false);
+  assert.equal(isPublished({ section: 'about' }, index), false);
+  assert.equal(isPublished({ section: 'about' }, { ...index, about: true }), true);
+  // An index of the wrong shape is no index: the proxy then lets the page answer (DESIGN §6).
+  assert.deepEqual(parseRouteIndex(index), index);
+  for (const bad of [null, {}, 'html', [], { ...index, posts: null }, { ...index, tags: [1] }, { ...index, about: 'yes' }]) {
+    assert.equal(parseRouteIndex(bad), null, JSON.stringify(bad));
   }
 });
 

@@ -74,7 +74,7 @@
 - 记住的选择：cookie `preferred_locale`，值为支持的语言代码；`Path=/`、一年、`SameSite=Lax`、`Secure`。**只由语言切换控件写，只由中间件读**——页面与布局不得读它。
 - `isPublished(item: ContentItem, index: RouteIndex): boolean`（`route-decision.ts`）：纯函数。
 - `GET /api/route-index` → `RouteIndex = { posts: string[]; notes: string[]; gallery: string[]; projects: string[]; tags: string[]; about: boolean }`，`Cache-Control: no-store`；读取失败 → 500 与通用 JSON，不含数据库原文（同 `/api/search-index`）。内容都是已公开的（sitemap、搜索索引里本来就有）。
-- proxy 取索引：`http://<回环主机>:<PORT>/api/route-index`，`cache: 'no-store'`，500 毫秒超时；返回的 JSON 先校验形状（六个字段各是字符串数组或布尔），不合即按「取不到」处理；回环主机在 `HOSTNAME` 为 `localhost` 时用 `localhost`，否则用 `127.0.0.1`（§8）。
+- proxy 取索引：`<本服务的地址>/api/route-index`，地址取 Next 启动后写入的 `__NEXT_PRIVATE_ORIGIN`（Next 自己向本机取 404 页也用它），没有则 `http://localhost:<PORT>`；`cache: 'no-store'`，500 毫秒超时；返回的 JSON 先校验形状（六个字段各是字符串数组或布尔），不合即按「取不到」处理；取不到时记一行日志、放行（§6）。
 - 语言请求头 `x-site-locale`：只由 proxy 写，且 proxy 先删掉请求里原有的同名头；`global-not-found` 读它，不是支持的语言就当没有。
 - 缓存标签：`notes`、`posts`、`gallery`、`projects`、`pages`。写入方在写成功后使对应标签失效；内容索引经同一批标签读取。
 
@@ -116,7 +116,7 @@ N/A —— 本版不改数据库结构。
 - **Next.js**：根布局里调用 `notFound()` 是框架不鼓励的用法（15.5 的开发模式有专门的守卫，Next 16 禁止）。404 不得建立在它之上。
 - **Next.js**：页面里调用 `notFound()` 时，生产构建返回 404 状态，但文档是空壳 `<html id="__next_error__">`，`not-found.tsx` 的内容只在脚本数据里、由浏览器渲染：无 `lang`、无标题，不执行 JavaScript 就是空白，执行时冷缓存下要数秒（实测生产 3.6–17 秒，正常页面 0.7–1.1 秒）。与布局结构无关：最小的标准应用在 15.5、16.0–16.3.7、16.4 canary 上都复现，Vercel 自己的站点也如此；对爬虫的 UA 同样。上游 #62228（2024 年起未修）、#99287。匹配不到路由的地址（`global-not-found`）不受影响，是完整的服务端文档。
 - **Next.js**：`unstable_cache` 在 proxy 里不缓存——每次调用都执行（实测）。proxy 需要的数据经本机 HTTP 从路由处理器取，那里缓存照常生效。
-- **Next.js**：`next start -p` 与 standalone 的 `server.js` 都把端口放在 `process.env.PORT`，proxy 能读到（实测）。proxy 发往本机的请求照样经过 proxy，`/api/…` 在「不参与语言路由」之列，不会循环。
+- **Next.js**：`next start` 与 standalone 的 `server.js` 在开始监听后把端口写进 `process.env.PORT`、把自身地址写进 `process.env.__NEXT_PRIVATE_ORIGIN`（`start-server.js`；私有变量，升级时可能改名——改了则 proxy 退到 `localhost:<PORT>`，界面闸门的 §5.4-a 会发现）。proxy 发往本机的请求照样经过 proxy，`/api/…` 在「不参与语言路由」之列，不会循环。
 - **Next.js**：`global-not-found` 可以读请求头（`headers()`）；proxy 的 `NextResponse.rewrite(url, { request: { headers } })` 带过去的头在那里可见（实测）。改写的目标必须匹配不到任何路由——一段的地址会被 `[locale]` 接住（实测得到首页）。
 - **next-intl**：在 `global-not-found` 里先 `setRequestLocale`，再套上翻译上下文，导航（服务端取文案、客户端的语言切换）照常渲染（实测）。
 - **Next.js**：`global-not-found` 是 15.5 的实验性功能（`experimental.globalNotFound`），是官方为「多个根布局」与「顶层动态段作根布局」给出的 404 方案——本项目两条都占。它不经任何布局，须自带整份文档。运行时验收断言这张页面是站点自己的页面；升级 Next 时若行为有变，闸门会红。

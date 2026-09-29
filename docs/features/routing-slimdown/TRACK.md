@@ -36,13 +36,13 @@
 验收测试在 Phase 2 写红，`todo` 标着批次：`tests/runtime/acceptance.runtime.mjs`（routing-slimdown §5.2-i、content-publishing §5.4-a/d）、`tests/acceptance-visual-upgrade.test.ts`（§5.5-c）、`tests/acceptance-release-pipeline.test.ts`（§5.7-e）。§5.5-d、§5.7-e 的实跑、§5.8-e 在第三区记证据。
 
 ### Batch 1 — 按语言的 404 文档
-- 状态：in-progress — 代码与单元测试完成；本机无库构建上 §5.4-d 去 todo、§5.2-i 无库部分通过；待 CI 的界面闸门
+- 状态：done `24235e4` — 本机无库构建上 §5.4-d 去 todo、§5.2-i 无库部分通过；DESIGN §10 Q1 已答（导航照常渲染）
 - 范围：`src/components/LocaleShell.tsx`（新）、`src/app/[locale]/layout.tsx`、`src/app/global-not-found.tsx`、`src/i18n/route-decision.ts`（「不存在」带语言；未知栏目、多余层级由它判）、`src/proxy.ts`（语言请求头）+ 测试 · 覆盖 routing-slimdown §5.2 规则 8 的「未知栏目、格式不对」、content-publishing §5.4-d；关闭 DESIGN §10 Q1
 - 验收判据：§5.4-d 去 todo 且绿；§5.2-i 的无库部分（`/fr/no-such-section`、`/fr/posts/Bad_Slug`）为法语、服务端文档；公开页面仍可缓存（响应头）
 - 依赖：none
 
 ### Batch 2 — 内容索引与 proxy 判定
-- 状态：open
+- 状态：done（本提交）— 本机界面闸门 35 过、运行时 25 过、0 todo；不变量 10 植入即红
 - 范围：`src/app/api/route-index/route.ts`（新）、`route-decision.ts`（`lookup`、`isPublished`）、`src/proxy.ts`（回环取索引，失败放行）、DESIGN §7-10 的新测试；TECHNICAL_DEBT 登记本结构为已接受的临时方案（退役条件：上游修好）、删 TD-025 · 覆盖 §5.2-i 全部、content-publishing §5.4-a
 - 验收判据：§5.2-i、§5.4-a 去 todo 且绿（界面闸门，有库）；索引不可达时存在的内容照常 200；20 个未知 slug 不增加数据库读取（§5.4-d 原判据）
 - 依赖：Batch 1

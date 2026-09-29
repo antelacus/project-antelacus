@@ -41,7 +41,7 @@ Bodies are Markdown, never executed: raw HTML and JSX render as text, links are 
 - **Public pages stay cacheable**: nothing rendered under `src/app/[locale]/` reads cookies or headers, and every layout and page there calls `setRequestLocale`. Evidence of cacheability is a running server's response headers — the build's route table is not.
 - A new public section = a directory under `src/app/[locale]/` **and** an entry in `localizedSections`; without the entry its unprefixed URL is a 404 instead of a redirect.
 - A new top-level route or file in `public/` must be registered in `src/i18n/routing.ts` too: the proxy answers 404 for any first segment it does not know, compared by whole segment, never by prefix (a test enforces the registry).
-- An unknown path gets `src/app/global-not-found.tsx` (an experimental Next flag in `next.config.ts`); an unknown slug or tag, or an about page with no version, gets `src/app/[locale]/not-found.tsx`. Do not build behaviour on `notFound()` in a root layout.
+- Every 404 is answered by `src/app/global-not-found.tsx` (an experimental Next flag in `next.config.ts`), in the address's language: the proxy decides it before any page runs — by path shape, and for slugs, tags and the about page by the content index `/api/route-index`. A page's own `notFound()` is never server-rendered (Next #62228, TD-027), so it is only a backstop: a new page that can 404 must be a shape `src/i18n/route-decision.ts` looks up (a test enforces it).
 - Share images (`og.png` routes) keep their unprefixed URLs — external platforms have cached them.
 - UI strings: `src/messages/<locale>.json`; a key missing from a locale falls back to `en`. Content is single-source — every locale shows the same article.
 

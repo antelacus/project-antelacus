@@ -212,7 +212,7 @@ const assertSite404 = async (res, path) => {
   assert.match(html, /<h1 class="scroll-title">[^<]+<\/h1>/, `${path}: not the site's 404 page`);
 };
 
-test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', { todo: 'v2.5.1 Batch 2: the 404 is the error document (TD-025)' }, async () => {
+test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', async () => {
   if (!WITH_DB) return;
   await assertSite404(await get('/en/posts/this-slug-does-not-exist'), '/en/posts/this-slug-does-not-exist');
 });
@@ -241,7 +241,7 @@ test('§5.4-d a malformed slug is a 404 without the database', async () => {
 });
 
 // routing-slimdown REQ §5.2 rule 8: a 404 under a language prefix is in that language, whole without JavaScript.
-test('routing-slimdown §5.2-i a 404 under a language prefix is that language\'s page, server-rendered', { todo: 'v2.5.1 Batch 1 (unknown section, malformed slug), Batch 2 (unknown slug, unknown tag)' }, async () => {
+test('routing-slimdown §5.2-i a 404 under a language prefix is that language\'s page, server-rendered', async () => {
   const paths = ['/fr/no-such-section', '/fr/posts/Bad_Slug', ...(WITH_DB ? ['/fr/posts/this-slug-does-not-exist', '/fr/tags/no-such-tag'] : [])];
   for (const path of paths) {
     const res = await get(path);

@@ -93,3 +93,24 @@ test('invariant 8 — every top-level entry of src/app and public/ is registered
   assert.ok(entries.length >= 8, `found ${entries.length} entries — the scan looks broken`);
   assert.deepEqual(entries.filter((name) => !known.has(name)), []);
 });
+
+test('invariant 10 — every page under [locale] that can 404 names content the proxy looks up first', () => {
+  // A page's own notFound() is never rendered on the server (routing-slimdown DESIGN §8): each one must be a
+  // shape route-decision turns into a lookup, so the proxy answers the 404 before the page runs.
+  const lookedUp = new Set([
+    ...['posts', 'notes', 'gallery', 'projects'].map((section) => `src/app/[locale]/${section}/[slug]/page.tsx`),
+    'src/app/[locale]/tags/[id]/page.tsx',
+    'src/app/[locale]/about/page.tsx',
+  ]);
+  const pages = sourceFiles(join(ROOT, 'src/app/[locale]')).filter((path) => path.endsWith('/page.tsx'));
+  assert.ok(pages.length >= 10, `found ${pages.length} pages under [locale] — the scan looks broken`);
+  const throwing = pages.filter((path) => {
+    let called = false;
+    walk(parse(path), (node) => {
+      if (ts.isCallExpression(node) && node.expression.getText() === 'notFound') called = true;
+    });
+    return called;
+  }).map(rel);
+  assert.deepEqual(throwing.filter((path) => !lookedUp.has(path)), [], 'a page can 404 on something the content index does not cover');
+  assert.ok(throwing.length >= lookedUp.size, 'the scan found fewer 404ing pages than the index covers');
+});
