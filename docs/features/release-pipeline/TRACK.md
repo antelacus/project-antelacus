@@ -146,6 +146,28 @@
 
 **Phase 4 证据**：（Phase 4 填写）
 
+**评审发现登记**（Codex 发布前审查，xhigh，最终树；J1 `release.sh`+`decide.mjs`、J2 `production.yml`+`.github/actions/vps`、J3 `admin_read.sql`+`admin-auth.ts`、J4 REQ 对验收测试；引文已抽核）：
+- J1-F01 · MUST：预发布与生产各持一把锁，却读写同一个状态文件 —— status: open
+- J1-F02 · MUST：切换成功后写状态失败，`promote` 红而不核验、不回滚 —— status: open
+- J1-F03 · MUST：停掉旧容器后改名失败，生产停着 —— status: open
+- J1-F04 · MUST：中断后重试会先删掉唯一的旧容器 —— status: open
+- J1-F05 · MUST：旧容器在公网核验前就被删，回滚用当前 `.env` 重建，`.env` 改坏时退不回 —— status: open
+- J1-F06 · MUST：回滚的收缩步取自发布包里的迁移，而非生产已执行的记录 —— status: open
+- J1-F07 · MUST：回滚不比对保留镜像的镜像 ID —— status: open
+- J1-F08 · MUST：`if` 里调用 `run_container`，环境文件转换失败被吞掉 —— status: open
+- J1-F09 · SHOULD：状态文件损坏时预发布会把它覆盖掉 —— status: open
+- J1-F10 · SHOULD：自动回滚只看上一个镜像，不继续找兼容的 —— status: open
+- J1-F11 · SHOULD：已验列表挤掉后，生产 `restart` 被拒 —— status: open
+- J2-M1 · MUST：分支代码拿得到部署密钥 —— status: open
+- J2-M2 · MUST：手动回滚可以从任意分支触发，用那个分支的脚本与迁移 —— status: open
+- J2-M3 · MUST：`verify` 被取消时不回滚 —— status: open
+- J2-S1 · SHOULD：没有兼容的回滚目标时坏镜像留在线上（REQ 已写明） —— status: open
+- J3-SEC01…04 · SHOULD：撤销角色后旧令牌到期前仍可读草稿；应用与 RLS 对角色的判断在重新登录前不一致；畸形声明报错而非判否；内容表的写权限依赖 Supabase 默认授予（待核） —— status: open
+- J4-RP001 · MUST：§5.11-a 尚无证据 —— status: open
+- J4-RP002 · MUST：§5.7-c 的单元测试只查名称唯一 —— status: open
+- J4-RP003…009 · SHOULD：§5.4-a/b 无仓库内检查；§5.3-b 在非预发布运行时被跳过；§5.10-b「页面上加载」是可选断言；§5.10-d 只查清单成员；§5.9-c 只查变量名；§5.5-e 未断言精确集合；过时的 todo 注释 —— status: open
+- J4-RP010 · NICE：沙盒里 `mkdtemp` 无权限 —— status: open
+
 **Phase 4 自查发现**（Claude，写 Phase 6 清单时）：
 - S-1 · SHOULD：新流程不再更新 VPS 上的检出，cron 运行的 `backup.sh` 等会与仓库脱节 —— status: open（`production.yml` 核验通过后快进检出）
 - S-2 · SHOULD：`~/.cache/antelacus-release/` 下的发布包只增不减 —— status: open（`release.sh` 收尾只留最近 10 个）
