@@ -18,6 +18,10 @@ First-time setup on the VPS: copy `.env.example` to `.env` and fill it in; `grep
 
 Database changes ship as files in `supabase/migrations/`. They are applied to production **before** the code that needs them is deployed; who applies them and how is in the project `CLAUDE.md` (Environment and deployment). `scripts/db-function-check.sh` applies every migration to a throwaway Postgres and exercises the save function; run it after editing a migration.
 
+## Staging access
+
+`staging.antelacus.com` is a proxied DNS record to the VPS, behind a Cloudflare Access application (Zero Trust team `antelacus-ci`, application `antelacus staging`). Two policies: `staging: Jason` lets antelacus@gmail.com in with a one-time email code (24 h sessions); `staging: CI service token` (Service Auth) lets the workflows in with the service token `antelacus-ci`, whose ID and secret are the GitHub secrets `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` — the secret exists only there. A request with neither is redirected to the Access login and never reaches the origin.
+
 ## Cron jobs (as the deploy user)
 
 ```

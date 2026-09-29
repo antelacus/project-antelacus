@@ -130,7 +130,8 @@ push 分支 ─► branch.yml
 - **Cloudflare**：
   - 源站只放行 Cloudflare 的 IP，证书为通配符 `*.antelacus.com`；
   - HTML 页面不被缓存（`cf-cache-status: DYNAMIC`），被缓存的只有 `/og.png` 和 `/images/`（一天），所以经公网核验读到的就是新容器；
-  - Access 免费档就能保护单个子域，CI 用 service token 通过，策略动作必须是 Service Auth；
+  - Access 免费档就能保护单个子域，CI 用 service token 通过，策略动作必须是 Service Auth；团队域名 `antelacus-ci.cloudflareaccess.com`，登录方式为邮箱验证码；
+  - service token 的 Client Secret 只在创建时出现一次：由 Jason 在控制台创建并直接填进 GitHub，不经过 API，免得它进入对话；
   - 清缓存的方式见 §10 Q1；
   - `goodman.antelacus.com` 和本站在同一个 zone 里，所以「清除全部缓存」会连带清掉它。
 - **Supabase**：
