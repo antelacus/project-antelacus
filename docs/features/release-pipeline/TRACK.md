@@ -148,6 +148,7 @@
 
 **Phase 4 证据**：
 - 切换准备（2026-09-29）：生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（数行，未读值）；`release.sh production adopt`（发布包 `2646688`）把 compose 起的容器记为 `legacy-8f2f3756…`（v2.4.1），预发布记录与已验列表保留，旧状态文件留作 `releases.json.bak-pre-adopt`；生产 nginx 站点文件换成共用片段写法（Jason 亲手执行：先备份到 `/root/www.antelacus.com.bak-20260929`，`nginx -t` 通过后 reload），公网 `/en`、`/en/posts`、`/og.png`、`/admin/login` 均 200，安全头与 CSP 照旧、无 `noindex`，线上文件 = 仓库
+- 真实发布（运行 36568040078，§5.11-a、§5.5）：合并提交 `edb90e2` 的键 `fbb91f38…` 即预发布验过的那个，未重建；`promote` 迁移核对通过、临时端口试启动、切换共 7 秒；`verify` 构建标识一致、有库运行时 22 过 + 2 todo（TD-025）；`tag` 打出 `v2.5.0`；`purge` 因 adopt 的条目没有提交号而按「全部改动」清缓存，清后 `/og.png` 为 MISS；`auth` 注册关闭、邮箱确认开启；`checkout` 快进 VPS 检出到 `edb90e2`；`rollback` 跳过。公网 `/api/build` = `fbb91f38…`
 
 **评审发现登记**（Codex 发布前审查，xhigh，最终树；J1 `release.sh`+`decide.mjs`、J2 `production.yml`+`.github/actions/vps`、J3 `admin_read.sql`+`admin-auth.ts`、J4 REQ 对验收测试；引文已抽核）：
 - J1-F01 · MUST：预发布与生产各持一把锁，却读写同一个状态文件 —— status: fixed：一把全局锁，拿不到则等待——演练 R4：两次 restart 同时发起，B 在 A 结束后才开始
@@ -189,8 +190,8 @@
 
 **Phase 6 boxes**（合并 ≠ 发布）：
 - [x] 切换准备（合并前，Claude）：`release.sh production adopt` 收编 compose 起的容器（旧镜像记为 legacy，留作回滚目标）；生产 nginx 站点文件换成共用片段写法，`nginx -t`、reload，公网 200 与安全头照旧；核对生产 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`（TD-023）
-- [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并（#14 已开，`/code-review` 已处置）
-- [ ] 真实发布完全照 `docs/DEPLOYMENT.md` 执行（§5.11-a）：*Production* 全绿（promote、verify、tag、purge、auth），公网构建标识 = 合并提交的键，打出 `v2.5.0`
+- [x] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并（#14，合并提交 `edb90e2`）
+- [x] 真实发布完全照 `docs/DEPLOYMENT.md` 执行（§5.11-a）：*Production* 全绿（promote、verify、tag、purge、auth），公网构建标识 = 合并提交的键，打出 `v2.5.0`
 - [ ] Jason 重新登录生产后台：新读法下看得到草稿、保存成功
 - [ ] CHANGELOG 条目
 - [ ] TECHNICAL_DEBT 定稿：TD-021、TD-022 删除；TD-023、TD-024、TD-025 在册
