@@ -123,14 +123,14 @@ test('acceptance §5.5-c a docs-only merge leaves the production container alone
   assert.equal(shouldDeploy({ serving: null, next: 'k2' }), true);
 });
 
-test('acceptance §5.5-d a tag only when the version changed', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.5-d a tag only when the version changed', async () => {
   const { tagFor } = await decide();
   assert.equal(tagFor({ previous: '2.4.1', next: '2.5.0' }), 'v2.5.0');
   assert.equal(tagFor({ previous: '2.5.0', next: '2.5.0' }), null);
   assert.equal(tagFor({ previous: null, next: '2.5.0' }), 'v2.5.0');
 });
 
-test('acceptance §5.5-e the cache is purged only when a share image or public/images changed', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.5-e the cache is purged only when a share image or public/images changed', async () => {
   const { purgeTargets } = await decide();
   assert.deepEqual(purgeTargets(['src/lib/posts.ts', 'docs/x.md']), []);
   assert.ok(purgeTargets(['public/images/avatar.jpg']).length > 0, 'public/images changed, nothing purged');
@@ -138,7 +138,7 @@ test('acceptance §5.5-e the cache is purged only when a share image or public/i
   assert.ok(purgeTargets(['src/app/og.png/route.tsx']).length > 0, 'the share image route changed, nothing purged');
 });
 
-test('acceptance §5.5-f open sign-ups or skipped confirmation turn the Auth check red', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.5-f open sign-ups or skipped confirmation turn the Auth check red', async () => {
   const { authSettingsProblems } = await decide();
   assert.deepEqual(authSettingsProblems({ disable_signup: true, mailer_autoconfirm: false }), []);
   assert.equal(authSettingsProblems({ disable_signup: false, mailer_autoconfirm: false }).length, 1);
@@ -148,7 +148,7 @@ test('acceptance §5.5-f open sign-ups or skipped confirmation turn the Auth che
 
 // ---------- §5.6 回滚 ----------
 
-test('acceptance §5.6-c after a contract migration, images older than its version are no rollback target', { todo: 'Batch 6' }, async () => {
+test('acceptance §5.6-c after a contract migration, images older than its version are no rollback target', async () => {
   const { rollbackTarget } = await decide();
   const kept = [{ key: 'k3', version: '2.6.0' }, { key: 'k2', version: '2.5.1' }, { key: 'k1', version: '2.5.0' }];
   assert.equal(rollbackTarget({ kept, contracts: [] })?.key, 'k2');
@@ -156,6 +156,15 @@ test('acceptance §5.6-c after a contract migration, images older than its versi
   assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.1' }] })?.key, 'k2');
   assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.1' }], requested: 'k1' }), null, 'a manual rollback past a contract step went through');
   assert.equal(rollbackTarget({ kept: [kept[0]], contracts: [] }), null, 'nothing to fall back to, yet a target');
+});
+
+test('acceptance §5.6-a a failed verification rolls production back and stays red; staging does the same', () => {
+  const production = read('.github/workflows/production.yml');
+  assert.match(production, /^ {2}rollback:\n(?: {4}.*\n)*? {4}if: always\(\) && \(\(github\.event_name == 'push' && needs\.promote\.result == 'success' && needs\.verify\.result == 'failure'\)/m);
+  assert.match(production, /release\.sh production rollback/);
+  assert.match(production, /An automatic rollback leaves the run red[\s\S]*?exit 1/);
+  assert.match(read('.github/workflows/branch.yml'), /release\.sh staging rollback/);
+  // The rehearsal on staging itself is Phase 4 evidence (TRACK).
 });
 
 // ---------- §5.7 迁移纪律 ----------

@@ -54,11 +54,20 @@ export function afterVerified({ state, key, imageId }) {
   return { ...state, verified };
 }
 
-/** The state after a deploy to an environment succeeded. Production also keeps it among its rollback targets. */
+// Each environment keeps its last five images as rollback targets: production's are what a rollback may
+// return to; staging's exist so a rollback can be rehearsed there with the same logic (REQ §5.6-a).
+const KEPT = { production: 'kept', staging: 'keptStaging' };
+
+/** The state after a deploy to an environment succeeded: it runs the entry, which heads its kept images. */
 export function afterDeploy({ state, env, entry }) {
-  if (env === 'staging') return { ...state, staging: entry };
-  const kept = [entry, ...(state.kept ?? []).filter((kept) => kept.key !== entry.key)];
-  return { ...state, production: entry, kept: retention({ production: kept.map((k) => k.key), staging: null }).keep.map((key) => kept.find((k) => k.key === key)) };
+  const list = KEPT[env];
+  const kept = [entry, ...(state[list] ?? []).filter((k) => k.key !== entry.key)];
+  return { ...state, [env]: entry, [list]: retention({ production: kept.map((k) => k.key), staging: null }).keep.map((key) => kept.find((k) => k.key === key)) };
+}
+
+/** An environment's rollback targets, newest (the running image) first. */
+export function keptOf({ state, env }) {
+  return state[KEPT[env]] ?? [];
 }
 
 /** Whether production may run this image: staging verified exactly this image for this key. */
@@ -70,6 +79,7 @@ export function mayPromote({ state, key, imageId }) {
 export function pruneImages({ images, state }) {
   const protectedKeys = new Set([
     ...(state.kept ?? []).map((entry) => entry.key),
+    ...(state.keptStaging ?? []).map((entry) => entry.key),
     ...(state.verified ?? []).map((entry) => entry.key),
     state.staging?.key,
     state.production?.key,
@@ -102,7 +112,60 @@ export function checklistTicked(body) {
   return body.split('\n').some((line) => /^\s*[-*] \[[xX]\]/.test(line) && /staging/i.test(line) && /admin/i.test(line));
 }
 
-const DECISIONS = { dockerEnv, checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
+const semver = (v) => (/^\d+\.\d+\.\d+$/.test(v ?? '') ? v.split('.').map(Number) : null);
+const older = (a, b) => { for (let i = 0; i < 3; i += 1) if (a[i] !== b[i]) return a[i] < b[i]; return false; };
+
+/** The tag a production release earns: only a version production did not already run. */
+export function tagFor({ previous, next }) {
+  return previous === next ? null : `v${next}`;
+}
+
+// Share images and public/images are the only things Cloudflare caches (DESIGN §8); a deploy that changes
+// how they look purges them. Per-item share images live under their section, whose HTML is never cached.
+const SHARE_IMAGE_PREFIXES = ['og.png', 'posts', 'notes', 'gallery', 'projects'].map((p) => `www.antelacus.com/${p}`);
+
+/** Cloudflare prefixes to purge after a deploy that changed these files. */
+export function purgeTargets(changedFiles) {
+  const targets = new Set();
+  for (const file of changedFiles) {
+    if (/(^|\/)og\.png(\/|$)/.test(file) || file === 'src/lib/seo.ts') SHARE_IMAGE_PREFIXES.forEach((p) => targets.add(p));
+    if (file.startsWith('public/images/')) targets.add('www.antelacus.com/images');
+  }
+  return [...targets];
+}
+
+/** What is wrong with Supabase Auth's public settings: sign-ups open, or email confirmation skipped. */
+export function authSettingsProblems(settings) {
+  const problems = [];
+  if (settings.disable_signup !== true) problems.push('sign-ups are open: anyone can make an account');
+  if (settings.mailer_autoconfirm !== false) problems.push('email confirmation is skipped');
+  return problems;
+}
+
+/**
+ * Where production may roll back to: the requested kept image, or the one before the current. Never an image
+ * older than a contract step production has executed (its code would read what the database no longer has),
+ * and never one whose version is unknown once any contract step exists.
+ */
+export function rollbackTarget({ kept, contracts, requested }) {
+  const candidates = requested ? kept.filter((entry) => entry.key === requested) : kept.slice(1, 2);
+  const target = candidates[0];
+  if (!target || (requested && target === kept[0])) return null;
+  for (const { unusedSince } of contracts) {
+    const version = semver(target.version);
+    if (!version || older(version, semver(unusedSince))) return null;
+  }
+  return target;
+}
+
+/** The state after a rollback: the environment runs the target, and the image rolled back from is no longer kept. */
+export function afterRollback({ state, env = 'production', target }) {
+  const list = KEPT[env];
+  const failed = state[env]?.key;
+  return { ...state, [env]: target, [list]: (state[list] ?? []).filter((entry) => entry.key !== failed) };
+}
+
+const DECISIONS = { keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, checklistTicked, retention, stagingEnvProblems, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [name, input] = process.argv.slice(2);

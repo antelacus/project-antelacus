@@ -3,6 +3,7 @@
 #   release.sh <staging|production> deploy <key> [<sha>] [<version>]
 #   release.sh staging verified <key>        — staging-check passed: production may now run this image
 #   release.sh <staging|production> restart     — the running image again, e.g. after its env file changed
+#   release.sh <staging|production> rollback [<key>]  — back to the previous kept image, or the one named
 #   release.sh <staging|production> status
 #   release.sh production adopt              — rebuild the state file from the running container
 # CI sends this directory (scripts/release/ and supabase/migrations/ of the commit being deployed) and runs
@@ -24,7 +25,7 @@ case "$ENV_NAME" in
               # A staging fault must never starve production (REQ §6).
               LIMITS=(--memory 768m --cpus 1 --pids-limit 256) ;;
   production) NAME=antelacus;         PORT=3002; SCRATCH=3012; ENV_FILE="$CHECKOUT/.env"; LIMITS=() ;;
-  *) echo "usage: release.sh <staging|production> <deploy|restart|verified|status|adopt> …" >&2; exit 2 ;;
+  *) echo "usage: release.sh <staging|production> <deploy|restart|rollback|verified|status|adopt> …" >&2; exit 2 ;;
 esac
 
 refuse() { echo "release: $*" >&2; exit 1; }
@@ -98,6 +99,39 @@ check_migrations() {
   step "migrations: every file has a matching record"
 }
 
+# Try the image on the scratch port, then take over the environment's port; the old container is only
+# stopped and renamed, and comes back if the new one fails. <expected key> is empty for an image from before
+# /api/build existed.
+switch_to() { # <key> <expected key or "">
+  local key="$1" expected="$2"
+  step "trying antelacus:$key on :$SCRATCH"
+  docker rm -f "$NAME-candidate" >/dev/null 2>&1 || true
+  run_container "$NAME-candidate" "$SCRATCH" "$key"
+  if ! healthy "$SCRATCH" "$expected"; then
+    docker logs --tail 60 "$NAME-candidate" >&2 || true
+    docker rm -f "$NAME-candidate" >/dev/null
+    refuse "antelacus:$key did not come up healthy on :$SCRATCH; $NAME is untouched"
+  fi
+  docker rm -f "$NAME-candidate" >/dev/null
+
+  step "switching :$PORT to antelacus:$key"
+  docker rm -f "$NAME-previous" >/dev/null 2>&1 || true
+  local had_previous=0
+  if docker inspect "$NAME" >/dev/null 2>&1; then
+    docker stop "$NAME" >/dev/null
+    docker rename "$NAME" "$NAME-previous"
+    had_previous=1
+  fi
+  if ! run_container "$NAME" "$PORT" "$key" || ! healthy "$PORT" "$expected"; then
+    docker logs --tail 60 "$NAME" >&2 || true
+    docker rm -f "$NAME" >/dev/null 2>&1 || true
+    if (( had_previous )); then docker rename "$NAME-previous" "$NAME" && docker start "$NAME" >/dev/null; fi
+    refuse "antelacus:$key failed on :$PORT; the previous container is back"
+  fi
+  if (( had_previous )); then docker rm "$NAME-previous" >/dev/null; fi
+  return 0
+}
+
 deploy() {
   local key="${1:?usage: release.sh $ENV_NAME deploy <key> [<sha>] [<version>]}" sha="${2:-}" version="${3:-}" force="${4:-}"
   local state id serving
@@ -119,31 +153,7 @@ deploy() {
     step "already serving $key"; echo "serving $key"; return 0
   fi
 
-  step "trying antelacus:$key on :$SCRATCH"
-  docker rm -f "$NAME-candidate" >/dev/null 2>&1 || true
-  run_container "$NAME-candidate" "$SCRATCH" "$key"
-  if ! healthy "$SCRATCH" "$key"; then
-    docker logs --tail 60 "$NAME-candidate" >&2 || true
-    docker rm -f "$NAME-candidate" >/dev/null
-    refuse "antelacus:$key did not come up healthy on :$SCRATCH; $NAME is untouched"
-  fi
-  docker rm -f "$NAME-candidate" >/dev/null
-
-  step "switching :$PORT to antelacus:$key"
-  docker rm -f "$NAME-previous" >/dev/null 2>&1 || true
-  local had_previous=0
-  if docker inspect "$NAME" >/dev/null 2>&1; then
-    docker stop "$NAME" >/dev/null
-    docker rename "$NAME" "$NAME-previous"
-    had_previous=1
-  fi
-  if ! run_container "$NAME" "$PORT" "$key" || ! healthy "$PORT" "$key"; then
-    docker logs --tail 60 "$NAME" >&2 || true
-    docker rm -f "$NAME" >/dev/null 2>&1 || true
-    if (( had_previous )); then docker rename "$NAME-previous" "$NAME" && docker start "$NAME" >/dev/null; fi
-    refuse "antelacus:$key failed on :$PORT; the previous container is back"
-  fi
-  (( had_previous )) && docker rm "$NAME-previous" >/dev/null
+  switch_to "$key" "$key"
 
   local entry
   entry="{\"key\":\"$key\",\"imageId\":\"$id\",\"sha\":\"$sha\",\"version\":\"$version\"}"
@@ -195,6 +205,29 @@ adopt() {
   step "adopted $NAME as antelacus:$key (v$version)"
 }
 
+rollback() {
+  local requested="${1:-}" state kept contracts target key
+  state="$(state_or_refuse)"
+  kept="$(decide keptOf "{\"state\":$state,\"env\":\"$ENV_NAME\"}")"
+  # Contract steps production executed: an image older than one of them would read what no longer exists.
+  contracts="$(node --input-type=module -e "
+    import { readdirSync, readFileSync } from 'node:fs';
+    import { contractMarker } from '$HERE/migration-lint.mjs';
+    const dir = '$BUNDLE/supabase/migrations';
+    const found = readdirSync(dir).filter((f) => /^\\d+_[^/]+\\.sql\$/.test(f)).map((f) => contractMarker(readFileSync(dir + '/' + f, 'utf8'))).filter(Boolean);
+    process.stdout.write(JSON.stringify(found.map(({ unusedSince }) => ({ unusedSince }))));")"
+  target="$(decide rollbackTarget "{\"kept\":$kept,\"contracts\":$contracts,\"requested\":\"$requested\"}")"
+  [[ "$target" != null ]] || refuse "no image to roll back to${requested:+ (asked for $requested)}: none kept, or each is older than a contract step"
+  key="$(field "$target" key)"
+  image_id "$key" >/dev/null || refuse "antelacus:$key is kept in the state but not on this machine"
+  step "rolling back to antelacus:$key"
+  # The database is never touched: migrations are additive, and a contract step already ruled the target in.
+  switch_to "$key" "$([[ "$key" == legacy-* ]] || echo "$key")"
+  write_state "$(decide afterRollback "{\"state\":$state,\"env\":\"$ENV_NAME\",\"target\":$target}")"
+  step "done"
+  echo "serving $key"
+}
+
 restart() {
   local state key
   state="$(state_or_refuse)"
@@ -206,8 +239,9 @@ restart() {
 case "$COMMAND" in
   deploy)   deploy "${@:3}" ;;
   restart)  restart ;;
+  rollback) rollback "${@:3}" ;;
   verified) verified "${@:3}" ;;
   status)   status ;;
   adopt)    adopt ;;
-  *) echo "usage: release.sh <staging|production> <deploy|restart|verified|status|adopt> …" >&2; exit 2 ;;
+  *) echo "usage: release.sh <staging|production> <deploy|restart|rollback|verified|status|adopt> …" >&2; exit 2 ;;
 esac

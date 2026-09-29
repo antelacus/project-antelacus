@@ -202,9 +202,36 @@ jobs:
           [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
           ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging verified ${{ needs.image.outputs.key }}"
 
+  # A failed staging check leaves staging on the image before (REQ §5.6-a: the same rollback as production's,
+  # so it can be rehearsed here). The run stays red: the check failed.
+  staging-rollback:
+    if: failure() && needs.staging.result == 'success' && needs.staging-check.result == 'failure'
+    needs: [staging, staging-check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    concurrency:
+      group: staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.SHA }}
+      - uses: ./.github/actions/vps
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          fingerprint: ${{ secrets.DEPLOY_HOST_FINGERPRINT }}
+      - name: Staging back to the image before
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "not a full commit SHA: $SHA" >&2; exit 1; }
+          ssh vps "bash \$HOME/.cache/antelacus-release/$SHA/scripts/release/release.sh staging rollback"
+
   timings:
     if: always()
-    needs: [check, ui, image, staging, staging-check]
+    needs: [check, ui, image, staging, staging-check, staging-rollback]
     runs-on: ubuntu-latest
     permissions:
       actions: read

@@ -44,6 +44,8 @@ test('a staging deploy touches only staging', async () => {
   const state = afterDeploy({ state: { production: entry('p'), kept: [entry('p')] }, env: 'staging', entry: entry('s') });
   assert.equal(state.staging.key, 's');
   assert.equal(state.production.key, 'p');
+  assert.deepEqual(state.kept.map((k: { key: string }) => k.key), ['p'], 'a staging deploy moved the production rollback targets');
+  assert.deepEqual(state.keptStaging.map((k: { key: string }) => k.key), ['s']);
 });
 
 test('pruning spares kept, verified, staging and production images', async () => {
@@ -71,4 +73,29 @@ test('an env file reaches docker without the quotes, comments and export of dote
     'BARE=value',
     'HASH=a#b',
   ].join('\n') + '\n');
+});
+
+test('a staging rollback touches only the staging targets', async () => {
+  const { afterRollback } = await decide();
+  const state = { production: entry('p'), kept: [entry('p')], staging: entry('b'), keptStaging: [entry('b'), entry('a')] };
+  const after = afterRollback({ state, env: 'staging', target: entry('a') });
+  assert.equal(after.staging.key, 'a');
+  assert.deepEqual(after.keptStaging.map((k: { key: string }) => k.key), ['a']);
+  assert.deepEqual(after.kept.map((k: { key: string }) => k.key), ['p']);
+});
+
+test('a rollback drops the image it rolled back from, so the next one cannot return to it', async () => {
+  const { afterRollback } = await decide();
+  const state = { production: entry('bad'), kept: [entry('bad'), entry('good'), entry('older')] };
+  const after = afterRollback({ state, target: entry('good') });
+  assert.equal(after.production.key, 'good');
+  assert.deepEqual(after.kept.map((k: { key: string }) => k.key), ['good', 'older']);
+});
+
+test('an adopted image of unknown version is a rollback target only while no contract step exists', async () => {
+  const { rollbackTarget } = await decide();
+  const kept = [{ key: 'new', version: '2.5.0' }, { key: 'legacy', version: 'unknown' }];
+  assert.equal(rollbackTarget({ kept, contracts: [] })?.key, 'legacy');
+  assert.equal(rollbackTarget({ kept, contracts: [{ unusedSince: '2.5.0' }] }), null);
+  assert.equal(rollbackTarget({ kept, contracts: [], requested: 'new' }), null, 'rolled back onto the image already running');
 });
