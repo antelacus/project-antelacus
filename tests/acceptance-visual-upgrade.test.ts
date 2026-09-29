@@ -115,7 +115,7 @@ test('acceptance §5.5-a the gate runs the UI checks on every push, and a deploy
   assert.match(gate, /^ {2}staging-check:\n {4}needs: \[check, ui, image\]$/m, 'staging does not wait for the gate');
 });
 
-test('acceptance §5.5-c the two UI shards split the files and the coverage exactly, and CI runs both', { todo: 'v2.5.1 Batch 3' }, async () => {
+test('acceptance §5.5-c the two UI shards split the files and the coverage exactly, and CI runs both', async () => {
   const { SHARDS, requiredCoverage, coverageFor } = await load('./ui/manifest.mjs');
   assert.deepEqual(Object.keys(SHARDS).sort(), ['admin', 'public']);
   // Every check file in exactly one shard; the reconciliation file runs in both.

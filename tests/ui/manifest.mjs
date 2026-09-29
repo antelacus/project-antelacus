@@ -81,3 +81,28 @@ export const ADMIN_TEMPLATES = [
   { name: 'about languages', path: '/admin/pages/about', text: 'en' },
   { name: 'about editor', path: '/admin/pages/about/en', text: SEED.aboutTitle },
 ];
+
+// ---------- coverage and shards (DESIGN §2.5) ----------
+
+/** The name axe coverage records a combination under: a context (or `admin`) and a template. */
+export const coverageKey = (ctx, t) => `${ctx} · ${t.name}`;
+
+/** Every combination the manifest requires axe to judge: templates in each §5.1-a context, admin on desktop. */
+export function requiredCoverage() {
+  return [
+    ...Object.keys(CONTEXTS).flatMap((ctx) => TEMPLATES.map((t) => ({ key: coverageKey(ctx, t), state: t.state, shard: 'public' }))),
+    ...ADMIN_TEMPLATES.map((t) => ({ key: coverageKey('admin', t), state: undefined, shard: 'admin' })),
+  ];
+}
+
+// The UI gate runs on two machines (UI_SHARD), each with its own stack and build. `files` are the check files
+// it runs besides coverage.ui.mjs, which runs on both and reconciles only the combinations its shard's files
+// judge: the public pages' accessibility on one, the admin's on the other. Files are placed by their time —
+// the aesthetic checks wait on purpose (§5.2-b) and go with the short admin and keyboard files.
+export const SHARDS = {
+  public: { files: ['a11y.ui.mjs'] },
+  admin: { files: ['admin.ui.mjs', 'keyboard.ui.mjs', 'thesis.ui.mjs'] },
+};
+
+/** The combinations a shard reconciles; together the shards reconcile every one exactly once. */
+export const coverageFor = (shard) => requiredCoverage().filter((c) => c.shard === shard);

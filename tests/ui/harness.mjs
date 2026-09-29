@@ -4,9 +4,9 @@
 import assert from 'node:assert/strict';
 import { chromium, webkit } from 'playwright';
 import { AxeBuilder } from '@axe-core/playwright';
-import { ADMIN_TEMPLATES, CONTEXTS, EXTRA_CONTEXTS, SEED, TEMPLATES } from './manifest.mjs';
+import { ADMIN_TEMPLATES, CONTEXTS, EXTRA_CONTEXTS, SEED, TEMPLATES, coverageFor, coverageKey, requiredCoverage } from './manifest.mjs';
 
-export { ADMIN_TEMPLATES, CONTEXTS, SEED, TEMPLATES };
+export { ADMIN_TEMPLATES, CONTEXTS, SEED, TEMPLATES, coverageFor, requiredCoverage };
 
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 export const BASE = process.env.BASE_URL?.replace(/\/$/, '');
@@ -34,15 +34,7 @@ export async function closeBrowsers() {
 const manifestEntries = new Set([...TEMPLATES, ...ADMIN_TEMPLATES]);
 const judged = new Set();
 const opened = new WeakMap(); // page → its combination key, for manifest templates only
-const key = (ctx, t) => `${ctx} · ${t.name}`;
-
-/** Every combination the manifest requires axe to judge: templates in each §5.1-a context, admin on desktop. */
-export function requiredCoverage() {
-  return [
-    ...Object.keys(CONTEXTS).flatMap((ctx) => TEMPLATES.map((t) => ({ key: key(ctx, t), state: t.state }))),
-    ...ADMIN_TEMPLATES.map((t) => ({ key: key('admin', t), state: undefined })),
-  ];
-}
+const key = coverageKey;
 
 export const judgedCoverage = () => new Set(judged);
 
@@ -107,11 +99,13 @@ async function enterState(page, state) {
 
 /**
  * Opens each template in each named context and hands the page to `check`. Every combination is tried;
- * the failures are reported together at the end, so one broken page does not hide the others.
+ * the failures are reported together at the end, so one broken page does not hide the others. Contexts run
+ * side by side, templates within a context one after another: a check with side effects (saving, publishing)
+ * uses one context, so it stays sequential (DESIGN §2.5).
  */
 export async function visit(contextNames, templates, check, { storageState, coverageAs } = {}) {
   const failures = [];
-  for (const ctx of contextNames) {
+  await Promise.all(contextNames.map(async (ctx) => {
     const spec = ALL_CONTEXTS[ctx];
     assert.ok(spec, `unknown context ${ctx}`);
     for (const t of templates) {
@@ -134,8 +128,8 @@ export async function visit(contextNames, templates, check, { storageState, cove
         await context.close();
       }
     }
-  }
-  assert.deepEqual(failures, [], `${failures.length} of ${contextNames.length * templates.length} failed`);
+  }));
+  assert.deepEqual(failures.sort(), [], `${failures.length} of ${contextNames.length * templates.length} failed`);
 }
 
 let adminSession;
