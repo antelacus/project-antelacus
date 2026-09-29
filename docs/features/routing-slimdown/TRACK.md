@@ -60,7 +60,26 @@
 
 ## 三、门与发布
 
-**评审发现登记**：（设计门之后）
+**评审发现登记**（Codex 设计门，xhigh，只读，提交 `3a81a78`；J1 = TD-025 设计 `codex resume 01a0ed7a-6696-7f32-adc1-7cc3d27f1b6d`，J2 = TD-024 + TD-026 `codex resume 01a0ed7a-6760-79c0-9152-4afd002fa202`；引文已逐条对源核实；「提议」待 Jason 裁定）：
+- J1-M1 · MUST：索引取不到而页面读库正常时放行，未知条目又得到空壳 404 —— status: open（提议：接受为降级——只在索引故障时出现，等于今天的行为；不放行就会把存在的内容答成 404。proxy 记一行日志，故障可见）
+- J1-M2 · MUST（待核）：索引与页面不是同一快照，发布瞬间一个在途请求可能读到旧列表 —— status: open（提议：降为 SHOULD 并接受——索引与页面读的是同一个缓存函数、同一标签，错开只限失效瞬间的在途请求，下一次访问即正确；今天的页面缓存有同类窗口）
+- J1-M3 · MUST：`/og.png` 放行规则过宽，`/fr/…/og.png` 绕过语言校验 —— status: open（提议：不成立——语言分支在 og 规则之前；`/fr/no-such-section/og.png` 实测 404，`%E0%A4%A` 被上游答 400。补单元用例钉住）
+- J1-M4 · MUST：索引返回 200 但内容畸形（`{}`、`null`、HTML）没有覆盖 —— status: open（提议：修——proxy 对索引做形状校验，不合即按取不到处理、放行）
+- J1-M5 · MUST（待核）：标签的解码与比较规则未定义 —— status: open（提议：修——`route-decision` 只解码一次、解码失败判「不存在」，与页面的 `decodeURIComponent` 同一规则，单元用例覆盖 `%2F`、`%25`、中文、空格）
+- J1-S6 · SHOULD：每次查找多一次回环，无熔断 —— status: open（提议：超时由 2 秒降到 500 毫秒；耗时在 Phase 4 实测，DESIGN §10 Q2）
+- J1-S7 · SHOULD：`/api/route-index` 实际对外公开 —— status: open（提议：接受——内容 sitemap 本已公开，体量小于同样公开的 `/api/search-index`）
+- J1-S8 · SHOULD：验收判据漏掉高风险路径形状 —— status: open（提议：修——`route-decision` 单元测试补编码标签、结尾斜杠、查询串、带语言的 og 形状、四个栏目的未知 slug、`/fr/about`）
+- J1-S9 · SHOULD（待核）：查询串可能放大缓存条目 —— status: open（提议：判定不看查询串，单元用例钉住；页面缓存键是否含查询串属既有行为，不在本版）
+- J1-N10 · NICE（待核）：绕过 proxy 的路径上可伪造语言头 —— status: open（提议：接受——后果只是发请求的人自己看到另一种语言的 404）
+- J1-N11 · NICE：本地化 404 的标题仍是英文 —— status: open（提议：修——`global-not-found` 按语言出标题）
+- J2-A1 · MUST（待核）：`staging-check` 是否真是必需检查 —— status: open（提议：不成立——分支保护读出：必需 `staging-check`、`pr-checklist`，strict，管理员不能绕过）
+- J2-A2 · MUST：`UI_SHARD` 须对未知值、空文件集、空覆盖集失败关闭 —— status: open（提议：修）
+- J2-A3…A6 · SHOULD：矩阵、分片选择、环境并行、§5.5-c 仍为 todo —— status: open（提议：属 Batch 3 的待实现内容，不另处置；并行只跨环境，有副作用的后台检查只用一个环境，保持串行）
+- J2-B1 · MUST：`backup.sh` 现仍泄露两个密钥 —— status: open（提议：即 TD-026 本身，Batch 4 修）
+- J2-B2 · SHOULD：临时凭据文件没有退出时的统一清理 —— status: open（提议：修——`backup.sh` 与 `release.sh` 建文件后即注册 `EXIT` 清理，保留原失败码）
+- J2-B3 · SHOULD（待核）：0600 文件与容器内 UID —— status: open（提议：不成立——`postgres` 镜像以 root 运行 `psql`，v2.5.0 的部署已经这样读过 pgpass；存储镜像的容器以 `--user $(id -u)` 运行，与文件属主相同）
+- J2-B4 · SHOULD：源码检查证明不了运行时不泄露 —— status: open（提议：VPS 实跑采样已列为 Batch 4 判据，再加临时文件权限与失败后不残留两项）
+- J2-B5 · NICE（待核）：cron 的最小环境 —— status: open（提议：不成立——每日备份一直由这条 cron 按时产出，发布前的 26 小时检查依赖它）
 
 **Phase 4 证据**：（Phase 4 填写）
 
