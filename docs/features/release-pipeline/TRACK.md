@@ -199,3 +199,31 @@
 - [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.5.0.md`
 
 ## 四、Session-end pickup
+
+### Session-end pickup (2026-09-29)
+
+**Working tree state at session close**:
+- Branch: `feat/release-pipeline`. HEAD (parent of the `/pause` commit landing this pickup): `6320e32`（登记 `/code-review` 发现；`CLAUDE.md` 按角色写管理员）
+- Working tree: clean
+
+**Where work stands**:
+- Phase 0–3 ✅；Batch 1–8 见第二区（全部 done / Batch 8 待真实发布）。Phase 4 🔲：Codex 发布前审查已处置并修复（第三区 J1–J4，演练 R1–R7）；`/code-review` 的 10 条已登记（第三区 R-1…R-10），**待 Jason 处置**
+- 已提议的处置：R-5 接受，R-8 已修，其余修（各配回归测试或演练，按治理规则不再送审）。R-6 是修 J1-F04 时引入的
+- 之后：切换准备（Phase 6 清单第一项：`release.sh production adopt`——已修为合并进现有状态并在副本上演练过；生产 nginx 站点换共用片段写法；核对 `.env` 仍有 `SUPABASE_ADMIN_EMAILS`）→ 经 Jason 同意开版本 PR → Jason 照 `docs/DEPLOYMENT.md` 合并，真实发布即 §5.11-a 证据
+
+**Test / lint state**: green — lint 0、tsc 0、单元 141 过；本机界面闸门 35 过、运行时 22 过 + 2 todo（TD-025，裁定例外）；CI `5ec3d52` 全绿
+
+**Reconciliation (对账)** — 本版此前没有 pickup，无旧条目
+
+**First action for next session**: 请 Jason 对第三区 R-1…R-10 的提议处置表态；认可后依次修 R-1、R-2、R-3、R-4、R-6、R-7、R-9、R-10（R-7 另把 `backup.sh` 的同样写法登记为 TD），每条带回归测试或预发布演练，推送后看 *Branch* 运行全绿。
+
+**Decisions awaiting Project Lead**:
+1. `/code-review` 发现的处置（第三区 R-1…R-10 各条的「提议」）
+2. 修完之后，同意开版本 PR
+
+**Reference state** (verify before relying on):
+- 记忆：`feedback-reply-in-chinese.md`（中文答复）· `feedback-vps-reachable.md`（`ssh vps-deploy` 可用）· `reference-mac-proxy-fake-ip.md`
+- 预发布跑 `antelacus:1a79ad9b…`（已验过）；生产仍是 compose 起的 v2.4.1 容器 `antelacus`，**状态文件里还没有生产条目**（adopt 未在真文件上运行）
+- 没有进行中的 Codex 任务；VPS 上 `~/.cache/antelacus-release/` 有一个 `manual-p4` 手工演练包，可删
+- 界面闸门约 6.4 分，推送到预发布验过约 7 分；数字见第三区耗时一条
+
