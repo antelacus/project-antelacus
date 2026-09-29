@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { decideLocaleRoute } from '@/i18n/route-decision';
-import { PREFERRED_LOCALE_COOKIE } from '@/i18n/routing';
+import { PREFERRED_LOCALE_COOKIE, SITE_LOCALE_HEADER } from '@/i18n/routing';
 import { updateSupabaseSession } from '@/lib/supabase/middleware';
 
 // No route matches this: under `[locale]` only the sections listed in routing.ts exist. Rewriting to it
-// makes Next answer with src/app/global-not-found.tsx and a 404, without rendering any page.
+// makes Next answer with src/app/global-not-found.tsx and a 404, without rendering any page — a document
+// rendered on the server, which a 404 raised by a page under `[locale]` never is (routing-slimdown DESIGN §8).
 const UNMATCHED_PATH = '/404/unmatched';
 
 // These keep the admin signed in: their session is renewed on the way through.
@@ -19,7 +20,13 @@ export async function proxy(req: NextRequest) {
     acceptLanguage: req.headers.get('accept-language'),
     preferredLocale: req.cookies.get(PREFERRED_LOCALE_COOKIE)?.value ?? null,
   });
-  if (decision.kind === 'not-found') return NextResponse.rewrite(new URL(UNMATCHED_PATH, req.url));
+  if (decision.kind === 'not-found') {
+    // The 404 page learns its language from this header; a copy sent by the client is never trusted.
+    const headers = new Headers(req.headers);
+    headers.delete(SITE_LOCALE_HEADER);
+    if (decision.locale) headers.set(SITE_LOCALE_HEADER, decision.locale);
+    return NextResponse.rewrite(new URL(UNMATCHED_PATH, req.url), { request: { headers } });
+  }
   if (decision.kind === 'redirect') {
     // Cloning keeps the query string.
     const url = req.nextUrl.clone();

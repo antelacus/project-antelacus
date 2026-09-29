@@ -11,7 +11,8 @@ const decide = (input: Pick<LocaleRouteInput, 'pathname'> & Partial<LocaleRouteI
 
 const redirectTo = (pathname: string): LocaleRouteDecision => ({ kind: 'redirect', pathname });
 const pass: LocaleRouteDecision = { kind: 'pass' };
-const notFound: LocaleRouteDecision = { kind: 'not-found' };
+const notFound: LocaleRouteDecision = { kind: 'not-found', locale: null };
+const notFoundIn = (locale: string) => ({ kind: 'not-found', locale }) as LocaleRouteDecision;
 
 test('acceptance §5.2-a supported locale prefixes pass through', () => {
   assert.deepEqual(decide({ pathname: '/en/posts' }), pass);
@@ -37,8 +38,21 @@ test('acceptance §5.2-d unknown first segments are a direct 404, decided here a
     assert.deepEqual(decide({ pathname, acceptLanguage: 'es', preferredLocale: 'fr' }), notFound, pathname);
   }
   for (const pathname of ['/en--US/about', '/zh-/posts']) assert.deepEqual(decide({ pathname }), notFound, pathname);
-  // Under a supported locale the router decides: an unknown section there matches no route.
-  assert.deepEqual(decide({ pathname: '/en/garbage' }), pass);
+  // Under a supported locale an unknown section is decided here too, in that language (rule 8).
+  assert.deepEqual(decide({ pathname: '/en/garbage' }), notFoundIn('en'));
+});
+
+test('routing-slimdown §5.2 rule 8 under a language, an address that cannot exist is a 404 in that language', () => {
+  for (const pathname of ['/fr/no-such-section', '/fr/about/extra', '/fr/posts/Bad_Slug', '/fr/notes/a.b', '/fr/posts/ok-slug/extra',
+    '/fr/posts/ok-slug/og.png', '/fr/no-such-section/og.png', '/fr/tags/a/b', '/fr/tags/%E0%A4%A', '/fr/gallery/' + 'x'.repeat(81)]) {
+    assert.deepEqual(decide({ pathname }), notFoundIn('fr'), pathname);
+  }
+  assert.deepEqual(decide({ pathname: '/zh-HK/garbage' }), notFoundIn('zh-HK'));
+  // What can exist passes: the home page, every section's list, and (until content is looked up) details and tags.
+  for (const pathname of ['/fr', '/fr/', '/fr/posts', '/fr/posts/', '/fr/about', '/fr/tags', '/fr/posts/ok-slug', '/fr/tags/Some%20Tag',
+    '/fr/tags/%E4%B8%AD%E6%96%87', '/fr/tags/a%2Fb']) {
+    assert.deepEqual(decide({ pathname }), pass, pathname);
+  }
 });
 
 test('acceptance §5.2 rule 5 paths outside /<locale>/ are recognised by whole segment, look-alikes are 404', () => {

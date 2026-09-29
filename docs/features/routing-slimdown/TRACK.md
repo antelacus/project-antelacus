@@ -36,7 +36,7 @@
 验收测试在 Phase 2 写红，`todo` 标着批次：`tests/runtime/acceptance.runtime.mjs`（routing-slimdown §5.2-i、content-publishing §5.4-a/d）、`tests/acceptance-visual-upgrade.test.ts`（§5.5-c）、`tests/acceptance-release-pipeline.test.ts`（§5.7-e）。§5.5-d、§5.7-e 的实跑、§5.8-e 在第三区记证据。
 
 ### Batch 1 — 按语言的 404 文档
-- 状态：open
+- 状态：in-progress — 代码与单元测试完成；本机无库构建上 §5.4-d 去 todo、§5.2-i 无库部分通过；待 CI 的界面闸门
 - 范围：`src/components/LocaleShell.tsx`（新）、`src/app/[locale]/layout.tsx`、`src/app/global-not-found.tsx`、`src/i18n/route-decision.ts`（「不存在」带语言；未知栏目、多余层级由它判）、`src/proxy.ts`（语言请求头）+ 测试 · 覆盖 routing-slimdown §5.2 规则 8 的「未知栏目、格式不对」、content-publishing §5.4-d；关闭 DESIGN §10 Q1
 - 验收判据：§5.4-d 去 todo 且绿；§5.2-i 的无库部分（`/fr/no-such-section`、`/fr/posts/Bad_Slug`）为法语、服务端文档；公开页面仍可缓存（响应头）
 - 依赖：none

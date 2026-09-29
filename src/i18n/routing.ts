@@ -40,6 +40,10 @@ export const unlocalizedFiles = ['robots.txt', 'sitemap.xml', 'sw.js', 'ads.txt'
 // middleware: a page or layout that reads it stops being cacheable.
 export const PREFERRED_LOCALE_COOKIE = 'preferred_locale';
 
+// The language a 404 decided by the proxy is shown in. Written only by the proxy (which drops any copy the
+// request brought), read only by src/app/global-not-found.tsx.
+export const SITE_LOCALE_HEADER = 'x-site-locale';
+
 export function isSupportedLocale(locale: string | undefined | null): locale is AppLocale {
   return !!locale && (locales as readonly string[]).includes(locale);
 }

@@ -124,12 +124,13 @@ test('acceptance §5.4-d a malformed detail slug is decided "not found" before a
   const { decideLocaleRoute } = await import('../src/i18n/route-decision.js');
   const decide = (pathname: string) => decideLocaleRoute({ pathname, acceptLanguage: null, preferredLocale: null });
   for (const bad of ['/en/posts/Bad', '/en/notes/a_b', '/fr/projects/' + 'x'.repeat(81), '/zh-CN/gallery/a.b']) {
-    assert.deepEqual(decide(bad), { kind: 'not-found' }, bad);
+    assert.deepEqual(decide(bad), { kind: 'not-found', locale: bad.split('/')[1] }, bad);
   }
   assert.deepEqual(decide('/en/posts/2025-07-13-llm-note'), { kind: 'pass' });
   assert.deepEqual(decide('/en/posts'), { kind: 'pass' });
   assert.deepEqual(decide('/en/tags/Some Tag'), { kind: 'pass' }, 'tags are not slugs');
-  assert.deepEqual(decide('/en/about/anything'), { kind: 'pass' }, 'only slug sections are checked');
+  // A path below a page that has no children cannot exist either (routing-slimdown REQ §5.2 rule 8).
+  assert.deepEqual(decide('/en/about/anything'), { kind: 'not-found', locale: 'en' });
 });
 
 test('acceptance §5.4 the loading placeholder that turned 404 into 200 is gone', () => {

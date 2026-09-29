@@ -118,6 +118,7 @@ N/A —— 本版不改数据库结构。
 - **Next.js**：`unstable_cache` 在 proxy 里不缓存——每次调用都执行（实测）。proxy 需要的数据经本机 HTTP 从路由处理器取，那里缓存照常生效。
 - **Next.js**：`next start -p` 与 standalone 的 `server.js` 都把端口放在 `process.env.PORT`，proxy 能读到（实测）。proxy 发往本机的请求照样经过 proxy，`/api/…` 在「不参与语言路由」之列，不会循环。
 - **Next.js**：`global-not-found` 可以读请求头（`headers()`）；proxy 的 `NextResponse.rewrite(url, { request: { headers } })` 带过去的头在那里可见（实测）。改写的目标必须匹配不到任何路由——一段的地址会被 `[locale]` 接住（实测得到首页）。
+- **next-intl**：在 `global-not-found` 里先 `setRequestLocale`，再套上翻译上下文，导航（服务端取文案、客户端的语言切换）照常渲染（实测）。
 - **Next.js**：`global-not-found` 是 15.5 的实验性功能（`experimental.globalNotFound`），是官方为「多个根布局」与「顶层动态段作根布局」给出的 404 方案——本项目两条都占。它不经任何布局，须自带整份文档。运行时验收断言这张页面是站点自己的页面；升级 Next 时若行为有变，闸门会红。
 - **next-intl**：`NextIntlClientProvider` 在服务端渲染时会经请求头解析语言，除非此前调用过 `setRequestLocale`。不调用的后果不是报错，而是页面在运行时静默地变成 `no-store`。
 - **浏览器**：Service Worker 的更新检查发生在访客再次打开站点时；距上次取脚本超过 24 小时，这次检查会绕过 HTTP 缓存，`immutable` 不妨碍它。所以回访的老访客会拿到新脚本；不再回访的访客不受影响，也无需处理。新脚本须在安装时跳过等待、激活时接管页面，否则会在旧页面开着时一直等待。
@@ -135,5 +136,4 @@ N/A —— 本版不改数据库结构。
   - 不用 `redirect` 到一个 404 地址：原地址必须直接得到 404（REQ §5.2-d、content-publishing §5.4-a）。
 
 ## 10 开放设计问题
-- Q1 导航（客户端组件、next-intl 的上下文）在 `global-not-found` 里能否照常渲染：TD-025 的第一个批次先试；不能则带语言的 404 也不带导航，与无语言的 404 一致。
 - Q2 每个详情、标签、关于页的请求多一次本机回环，增加多少耗时：Phase 4 在预发布上前后对比（首字节时间的中位数）。

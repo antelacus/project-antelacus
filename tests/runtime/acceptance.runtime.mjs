@@ -235,7 +235,7 @@ test('§5.4-c the search index never echoes a database error', async () => {
   assert.doesNotMatch(body, /supabase|fetch failed|ECONN/i);
 });
 
-test('§5.4-d a malformed slug is a 404 without the database', { todo: 'v2.5.1 Batch 1: under /fr/ it is the English global 404 (TD-025)' }, async () => {
+test('§5.4-d a malformed slug is a 404 without the database', async () => {
   // In the database-free run a read would have answered 500: a 404 there shows none happened.
   for (const path of ['/en/posts/Bad_Slug', '/en/notes/a.b', '/fr/projects/' + 'x'.repeat(81)]) await assertSite404(await get(path), path);
 });

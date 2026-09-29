@@ -32,7 +32,9 @@ test('invariant 2a — only admin/auth code reads the request (next/headers)', (
   assert.ok(allSources.length > 50, `scanned ${allSources.length} files — the scan looks broken`);
   // Reading cookies or headers anywhere on the public render path turns every page into no-store.
   const allowed = (path: string) =>
-    /^src\/app\/(admin|auth)\//.test(path) || ['src/lib/supabase/server.ts', 'src/lib/server/admin-auth.ts'].includes(path);
+    /^src\/app\/(admin|auth)\//.test(path) || ['src/lib/supabase/server.ts', 'src/lib/server/admin-auth.ts'].includes(path) ||
+    // The 404 document reads the language the proxy decided; a 404 is never cached (routing-slimdown DESIGN §4).
+    path === 'src/app/global-not-found.tsx';
 
   const offenders = allSources
     .filter((path) => ts.preProcessFile(readFileSync(path, 'utf8'), true, true).importedFiles.some((f) => f.fileName === 'next/headers'))
