@@ -237,6 +237,19 @@ test('acceptance §5.7-d changing a migration that is already on main turns the 
   assert.deepEqual(changedAppliedMigrations({ changed: [{ status: 'M', path: 'src/lib/posts.ts' }], onMain }), []);
 });
 
+test('acceptance §5.7-e the backup puts neither the database password nor the service-role key on a command line', { todo: 'v2.5.1 Batch 4' }, () => {
+  const backup = read('scripts/backup.sh');
+  // pg_dump gets a URL without the password and a pgpass file; nothing hands it DATABASE_URL itself.
+  const dockerLines = backup.split('\n').filter((line) => /docker run|pg_dump|psql/.test(line) && !line.trim().startsWith('#'));
+  for (const line of dockerLines) assert.doesNotMatch(line, /DATABASE_URL/, line);
+  assert.match(backup, /PGPASSFILE=/);
+  // The storage mirror reads the key from a mounted file: an -e or --env-file variable shows in docker inspect.
+  assert.doesNotMatch(backup, /-e SUPABASE_SERVICE_ROLE_KEY\b|--env-file/);
+  assert.match(backup, /SUPABASE_SERVICE_ROLE_KEY_FILE=/);
+  assert.match(read('scripts/sync-bucket.mjs'), /SUPABASE_SERVICE_ROLE_KEY_FILE/);
+  // The real run (ps and docker inspect sampled while it works) is Phase 4 evidence in the TRACK.
+});
+
 // ---------- §5.8 后台读取与管理员身份 ----------
 
 function sourceFiles(dir: string): string[] {
