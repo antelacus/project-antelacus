@@ -11,7 +11,9 @@ NAME="antelacus-db-check"
 docker rm -f "$NAME" >/dev/null 2>&1 || true
 docker run -d --name "$NAME" -e POSTGRES_PASSWORD=check -e POSTGRES_DB=app "postgres:$PG_MAJOR" >/dev/null
 trap 'docker rm -f "$NAME" >/dev/null' EXIT
-for _ in $(seq 1 30); do docker exec "$NAME" pg_isready -U postgres -d app >/dev/null 2>&1 && break; sleep 1; done
+# Over TCP, not the socket: the image's init runs a temporary server on the socket only, which answers
+# before the database exists and is then restarted.
+for _ in $(seq 1 60); do docker exec "$NAME" pg_isready -h 127.0.0.1 -U postgres -d app >/dev/null 2>&1 && break; sleep 1; done
 
 psql() { docker exec -i "$NAME" psql -v ON_ERROR_STOP=1 -U postgres -d app -q -t -A "$@"; }
 
