@@ -176,7 +176,7 @@
 - R-3 · MUST：`staging` 与 `staging-check` 分成两个任务，中间可插入别的分支部署，检查核对错镜像、回滚掉别人的部署 —— status: fixed：部署、检查、回滚合成一个 `staging-check` 任务——静态测试；证据在推送后的 *Branch* 运行
 - R-4 · SHOULD：回滚后用 main 最新的运行时套件检查旧镜像，回滚成功也报红 —— status: fixed：回滚后只核对构建标识 + 三个地址的冒烟——静态测试
 - R-5 · SHOULD：同分支新推送取消正在切换预发布的运行，预发布短暂停服 —— status: accepted：只影响预发布；R-6 修好后下一次运行自动修复
-- R-6 · MUST：两个容器都在时 `reconcile` 默认新容器是好的而删掉旧的——由修 F04 时引入 —— status: fixed：以状态文件记录的镜像为准，两个都不是则拒绝——演练 R8：未记录的新容器与已记录的旧容器并存，restart 先恢复旧容器再切换（「新容器即记录的镜像」一例的演练被自动模式拦下，那条路径与修复前相同）
+- R-6 · MUST：两个容器都在时 `reconcile` 默认新容器是好的而删掉旧的——由修 F04 时引入 —— status: fixed：以状态文件记录的镜像为准，两个都不是则拒绝——演练 R8：未记录的新容器与已记录的旧容器并存，restart 先恢复旧容器再切换；已记录的容器旁留一个过期的 `-previous`，restart 删掉它后照常切换；生产全程 200
 - R-7 · MUST：`DATABASE_URL`（含密码）出现在 `docker run` 命令行上，`ps`/`docker inspect` 可见；`db_url` 自写解析 —— status: fixed：密码经只本用户可读的 pgpass 临时文件交给 `psql`，URL 由 `dockerEnv` 解析（`pgConnection` 单元测试）——演练 R8 中迁移核对经此读到记录；`backup.sh` 登记为 TD-026
 - R-8 · SHOULD：`CLAUDE.md` 仍写管理员是 `SUPABASE_ADMIN_EMAILS` 里的邮箱 —— status: fixed（暂停时随手修，T0 文件会误导下一次会话）
 - R-9 · SHOULD：几处 `JSON.parse` 未包 try-catch（项目规则） —— status: fixed：`release.sh`、`timings.mjs`、`production.yml` 共 6 处包上 try-catch
