@@ -4,10 +4,10 @@
 
 - 模式：standard（TD-025 要改已上线的根布局设计，需设计门）· 目标：把登记在册的四条技术债全部了结
 - 范围：
-  1. TD-025：未知条目与格式不对的条目地址，得到的是站点自己的 404 页（有 `lang`、有标题、按地址的语言），不再是 Next 的裸错误文档；content-publishing REQ §5.4-a、§5.4-d 去掉 todo
-  2. TD-026：`backup.sh` 的数据库密码与 service-role 密钥不出现在命令行或容器配置里
-  3. TD-024：界面闸门缩短——axe 的四个上下文并行、界面检查分到两台机器，覆盖率核对跨任务合并
-  4. TD-023：v2.5.1 发布后，从生产 `.env` 删掉 `SUPABASE_ADMIN_EMAILS`（收缩步）
+  1. TD-025：带语言前缀的地址指向不存在的内容（未知栏目、未知条目或标签、格式不对的条目名）时，得到站点自己的 404 页，用地址的语言、不靠 JavaScript——routing-slimdown REQ §5.2 规则 8、§5.2-i；content-publishing REQ §5.4-a、§5.4-d 去掉 todo
+  2. TD-026：`backup.sh` 的数据库密码与 service-role 密钥不出现在命令行或容器配置里——release-pipeline REQ §5.7-e
+  3. TD-024：界面闸门缩短——axe 的四个上下文并行、界面检查分到两台机器，覆盖率核对跨任务合并——visual-upgrade REQ §5.5-c、§5.5-d
+  4. TD-023：v2.5.1 发布后，从生产 `.env` 删掉 `SUPABASE_ADMIN_EMAILS`（收缩步）——release-pipeline REQ §5.8-e
 - 明确不做：
   - 除 TD-025 所需之外的路由改动
   - 为界面闸门换测试框架或换 CI
@@ -24,6 +24,8 @@
   - 2026-09-29 · TD-024 两个办法都做（axe 并行 + 界面检查分机）；Claude 陈述过反对理由：触发条件未到，两者都增加闸门的复杂度与不稳定风险 · Jason · 级联：本 TRACK 范围 3
   - 2026-09-29 · TD-023 接受「回滚到 v2.4.1 时后台被锁、公开站点不受影响」，v2.5.1 发布后删 · Jason · 级联：本 TRACK 范围 4
   - 2026-09-29 · 本版文档归 routing-slimdown（上线后修订、契约不变，就地改） · Jason · 级联：本 TRACK
+  - 2026-09-29 · TD-024 不设速度硬指标，耗时前后对比记进 TRACK；稳定 = 同一提交连续 5 次全绿 · Jason · 级联：visual-upgrade REQ §5.5-c/d
+  - 2026-09-29 · 「已知语言 + 未知栏目」的英文 404 一并纳入：带语言前缀的 404 一律用那种语言 · Jason · 级联：routing-slimdown REQ §5.2 规则 8、§5.2-i；content-publishing REQ §5.4
 
 ## 二、批次
 
