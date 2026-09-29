@@ -32,6 +32,12 @@ Update this file when:
 - Context: since v2.5.0 an admin is a user whose `app_metadata.role` is `admin`; no code reads `SUPABASE_ADMIN_EMAILS`. The variable stays in the VPS `.env` on purpose — the expand step of an expand/contract change — so that a rollback to a v2.4.x image still has a working admin (release-pipeline DESIGN §9).
 - Revisit when: the first release after v2.5.0 whose kept images (the five rollback targets) are all v2.5.0 or later — then delete the line from the VPS `.env` (the contract step).
 
+### TD-024 - The UI gate is the whole critical path of a push
+
+- Status: `Open` · Severity: `Low` · Area: `tests` · Identified: `2026-09-29` (v2.5.0, run 36538068187)
+- Context: from push to a verified staging takes about 7 minutes, 6.6 of them the UI job: starting the local Supabase stack (~75 s, mostly image pulls), the build (~20 s) and 61 browser checks (~200 s), of which axe over every template in four contexts takes ~75 s run one after another, and "nothing moves while the reader does nothing" ~37 s by design. Two levers were measured and left: running the four axe contexts concurrently (~35 s; touches the harness, risk of flakiness) and sharding the browser checks over two runners (~2 min; minutes are free on a public repository, but `tests/ui/coverage.ui.mjs` reconciles coverage in one process and would have to merge results across jobs).
+- Revisit when: a push-to-staging wait of about 7 minutes gets in the way of a real change, or the UI checks grow by a third.
+
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
