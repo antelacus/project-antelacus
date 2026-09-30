@@ -22,7 +22,7 @@
 
 ### 1.3 参考
 - `docs/TECHNICAL_DEBT.md` TD-007、TD-008、TD-009、TD-010、TD-015、TD-016
-- `docs/features/routing-slimdown/TRACK.md` 第一区（裁定）
+- 裁定：`docs/features/routing-slimdown/TRACK_v2.2.0.md`、`TRACK_v2.5.1.md` 第一区
 - 现有实现：`middleware.ts`、`src/i18n/routing.ts`、`src/i18n/detect.ts`、`src/app/layout.tsx`
 
 ### 1.4 术语

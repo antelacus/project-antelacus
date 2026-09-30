@@ -13,12 +13,6 @@ Update this file when:
 
 ## Active Items
 
-### TD-023 - `SUPABASE_ADMIN_EMAILS` is still in the production `.env`
-
-- Status: `Open` · Severity: `Low` · Area: `deploy` · Identified: `2026-09-28` (v2.5.0 Batch 3)
-- Context: since v2.5.0 an admin is a user whose `app_metadata.role` is `admin`; no code reads `SUPABASE_ADMIN_EMAILS`. The variable stays in the VPS `.env` on purpose — the expand step of an expand/contract change — so that a rollback to a v2.4.x image still has a working admin (release-pipeline DESIGN §9).
-- Revisit when: the first release after v2.5.0 whose kept images (the five rollback targets) are all v2.5.0 or later — then delete the line from the VPS `.env` (the contract step).
-
 ### TD-027 - The proxy decides content 404s because a page's notFound() is never server-rendered
 
 - Status: `Accepted` (a named stopgap) · Severity: `Low` · Area: `routing` · Identified: `2026-09-29` (v2.5.1, replacing TD-025)

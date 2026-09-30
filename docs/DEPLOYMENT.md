@@ -28,7 +28,7 @@ What CI does by itself is in `.github/workflows/branch.yml` and `production.yml`
 9. **After editing a `.env` on the VPS**, recreate the container with the same image: `ssh vps-deploy`, then `bash ~/.cache/antelacus-release/<any recent sha>/scripts/release/release.sh production restart` (or `staging`).
 10. **If the pipeline itself is broken** so that not even its fix can merge: GitHub → Settings → Branches → edit the rule for `main`, lift it for that one merge, restore it, and write down why in the version's TRACK.
 
-**First-time setup on the VPS:** copy `.env.example` to `.env` and fill it in; `grep '^NEXT_PUBLIC_' .env > .env.staging`; as root, copy `deploy/nginx/antelacus-site.conf` into `/etc/nginx/snippets/` and the two site files into `sites-available`, enable them, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`. A container already running as `antelacus` is taken over with `release.sh production adopt` before the first merge.
+**First-time setup on the VPS:** copy `.env.example` to `.env` and fill it in; `grep '^NEXT_PUBLIC_' .env > .env.staging`; `chmod 600 .env .env.staging` (they hold the database password and the service-role key; a file created with the default umask is readable by every account); as root, copy `deploy/nginx/antelacus-site.conf` into `/etc/nginx/snippets/` and the two site files into `sites-available`, enable them, `nginx -t`, reload. `www.antelacus.com` points at the VPS; the bare domain redirects to `www`. A container already running as `antelacus` is taken over with `release.sh production adopt` before the first merge.
 
 `scripts/db-function-check.sh` applies every migration to a throwaway Postgres and checks the save function and RLS; the gate runs it.
 

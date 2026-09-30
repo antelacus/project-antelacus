@@ -3,7 +3,7 @@
 ## 1 引言
 ### 1.1 参考
 - 需求：`docs/features/routing-slimdown/REQ.md`
-- 实测记录：`docs/features/routing-slimdown/TRACK.md` 第三区「设计门后的实测」
+- 实测记录：`TRACK_v2.2.0.md` 第三区「设计门后的实测」；404 的复现与耗时：`TRACK_v2.5.1.md` 第一区与第三区
 - Next.js 文档：middleware 文件位置、国际化指南（根布局放进 `app/[lang]`）、`generateStaticParams` 返回空数组、`revalidateTag`；next-intl 文档：静态渲染与 `setRequestLocale`、error files（`[locale]/not-found.tsx` 与 `global-not-found`）
 - 上游缺陷：vercel/next.js #62228、#99287——页面里的 `notFound()` 不经服务端渲染（§8）
 ### 1.2 术语
