@@ -155,7 +155,7 @@ test('the app container gets its own variables, not the server jobs\' (database 
     'NEXT_PUBLIC_SUPABASE_URL="https://x.supabase.co"',
     'SUPABASE_SERVICE_ROLE_KEY=role',
     'SITE_VERIFICATION_GOOGLE=g',
-    'DATABASE_URL="postgresql://u:secret@h:5432/postgres"',
+    'DATABASE_URL="postgresql://u:fake@db.example.com:5432/postgres"',
     'ANTELACUS_DATA_DIR=/data',
     'BACKUP_KEEP_DAYS=14',
     'PG_MAJOR=17',
@@ -168,12 +168,13 @@ test('the app container gets its own variables, not the server jobs\' (database 
 
 test('a password in the query string goes to pgpass too, and the last DATABASE_URL wins as in dotenv', async () => {
   const { pgConnection } = await decide();
-  const inQuery = pgConnection('DATABASE_URL=postgresql://u@h:5432/db?sslmode=require&password=s3cr%3At\n');
-  assert.equal(inQuery.url, 'postgresql://u@h:5432/db?sslmode=require');
-  assert.equal(inQuery.pgpass, '*:*:*:*:s3cr\\:t\n');
-  const twice = pgConnection('DATABASE_URL=postgresql://u:old@old-host/db\nDATABASE_URL=postgresql://u:new@new-host/db\n');
-  assert.equal(twice.url, 'postgresql://u@new-host/db');
-  assert.equal(twice.pgpass, '*:*:*:*:new\n');
+  // Made-up values on example.com hosts: fixtures, not credentials.
+  const inQuery = pgConnection('DATABASE_URL=postgresql://u@db.example.com:5432/db?sslmode=require&password=fake%3Avalue\n');
+  assert.equal(inQuery.url, 'postgresql://u@db.example.com:5432/db?sslmode=require');
+  assert.equal(inQuery.pgpass, '*:*:*:*:fake\\:value\n');
+  const twice = pgConnection('DATABASE_URL=postgresql://u:fake-old@old.example.com/db\nDATABASE_URL=postgresql://u:fake-new@new.example.com/db\n');
+  assert.equal(twice.url, 'postgresql://u@new.example.com/db');
+  assert.equal(twice.pgpass, '*:*:*:*:fake-new\n');
 });
 
 test('a quoted value followed by a comment loses its quotes and the comment', async () => {
