@@ -181,3 +181,22 @@ test('a quoted value followed by a comment loses its quotes and the comment', as
   const { dockerEnv } = await decide();
   assert.equal(dockerEnv('URL="https://x.supabase.co" # the project\nK=\'v\'  #c\nHASH="a#b"\n'), 'URL=https://x.supabase.co\nK=v\nHASH=a#b\n');
 });
+
+test('a DATABASE_URL that does not parse is reported without its text, so no log gets the password', async () => {
+  const { pgConnection } = await decide();
+  const value = 'postgresql://u:fake/pw@db.example.com/x';
+  let caught: unknown;
+  try {
+    pgConnection(`DATABASE_URL=${value}\n`);
+  } catch (error) {
+    caught = error;
+  }
+  assert.ok(caught instanceof Error, 'no error for an unparsable URL');
+  // Node prints an uncaught error's own properties: `input` would carry the whole URL.
+  assert.doesNotMatch(`${caught.message} ${JSON.stringify(caught)} ${caught.stack}`, /fake\/pw|db\.example\.com/);
+});
+
+test('a comment that holds the same quote as the value does not become part of it', async () => {
+  const { dockerEnv } = await decide();
+  assert.equal(dockerEnv('URL="https://db.example.com/x" # the "session"\n'), 'URL=https://db.example.com/x\n');
+});

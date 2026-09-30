@@ -32,6 +32,8 @@
   - 2026-09-29 · 设计门 20 条发现按 Claude 提议处置（第三区）；Phase 2 关闭 · Jason · 级联：routing-slimdown DESIGN §4、§6；visual-upgrade DESIGN §2.5；release-pipeline DESIGN §9
   - 2026-09-29 · S-1（应用容器拿到数据库密码）本版修：运维任务的变量不进应用容器 · Jason · 级联：release-pipeline DESIGN §9、`.env.example`
   - 2026-09-30 · 发布前审查 22 条按 Claude 提议处置（第三区）；P1-M2、P2-M2、P2-S1 经实测不成立（Next 交给页面的参数未解码） · Jason
+  - 2026-09-30 · `/code-review` 10 条按 Claude 提议处置（第三区）；修完开版本 PR · Jason
+  - 2026-09-30 · GitGuardian 对 `5972e40` 的「通用密码」报告为误报（测试里编造的值，VPS 上比对与真实密钥均不同），Jason 已在 GitGuardian 关闭；测试值改为 example.com 上的假值 · Jason
 
 ## 二、批次
 
@@ -113,17 +115,17 @@
 - P3-S10 · SHOULD（待核）：清扫可能删掉被强杀后仍在跑的查询的 pgpass —— status: accepted
 - P3-N11 · NICE：`ANTELACUS_PORT` 仍进容器 —— status: accepted
 
-**评审发现登记**（`/code-review` high，`main...feat/routing-slimdown`，同模型，整版一次；已逐条核实；「提议」待 Jason 裁定）：
-- R-1 · MUST：`pgConnection` 解析失败时 Node 把整串连接串（含密码）打进错误输出——备份写进 `backup.log`，`release.sh` 经 CI 进公开仓库的 Actions 日志；密码含 `/`、`#`、`?` 即触发（假值复现） —— status: open（提议：修——解析包 try-catch，只报「DATABASE_URL 无法解析」，两个调用处同改，测试断言错误信息不含输入）
-- R-2 · SHOULD：每次查找都取回整份索引，预取时成倍放大 —— status: open（提议：接受——实测每次约 5 毫秒，站点内容量小；登记在 TD-027 下，退役时一并消失）
-- R-3 · SHOULD：`global-not-found` 没带站点的 viewport 与 metadata（图标、主题色、安全区、`metadataBase`） —— status: open（提议：修——导出 `siteViewport`，metadata 以 `siteMetadata` 为底、用它的标题模板）
-- R-4 · SHOULD：`.env` 缺 service-role 密钥时 `set -u` 退出不走失败处理 —— status: open（提议：修——写文件前显式检查，缺即 `fail`）
-- R-5 · SHOULD：proxy 放行的路径上，客户端的语言头仍会到达 `global-not-found` —— status: open（提议：接受——同设计门 J1-N10、发布前 P1-N1 的裁定：后果只及请求者本人）
-- R-6 · SHOULD：引号后跟注释的正则是贪婪的，注释里再有同种引号就吞进值里 —— status: open（提议：修——改为非贪婪，加测试）
-- R-7 · SHOULD：`next` 与 `eslint-config-next` 被 `npm install` 写成了 `^16.3.7` —— status: open（提议：修——恢复精确钉版；proxy 依赖 Next 的私有变量，升级必须有意为之）
-- R-8 · SHOULD：`visit()` 用 `Promise.all`，一个环境在 try 之外出错时其余环境仍在后台跑 —— status: open（提议：修——`Promise.allSettled`，拒绝并入失败清单）
-- R-9 · SHOULD：`tsconfig.json` 残留本机构建写入的 `.next-b1` 两行 —— status: open（提议：修——删掉；`.gitignore` 加 `/.next-*/`）
-- R-10 · SHOULD：关于页的索引判定与页面的语言回退可能不一致 —— status: open（提议：接受——同发布前 P2-S2 的裁定：只在数据损坏时出现）
+**评审发现登记**（`/code-review` high，`main...feat/routing-slimdown`，同模型，整版一次；已逐条核实；处置按 Claude 提议，第一区裁定）：
+- R-1 · MUST：`pgConnection` 解析失败时 Node 把整串连接串（含密码）打进错误输出——备份写进 `backup.log`，`release.sh` 经 CI 进公开仓库的 Actions 日志；密码含 `/`、`#`、`?` 即触发（假值复现） —— status: fixed：解析失败只报「DATABASE_URL 不是有效的 URL」，不带原文；单元测试断言消息、属性与栈里都没有输入，同一假值的未捕获输出含原文 0 次
+- R-2 · SHOULD：每次查找都取回整份索引，预取时成倍放大 —— status: accepted：实测每次约 5 毫秒；随 TD-027 退役
+- R-3 · SHOULD：`global-not-found` 没带站点的 viewport 与 metadata（图标、主题色、安全区、`metadataBase`） —— status: fixed：导出 `siteViewport`，metadata 以 `siteMetadata` 为底（去掉 `robots`，只留 Next 自己的 `noindex`）；本机构建核对 `<head>`
+- R-4 · SHOULD：`.env` 缺 service-role 密钥时 `set -u` 退出不走失败处理 —— status: fixed：写密钥文件前显式检查，缺即 `fail`
+- R-5 · SHOULD：proxy 放行的路径上，客户端的语言头仍会到达 `global-not-found` —— status: accepted：同 J1-N10、P1-N1
+- R-6 · SHOULD：引号后跟注释的正则是贪婪的，注释里再有同种引号就吞进值里 —— status: fixed：非贪婪匹配（单元测试）
+- R-7 · SHOULD：`next` 与 `eslint-config-next` 被 `npm install` 写成了 `^16.3.7` —— status: fixed：恢复精确钉版 16.3.7，lockfile 同步
+- R-8 · SHOULD：`visit()` 用 `Promise.all`，一个环境在 try 之外出错时其余环境仍在后台跑 —— status: fixed：`Promise.allSettled`，拒绝并入失败清单
+- R-9 · SHOULD：`tsconfig.json` 残留本机构建写入的 `.next-b1` 两行 —— status: fixed：删掉两行、`.gitignore` 加 `/.next-*/`；本机构建改用已在 include 里的 `.next-ui`，Next 便不再改写 `tsconfig`
+- R-10 · SHOULD：关于页的索引判定与页面的语言回退可能不一致 —— status: accepted：同 P2-S2
 
 **本版自查发现**（Claude）：
 - S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: fixed（Jason 裁定本版修）：`appEnv` 剔掉运维任务的变量（`DATABASE_URL`、备份设置、`HC_PING_*`）再交给容器，单元测试；`.env.staging` 本无这些变量，证据在真实发布

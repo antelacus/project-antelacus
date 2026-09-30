@@ -105,7 +105,9 @@ async function enterState(page, state) {
  */
 export async function visit(contextNames, templates, check, { storageState, coverageAs } = {}) {
   const failures = [];
-  await Promise.all(contextNames.map(async (ctx) => {
+  // allSettled: a context that fails outside a page's own try (a browser that will not launch) is a failure
+  // among the others, and never leaves them running on after this call returns.
+  const settled = await Promise.allSettled(contextNames.map(async (ctx) => {
     const spec = ALL_CONTEXTS[ctx];
     assert.ok(spec, `unknown context ${ctx}`);
     for (const t of templates) {
@@ -129,6 +131,7 @@ export async function visit(contextNames, templates, check, { storageState, cove
       }
     }
   }));
+  for (const r of settled) if (r.status === 'rejected') failures.push(`context: ${r.reason?.message?.split('\n')[0] ?? r.reason}`);
   assert.deepEqual(failures.sort(), [], `${failures.length} of ${contextNames.length * templates.length} failed`);
 }
 

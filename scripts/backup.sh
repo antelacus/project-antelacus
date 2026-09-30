@@ -66,6 +66,8 @@ mv "$DUMP.part" "$DUMP"
 
 # Storage: every object of both buckets, mirrored under storage/<bucket>/ (see sync-bucket.mjs).
 # Runs as the invoking user so the mirror in the data directory is owned by it, not by root.
+# Checked here: under set -u a missing key would stop the script without the failure report.
+[[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]] || fail "SUPABASE_SERVICE_ROLE_KEY is not set"
 keyfile="$(mktemp "$SECRETS_DIR/backup-secret.XXXXXX")"; secrets+=("$keyfile")
 printf '%s' "$SUPABASE_SERVICE_ROLE_KEY" > "$keyfile"
 docker run --rm --user "$(id -u):$(id -g)" -v "$REPO_DIR/scripts:/scripts:ro" -v "$DATA_DIR/storage:/data" \

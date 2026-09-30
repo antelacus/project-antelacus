@@ -100,7 +100,7 @@ export function dockerEnv(text) {
     if (!match) continue;
     let value = match[2];
     // A quoted value may be followed by a comment, as dotenv allows.
-    const quoted = /^(['"])(.*)\1(?:\s+#.*)?$/.exec(value);
+    const quoted = /^(['"])(.*?)\1(?:\s+#.*)?$/.exec(value);
     if (quoted) value = quoted[2];
     else value = value.replace(/\s+#.*$/, '');
     lines.push(`${match[1]}=${value}`);
@@ -117,7 +117,14 @@ export function pgConnection(envText) {
   const line = dockerEnv(envText).split('\n').findLast((l) => l.startsWith('DATABASE_URL='));
   const value = line?.slice('DATABASE_URL='.length);
   if (!value) return null;
-  const url = new URL(value);
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    // Node's own error carries the input — the whole URL, password included — and prints it, into the backup
+    // log or a public CI log. Say what is wrong without it.
+    throw new Error('DATABASE_URL is not a valid URL (a password with / # ? must be percent-encoded)');
+  }
   // libpq also takes the password as a query parameter; it leaves the URL either way.
   const raw = url.password ? decodeURIComponent(url.password) : (url.searchParams.get('password') ?? '');
   const password = raw.replace(/[\\:]/g, '\\$&');
