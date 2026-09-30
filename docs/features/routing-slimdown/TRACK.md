@@ -116,7 +116,9 @@
 **本版自查发现**（Claude）：
 - S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: fixed（Jason 裁定本版修）：`appEnv` 剔掉运维任务的变量（`DATABASE_URL`、备份设置、`HC_PING_*`）再交给容器，单元测试；`.env.staging` 本无这些变量，证据在真实发布
 
-**Phase 4 证据**：（Phase 4 填写）
+**Phase 4 证据**：
+- 真实内容：`staging-check` 在预发布上经 nginx 与 Cloudflare 跑有库运行时套件全绿（运行 36586549143 起），含 §5.2-i、§5.4-a 的服务端渲染判定
+- 耗时（DESIGN §10 Q2，VPS 上直连容器，各 30 次中位数）：`/api/route-index` 5.6 毫秒；文章详情预发布（有查找）约 13 毫秒、生产（v2.5.0，无查找）7.8 毫秒；首页两边相同（6.6–6.8）；两边 `x-nextjs-cache: HIT`。首轮测得详情 66.7 毫秒，连续复测为 11–21 毫秒，首轮属刚替换容器后的预热
 
 **Phase 6 boxes**（合并 ≠ 发布）：
 - [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并
