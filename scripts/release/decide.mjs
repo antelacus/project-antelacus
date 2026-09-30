@@ -99,7 +99,8 @@ export function dockerEnv(text) {
     const match = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
     if (!match) continue;
     let value = match[2];
-    const quoted = /^(['"])(.*)\1$/.exec(value);
+    // A quoted value may be followed by a comment, as dotenv allows.
+    const quoted = /^(['"])(.*)\1(?:\s+#.*)?$/.exec(value);
     if (quoted) value = quoted[2];
     else value = value.replace(/\s+#.*$/, '');
     lines.push(`${match[1]}=${value}`);
@@ -112,12 +113,16 @@ export function dockerEnv(text) {
  * inspect`): the URL without it, and a pgpass line that holds it. Null without a DATABASE_URL.
  */
 export function pgConnection(envText) {
-  const line = dockerEnv(envText).split('\n').find((l) => l.startsWith('DATABASE_URL='));
+  // The last assignment wins, as when dotenv or the shell reads the file.
+  const line = dockerEnv(envText).split('\n').findLast((l) => l.startsWith('DATABASE_URL='));
   const value = line?.slice('DATABASE_URL='.length);
   if (!value) return null;
   const url = new URL(value);
-  const password = decodeURIComponent(url.password).replace(/[\\:]/g, '\\$&');
+  // libpq also takes the password as a query parameter; it leaves the URL either way.
+  const raw = url.password ? decodeURIComponent(url.password) : (url.searchParams.get('password') ?? '');
+  const password = raw.replace(/[\\:]/g, '\\$&');
   url.password = '';
+  url.searchParams.delete('password');
   return { url: url.toString(), pgpass: `*:*:*:*:${password}\n` };
 }
 

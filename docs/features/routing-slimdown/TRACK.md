@@ -31,6 +31,7 @@
   - 2026-09-29 · 不去上游发帖 · Jason
   - 2026-09-29 · 设计门 20 条发现按 Claude 提议处置（第三区）；Phase 2 关闭 · Jason · 级联：routing-slimdown DESIGN §4、§6；visual-upgrade DESIGN §2.5；release-pipeline DESIGN §9
   - 2026-09-29 · S-1（应用容器拿到数据库密码）本版修：运维任务的变量不进应用容器 · Jason · 级联：release-pipeline DESIGN §9、`.env.example`
+  - 2026-09-30 · 发布前审查 22 条按 Claude 提议处置（第三区）；P1-M2、P2-M2、P2-S1 经实测不成立（Next 交给页面的参数未解码） · Jason
 
 ## 二、批次
 
@@ -88,29 +89,29 @@
 
 - Batch 3（`7264447`）：推送到预发布验过 7 分 50 秒 → 5 分 20 秒（运行 36586549143 → 36587784209；界面闸门 6 分 31 秒 → public 4 分 18 秒、admin 4 分 44 秒）；本机不分片全套 130 秒，axe 四环境 32 秒 → 13 秒；`UI_SHARD` 拼错即拒绝（本机试跑）；两份各自的植入违例自检均过；§5.5-d：同一提交（运行 36587784209）第 1–5 次尝试全绿，两份界面闸门与 `staging-check` 次次通过
 
-**评审发现登记**（Codex 发布前审查，xhigh，只读，最终树 `7264447`；P1 `route-decision.ts`+`proxy.ts`+代码对需求 `codex resume 01a0edbb-0070-7431-afd9-6c9c23152548`、P2 `global-not-found.tsx`+`route-index` `…-0124-72b3-ba44-9402498891a3`、P3 `backup.sh`+`decide.mjs` `…-0197-7b21-b814-306f419ae1a0`；引文已对源核实，待核项已实测；「提议」待 Jason 裁定）：
-- P1-M1 · MUST：编码写错的 og 地址会让解码抛错 —— status: open（提议：不成立——Next 在路由之前答 400，生产实测 `/posts/a%ZZ/og.png` 与 `%E0%A4%A` 均 400）
-- P1-M2 / P2-M2 · MUST：标签被解码两次（Next 已解码 `params`，标签页再解一次），含 `%` 的标签 500 —— status: open（提议：修——标签页用 Next 给的值，不再解码；proxy 的一次解码与 Next 一致。生产现有 23 个标签无一含 `%`，故为潜在缺陷）
-- P2-S1 · SHOULD：含特殊字符的标签，规范链接未编码 —— status: open（提议：修，与上条同改）
-- P1-M3 · MUST：content-publishing §5.4-d 的「20 个未知 slug 不增缓存、不读库」没有测试 —— status: open（提议：修——运行时加一条：20 个未知 slug 都是服务端渲染的站点 404，即页面从未运行、不产生页面缓存；索引本身经缓存读取）
-- P1-S1 · SHOULD（待核）：结尾多个斜杠的判定不一致 —— status: open（提议：不成立——Next 先以 308 规整斜杠，生产实测）
-- P1-S2 · SHOULD：proxy 取不到索引时放行，只有纯函数测试 —— status: open（提议：修——单元测试 `proxy()`：索引返回 HTML、500、连接失败时，存在的内容都放行）
-- P1-S3 · SHOULD（待核）：并发查找放大负载 —— status: open（提议：接受——索引经缓存读取；耗时在 Phase 4 实测，DESIGN §10 Q2）
-- P1-S4 · SHOULD（待核）：会话续期失败的处理 —— status: open（提议：不在本版——既有行为，与本版改动无关）
-- P1-N1 · NICE：语言头伪造没有运行时断言 —— status: open（提议：接受）
-- P2-M1 · MUST：`/en/posts/foo%2Dbar` 这类编码过的 slug 被判 404 —— status: open（提议：接受——v2.3.0 起的既有行为；站内不产生这种链接）
-- P2-S2 · SHOULD（待核）：关于页只有不受支持语言的版本时，索引与页面不一致 —— status: open（提议：接受——后台保存时校验语言，只在数据损坏时出现）
-- P3-M1 · MUST：查询串里的 `password=` 绕过 pgpass —— status: open（提议：修，一并移进 pgpass）
-- P3-M2 · MUST：两次备份重叠会删掉对方的临时文件与镜像目录 —— status: open（提议：修——备份加单实例锁）
-- P3-M3 · MUST：`.env` 里重复的 `DATABASE_URL` 取了第一条 —— status: open（提议：修——取最后一条，与 dotenv 一致）
-- P3-S4 · SHOULD：带引号的值后跟注释时引号被保留 —— status: open（提议：修——`dockerEnv` 处理，加测试；既有行为，但现在经 `appEnv` 决定生产容器）
-- P3-S5 · SHOULD：CRLF 的 `.env` —— status: open（提议：接受——VPS 上的文件在 Linux 上编辑）
-- P3-S6 · SHOULD：`.env` 缺失或有误时不发失败通知 —— status: open（提议：修——先装失败处理再读 `.env`）
-- P3-S7 · SHOULD：失败的半截转储不会被删 —— status: open（提议：修——退出时删 `.part`）
-- P3-S8 · SHOULD（待核）：密码含换行 —— status: open（提议：接受——认证会明确失败）
-- P3-S9 · SHOULD（待核）：cron 的 PATH 找不到 node —— status: open（提议：不成立——node 在 `/usr/bin`，cron 的 PATH 含它，实测）
-- P3-S10 · SHOULD（待核）：清扫可能删掉被强杀后仍在跑的查询的 pgpass —— status: open（提议：接受——需要强杀加立即重跑，失败也是明确报错）
-- P3-N11 · NICE：`ANTELACUS_PORT` 仍进容器 —— status: open（提议：接受——无害，且无人读取）
+**评审发现登记**（Codex 发布前审查，xhigh，只读，最终树 `7264447`；P1 `route-decision.ts`+`proxy.ts`+代码对需求 `codex resume 01a0edbb-0070-7431-afd9-6c9c23152548`、P2 `global-not-found.tsx`+`route-index` `…-0124-72b3-ba44-9402498891a3`、P3 `backup.sh`+`decide.mjs` `…-0197-7b21-b814-306f419ae1a0`；引文已对源核实，待核项已实测；处置按 Claude 提议，第一区裁定）：
+- P1-M1 · MUST：编码写错的 og 地址会让解码抛错 —— status: no change：Next 在路由之前答 400（生产实测）
+- P1-M2 / P2-M2 · MUST：标签被解码两次（Next 已解码 `params`，标签页再解一次），含 `%` 的标签 500 —— status: no change（实测推翻前提）：Next 16.3.7 交给页面的 `id` 是未解码的原样（`vibe%20coding`），页面解码一次、proxy 对原始路径解码一次，两者一致；`/tags/100%25` 在不解码的最小应用里也是 500——Next 自身的行为，生产同样 500
+- P2-S1 · SHOULD：含特殊字符的标签，规范链接未编码 —— status: no change：`id` 本是编码后的原样，规范链接已正确（生产 `vibe%20coding`）
+- P1-M3 · MUST：content-publishing §5.4-d 的「20 个未知 slug 不增缓存、不读库」没有测试 —— status: fixed：运行时加「20 个未知 slug 都是服务端渲染的站点 404」（页面未运行即无页面缓存）
+- P1-S1 · SHOULD（待核）：结尾多个斜杠的判定不一致 —— status: no change：Next 先以 308 规整斜杠（生产实测）
+- P1-S2 · SHOULD：proxy 取不到索引时放行，只有纯函数测试 —— status: fixed：`tests/proxy.test.ts`——索引返回 HTML、500、形状不对、连接失败时存在的内容都放行；伪造的语言头不被采用（删掉那一行即红）
+- P1-S3 · SHOULD（待核）：并发查找放大负载 —— status: accepted：索引经缓存读取；耗时 Phase 4 实测
+- P1-S4 · SHOULD（待核）：会话续期失败的处理 —— status: no change：既有行为，不在本版
+- P1-N1 · NICE：语言头伪造没有运行时断言 —— status: accepted
+- P2-M1 · MUST：`/en/posts/foo%2Dbar` 这类编码过的 slug 被判 404 —— status: accepted：v2.3.0 起的既有行为，站内不产生这种链接
+- P2-S2 · SHOULD（待核）：关于页只有不受支持语言的版本时，索引与页面不一致 —— status: accepted：后台保存时校验语言
+- P3-M1 · MUST：查询串里的 `password=` 绕过 pgpass —— status: fixed：查询串里的 `password` 一并移进 pgpass（单元测试）
+- P3-M2 · MUST：两次备份重叠会删掉对方的临时文件与镜像目录 —— status: fixed：备份持锁运行，第二次等待——VPS 上两次重叠的备份都成功、先后完成、无残留；时间戳在持锁后取
+- P3-M3 · MUST：`.env` 里重复的 `DATABASE_URL` 取了第一条 —— status: fixed：取最后一条（单元测试）
+- P3-S4 · SHOULD：带引号的值后跟注释时引号被保留 —— status: fixed：`dockerEnv` 处理引号后的注释（单元测试）
+- P3-S5 · SHOULD：CRLF 的 `.env` —— status: accepted
+- P3-S6 · SHOULD：`.env` 缺失或有误时不发失败通知 —— status: fixed：先装失败处理再读 `.env`，失败写入日志；上报地址也在 `.env` 里，此时由备份监控的「未收到成功」报警兜底
+- P3-S7 · SHOULD：失败的半截转储不会被删 —— status: fixed：退出时删 `.part`
+- P3-S8 · SHOULD（待核）：密码含换行 —— status: accepted：认证会明确失败
+- P3-S9 · SHOULD（待核）：cron 的 PATH 找不到 node —— status: no change：node 在 `/usr/bin`，cron 的 PATH 含它（实测）
+- P3-S10 · SHOULD（待核）：清扫可能删掉被强杀后仍在跑的查询的 pgpass —— status: accepted
+- P3-N11 · NICE：`ANTELACUS_PORT` 仍进容器 —— status: accepted
 
 **本版自查发现**（Claude）：
 - S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: fixed（Jason 裁定本版修）：`appEnv` 剔掉运维任务的变量（`DATABASE_URL`、备份设置、`HC_PING_*`）再交给容器，单元测试；`.env.staging` 本无这些变量，证据在真实发布

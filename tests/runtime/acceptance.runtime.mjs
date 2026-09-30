@@ -240,6 +240,13 @@ test('§5.4-d a malformed slug is a 404 without the database', async () => {
   for (const path of ['/en/posts/Bad_Slug', '/en/notes/a.b', '/fr/projects/' + 'x'.repeat(81)]) await assertSite404(await get(path), path);
 });
 
+test('§5.4-d twenty unknown slugs never reach a page: each is the server-rendered site 404', async () => {
+  if (!WITH_DB) return;
+  // A page that ran would answer with the framework's empty shell (routing-slimdown DESIGN §8): a whole
+  // document here shows the proxy answered, so no page rendered, read or cached anything for these slugs.
+  for (let i = 0; i < 20; i += 1) await assertSite404(await get(`/en/posts/no-such-slug-${i}`), `/en/posts/no-such-slug-${i}`);
+});
+
 // routing-slimdown REQ §5.2 rule 8: a 404 under a language prefix is in that language, whole without JavaScript.
 test('routing-slimdown §5.2-i a 404 under a language prefix is that language\'s page, server-rendered', async () => {
   const paths = ['/fr/no-such-section', '/fr/posts/Bad_Slug', ...(WITH_DB ? ['/fr/posts/this-slug-does-not-exist', '/fr/tags/no-such-tag'] : [])];

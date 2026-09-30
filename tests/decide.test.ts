@@ -165,3 +165,18 @@ test('the app container gets its own variables, not the server jobs\' (database 
   assert.equal(appEnv(text), 'NEXT_PUBLIC_SUPABASE_URL=https://x.supabase.co\nSUPABASE_SERVICE_ROLE_KEY=role\nSITE_VERIFICATION_GOOGLE=g\n');
   assert.equal(appEnv('DATABASE_URL=x\n'), '', 'only job variables: nothing for the app');
 });
+
+test('a password in the query string goes to pgpass too, and the last DATABASE_URL wins as in dotenv', async () => {
+  const { pgConnection } = await decide();
+  const inQuery = pgConnection('DATABASE_URL=postgresql://u@h:5432/db?sslmode=require&password=s3cr%3At\n');
+  assert.equal(inQuery.url, 'postgresql://u@h:5432/db?sslmode=require');
+  assert.equal(inQuery.pgpass, '*:*:*:*:s3cr\\:t\n');
+  const twice = pgConnection('DATABASE_URL=postgresql://u:old@old-host/db\nDATABASE_URL=postgresql://u:new@new-host/db\n');
+  assert.equal(twice.url, 'postgresql://u@new-host/db');
+  assert.equal(twice.pgpass, '*:*:*:*:new\n');
+});
+
+test('a quoted value followed by a comment loses its quotes and the comment', async () => {
+  const { dockerEnv } = await decide();
+  assert.equal(dockerEnv('URL="https://x.supabase.co" # the project\nK=\'v\'  #c\nHASH="a#b"\n'), 'URL=https://x.supabase.co\nK=v\nHASH=a#b\n');
+});
