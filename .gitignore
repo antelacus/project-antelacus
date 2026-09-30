@@ -50,3 +50,4 @@ __pycache__/
 /.next-ui/
 /supabase/.branches/
 /supabase/.temp/
+/.next-*/

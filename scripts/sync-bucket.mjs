@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // Mirrors Supabase Storage buckets into a directory, with nothing but Node's own fetch.
 //   node sync-bucket.mjs <destination-dir> <bucket> [<bucket>…]
-// Env: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
+// Env: NEXT_PUBLIC_SUPABASE_URL, and SUPABASE_SERVICE_ROLE_KEY_FILE (a file holding the key) or SUPABASE_SERVICE_ROLE_KEY.
 // Per bucket: list every object (folders recursed, pages of 1000), build the next mirror in a sibling
 // directory — unchanged files hard-linked from the current mirror, new or changed ones downloaded —
 // verify the file count equals the listing, then swap directories. A short listing or a failed
 // download therefore never replaces a good mirror with a worse one.
+import { readFileSync } from 'node:fs';
 import { link, mkdir, readdir, rename, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
@@ -95,13 +96,22 @@ export async function syncBucket({ fetchImpl = fetch, base, key, bucket, dest })
   return { listed: objects.length, reused: plan.reuse.length, fetched: plan.fetch.length };
 }
 
+/**
+ * The service-role key: from the file SUPABASE_SERVICE_ROLE_KEY_FILE names when set — how the backup passes it,
+ * since a container's environment shows in `docker inspect` — else from SUPABASE_SERVICE_ROLE_KEY.
+ */
+export function serviceRoleKey(env, read = (path) => readFileSync(path, 'utf8')) {
+  if (env.SUPABASE_SERVICE_ROLE_KEY_FILE) return read(env.SUPABASE_SERVICE_ROLE_KEY_FILE).trim();
+  return env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
 const invokedDirectly = process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop());
 if (invokedDirectly) {
   const [dest, ...buckets] = process.argv.slice(2);
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = serviceRoleKey(process.env);
   if (!dest || buckets.length === 0 || !base || !key) {
-    console.error('usage: sync-bucket.mjs <dest> <bucket>… with NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY set');
+    console.error('usage: sync-bucket.mjs <dest> <bucket>… with NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY_FILE or SUPABASE_SERVICE_ROLE_KEY set');
     process.exit(2);
   }
   for (const bucket of buckets) {

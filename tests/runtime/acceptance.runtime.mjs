@@ -200,16 +200,19 @@ test('every public page names itself, describes itself, and points to its langua
 
 // ---------- v2.3.0 (docs/features/content-publishing/REQ.md); todo until the named batch lands ----------
 
-// The site's own 404 page under a known language, not any HTML that says 404 (TD-021 C-17, C-18).
+// The site's own 404 page under a known language, not any HTML that says 404 (TD-021 C-17, C-18). Scripts
+// are cut first: the framework's empty 404 shell carries the not-found page in its script data, where a
+// search for the page's words would find it (routing-slimdown DESIGN §7-9).
+const withoutScripts = (html) => html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
 const assertSite404 = async (res, path) => {
   assert.equal(res.status, 404, path);
-  const html = await res.text();
+  const html = withoutScripts(await res.text());
   assert.equal(htmlLang(html), path.split('/')[1], `${path}: language`);
   assert.match(html, /<link[^>]+rel="stylesheet"/, `${path}: not the site shell`);
   assert.match(html, /<h1 class="scroll-title">[^<]+<\/h1>/, `${path}: not the site's 404 page`);
 };
 
-test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', { todo: 'TD-025: the 404 is the error document' }, async () => {
+test('§5.4-a an unknown but well-formed slug is a 404 with the site\'s 404 page', async () => {
   if (!WITH_DB) return;
   await assertSite404(await get('/en/posts/this-slug-does-not-exist'), '/en/posts/this-slug-does-not-exist');
 });
@@ -232,9 +235,26 @@ test('§5.4-c the search index never echoes a database error', async () => {
   assert.doesNotMatch(body, /supabase|fetch failed|ECONN/i);
 });
 
-test('§5.4-d a malformed slug is a 404 without the database', { todo: 'TD-025: under /fr/ it is the English global 404' }, async () => {
+test('§5.4-d a malformed slug is a 404 without the database', async () => {
   // In the database-free run a read would have answered 500: a 404 there shows none happened.
   for (const path of ['/en/posts/Bad_Slug', '/en/notes/a.b', '/fr/projects/' + 'x'.repeat(81)]) await assertSite404(await get(path), path);
+});
+
+test('§5.4-d twenty unknown slugs never reach a page: each is the server-rendered site 404', async () => {
+  if (!WITH_DB) return;
+  // A page that ran would answer with the framework's empty shell (routing-slimdown DESIGN §8): a whole
+  // document here shows the proxy answered, so no page rendered, read or cached anything for these slugs.
+  for (let i = 0; i < 20; i += 1) await assertSite404(await get(`/en/posts/no-such-slug-${i}`), `/en/posts/no-such-slug-${i}`);
+});
+
+// routing-slimdown REQ §5.2 rule 8: a 404 under a language prefix is in that language, whole without JavaScript.
+test('routing-slimdown §5.2-i a 404 under a language prefix is that language\'s page, server-rendered', async () => {
+  const paths = ['/fr/no-such-section', '/fr/posts/Bad_Slug', ...(WITH_DB ? ['/fr/posts/this-slug-does-not-exist', '/fr/tags/no-such-tag'] : [])];
+  for (const path of paths) {
+    const res = await get(path);
+    await assertSite404(res.clone(), path);
+    assert.match(withoutScripts(await res.text()), /<h1 class="scroll-title">Page introuvable<\/h1>/, `${path}: not in French`);
+  }
 });
 
 test('§5.5-a security headers are present and x-powered-by is not', async () => {

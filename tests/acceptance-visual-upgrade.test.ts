@@ -114,3 +114,19 @@ test('acceptance §5.5-a the gate runs the UI checks on every push, and a deploy
   assert.match(gate, /^ {2}ui:\n(?: {4}.*\n|\n)*? {6}- run: scripts\/ui-check\.sh$/m, 'branch.yml has no ui job running the UI gate');
   assert.match(gate, /^ {2}staging-check:\n {4}needs: \[check, ui, image\]$/m, 'staging does not wait for the gate');
 });
+
+test('acceptance §5.5-c the two UI shards split the files and the coverage exactly, and CI runs both', async () => {
+  const { SHARDS, requiredCoverage, coverageFor } = await load('./ui/manifest.mjs');
+  assert.deepEqual(Object.keys(SHARDS).sort(), ['admin', 'public']);
+  // Every check file in exactly one shard; the reconciliation file runs in both.
+  const files = readdirSync(join(ROOT, 'tests/ui')).filter((f) => f.endsWith('.ui.mjs') && f !== 'coverage.ui.mjs').sort();
+  const assigned = Object.values(SHARDS as Record<string, { files: string[] }>).flatMap((shard) => shard.files).sort();
+  assert.deepEqual(assigned, files, 'a UI file in no shard, or in two');
+  // Together the shards reconcile every combination the gate judged before the split, and no combination twice.
+  const all = requiredCoverage().map((c: { key: string }) => c.key).sort();
+  const perShard = Object.keys(SHARDS).map((name) => coverageFor(name).map((c: { key: string }) => c.key));
+  assert.deepEqual(perShard.flat().sort(), all, 'the shards\' coverage is not exactly the whole');
+  const gate = read('.github/workflows/branch.yml');
+  assert.match(gate, /UI_SHARD:\s*\$\{\{\s*matrix\.shard\s*\}\}/, 'the ui job does not pass its shard');
+  assert.match(gate, /shard:\s*\[\s*public,\s*admin\s*\]/, 'the ui job does not run both shards');
+});

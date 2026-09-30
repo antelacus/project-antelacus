@@ -148,3 +148,55 @@ test('release.sh puts no database URL with its password on a command line', asyn
   for (const line of psql) assert.doesNotMatch(line, /DATABASE_URL|db_url/, line);
   assert.match(source, /PGPASSFILE=\/pgpass/);
 });
+
+test('the app container gets its own variables, not the server jobs\' (database password, ping URLs)', async () => {
+  const { appEnv } = await decide();
+  const text = [
+    'NEXT_PUBLIC_SUPABASE_URL="https://x.supabase.co"',
+    'SUPABASE_SERVICE_ROLE_KEY=role',
+    'SITE_VERIFICATION_GOOGLE=g',
+    'DATABASE_URL="postgresql://u:fake@db.example.com:5432/postgres"',
+    'ANTELACUS_DATA_DIR=/data',
+    'BACKUP_KEEP_DAYS=14',
+    'PG_MAJOR=17',
+    'HC_PING_BACKUP=https://hc-ping.com/abc',
+    'HC_PING_SITE=https://hc-ping.com/def',
+  ].join('\n');
+  assert.equal(appEnv(text), 'NEXT_PUBLIC_SUPABASE_URL=https://x.supabase.co\nSUPABASE_SERVICE_ROLE_KEY=role\nSITE_VERIFICATION_GOOGLE=g\n');
+  assert.equal(appEnv('DATABASE_URL=x\n'), '', 'only job variables: nothing for the app');
+});
+
+test('a password in the query string goes to pgpass too, and the last DATABASE_URL wins as in dotenv', async () => {
+  const { pgConnection } = await decide();
+  // Made-up values on example.com hosts: fixtures, not credentials.
+  const inQuery = pgConnection('DATABASE_URL=postgresql://u@db.example.com:5432/db?sslmode=require&password=fake%3Avalue\n');
+  assert.equal(inQuery.url, 'postgresql://u@db.example.com:5432/db?sslmode=require');
+  assert.equal(inQuery.pgpass, '*:*:*:*:fake\\:value\n');
+  const twice = pgConnection('DATABASE_URL=postgresql://u:fake-old@old.example.com/db\nDATABASE_URL=postgresql://u:fake-new@new.example.com/db\n');
+  assert.equal(twice.url, 'postgresql://u@new.example.com/db');
+  assert.equal(twice.pgpass, '*:*:*:*:fake-new\n');
+});
+
+test('a quoted value followed by a comment loses its quotes and the comment', async () => {
+  const { dockerEnv } = await decide();
+  assert.equal(dockerEnv('URL="https://x.supabase.co" # the project\nK=\'v\'  #c\nHASH="a#b"\n'), 'URL=https://x.supabase.co\nK=v\nHASH=a#b\n');
+});
+
+test('a DATABASE_URL that does not parse is reported without its text, so no log gets the password', async () => {
+  const { pgConnection } = await decide();
+  const value = 'postgresql://u:fake/pw@db.example.com/x';
+  let caught: unknown;
+  try {
+    pgConnection(`DATABASE_URL=${value}\n`);
+  } catch (error) {
+    caught = error;
+  }
+  assert.ok(caught instanceof Error, 'no error for an unparsable URL');
+  // Node prints an uncaught error's own properties: `input` would carry the whole URL.
+  assert.doesNotMatch(`${caught.message} ${JSON.stringify(caught)} ${caught.stack}`, /fake\/pw|db\.example\.com/);
+});
+
+test('a comment that holds the same quote as the value does not become part of it', async () => {
+  const { dockerEnv } = await decide();
+  assert.equal(dockerEnv('URL="https://db.example.com/x" # the "session"\n'), 'URL=https://db.example.com/x\n');
+});

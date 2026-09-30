@@ -32,7 +32,9 @@ test('invariant 2a — only admin/auth code reads the request (next/headers)', (
   assert.ok(allSources.length > 50, `scanned ${allSources.length} files — the scan looks broken`);
   // Reading cookies or headers anywhere on the public render path turns every page into no-store.
   const allowed = (path: string) =>
-    /^src\/app\/(admin|auth)\//.test(path) || ['src/lib/supabase/server.ts', 'src/lib/server/admin-auth.ts'].includes(path);
+    /^src\/app\/(admin|auth)\//.test(path) || ['src/lib/supabase/server.ts', 'src/lib/server/admin-auth.ts'].includes(path) ||
+    // The 404 document reads the language the proxy decided; a 404 is never cached (routing-slimdown DESIGN §4).
+    path === 'src/app/global-not-found.tsx';
 
   const offenders = allSources
     .filter((path) => ts.preProcessFile(readFileSync(path, 'utf8'), true, true).importedFiles.some((f) => f.fileName === 'next/headers'))
@@ -90,4 +92,25 @@ test('invariant 8 — every top-level entry of src/app and public/ is registered
   const entries = ['src/app', 'public'].flatMap((dir) => readdirSync(join(ROOT, dir)).filter((name) => isRouteEntry(join(ROOT, dir), name)));
   assert.ok(entries.length >= 8, `found ${entries.length} entries — the scan looks broken`);
   assert.deepEqual(entries.filter((name) => !known.has(name)), []);
+});
+
+test('invariant 10 — every page under [locale] that can 404 names content the proxy looks up first', () => {
+  // A page's own notFound() is never rendered on the server (routing-slimdown DESIGN §8): each one must be a
+  // shape route-decision turns into a lookup, so the proxy answers the 404 before the page runs.
+  const lookedUp = new Set([
+    ...['posts', 'notes', 'gallery', 'projects'].map((section) => `src/app/[locale]/${section}/[slug]/page.tsx`),
+    'src/app/[locale]/tags/[id]/page.tsx',
+    'src/app/[locale]/about/page.tsx',
+  ]);
+  const pages = sourceFiles(join(ROOT, 'src/app/[locale]')).filter((path) => path.endsWith('/page.tsx'));
+  assert.ok(pages.length >= 10, `found ${pages.length} pages under [locale] — the scan looks broken`);
+  const throwing = pages.filter((path) => {
+    let called = false;
+    walk(parse(path), (node) => {
+      if (ts.isCallExpression(node) && node.expression.getText() === 'notFound') called = true;
+    });
+    return called;
+  }).map(rel);
+  assert.deepEqual(throwing.filter((path) => !lookedUp.has(path)), [], 'a page can 404 on something the content index does not cover');
+  assert.ok(throwing.length >= lookedUp.size, 'the scan found fewer 404ing pages than the index covers');
 });

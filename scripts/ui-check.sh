@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The UI gate (docs/features/visual-upgrade/DESIGN.md §2.5): a local Supabase stack seeded with synthetic
 # content, a production build against it, then the browser checks in tests/ui/ and the runtime suite with
-# the database. CI (check.yml, job `ui`) runs this same script. Needs Docker; on a Mac, colima is started if
+# the database. CI (branch.yml, job `ui`) runs this same script on two machines, each with UI_SHARD naming
+# its share of the checks (tests/ui/manifest.mjs, SHARDS); without UI_SHARD it runs them all. Needs Docker; on a Mac, colima is started if
 # Docker is down, and stopped again afterwards. Everything this run started is torn down on any exit, and
 # the exit code is the first failure's.
 set -euo pipefail
@@ -22,6 +23,24 @@ RO_BASE_URL="http://localhost:$RO_PORT"
 # §5.10-b); supabase/config.toml switches off what -x cannot keep from being pulled.
 EXCLUDE="imgproxy,postgres-meta,mailpit,studio,edge-runtime,logflare,vector,supavisor,realtime"
 supabase() { npx --no-install supabase "$@"; }
+
+SHARD="${UI_SHARD:-}"
+# The check files this run owns, coverage.ui.mjs last. Refused before anything starts: an unknown shard or an
+# empty share would otherwise run next to nothing and pass (§5.5-c).
+ui_files="$(UI_SHARD="$SHARD" node --input-type=module -e "
+  import { readdirSync } from 'node:fs';
+  import { SHARDS, coverageFor } from './tests/ui/manifest.mjs';
+  const shard = process.env.UI_SHARD;
+  let files;
+  if (!shard) files = readdirSync('tests/ui').filter((f) => f.endsWith('.ui.mjs') && f !== 'coverage.ui.mjs');
+  else {
+    if (!SHARDS[shard]) { console.error('ui-check: unknown UI_SHARD ' + JSON.stringify(shard) + '; known: ' + Object.keys(SHARDS).join(', ')); process.exit(1); }
+    if (!coverageFor(shard).length) { console.error('ui-check: shard ' + shard + ' reconciles no combination'); process.exit(1); }
+    files = SHARDS[shard].files;
+  }
+  if (!files.length) { console.error('ui-check: no check file to run'); process.exit(1); }
+  console.log([...files, 'coverage.ui.mjs'].map((f) => 'tests/ui/' + f).join(' '));
+")"
 
 started_colima=0
 started_stack=0
@@ -119,14 +138,16 @@ fi
 npx --no-install playwright install chromium webkit >/dev/null
 
 status=0
-# One process, in this order: coverage.ui.mjs reconciles what the other files' checks recorded.
-ui_files="$(ls tests/ui/*.ui.mjs | grep -v '/coverage\.ui\.mjs$') tests/ui/coverage.ui.mjs"
-step "browser checks"
+# One process, coverage.ui.mjs last: it reconciles what the other files' checks recorded.
+step "browser checks${SHARD:+ (shard $SHARD)}: $ui_files"
 # shellcheck disable=SC2086 # the file list is meant to split
 BASE_URL="$BASE_URL" UI_ADMIN_EMAIL="$ADMIN_EMAIL" UI_ADMIN_PASSWORD="$ADMIN_PASSWORD" \
   UI_MEMBER_EMAIL="$MEMBER_EMAIL" UI_MEMBER_PASSWORD="$MEMBER_PASSWORD" UI_READONLY_BASE_URL="$RO_BASE_URL" \
-  UI_SUPABASE_URL="$API_URL" UI_SUPABASE_PUBLISHABLE_KEY="$PUBLISHABLE_KEY" \
+  UI_SUPABASE_URL="$API_URL" UI_SUPABASE_PUBLISHABLE_KEY="$PUBLISHABLE_KEY" UI_SHARD="$SHARD" \
   node --test --test-isolation=none --test-concurrency=1 --test-force-exit $ui_files || status=$?
-step "runtime suite with the database"
-BASE_URL="$BASE_URL" RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs || { s=$?; (( status )) || status=$s; }
+# Once per push: on the admin machine, or here when this run is the whole gate.
+if [[ -z "$SHARD" || "$SHARD" == admin ]]; then
+  step "runtime suite with the database"
+  BASE_URL="$BASE_URL" RUNTIME_DB=1 node --test tests/runtime/acceptance.runtime.mjs || { s=$?; (( status )) || status=$s; }
+fi
 exit "$status"

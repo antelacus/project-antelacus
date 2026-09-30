@@ -99,7 +99,8 @@ export function dockerEnv(text) {
     const match = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
     if (!match) continue;
     let value = match[2];
-    const quoted = /^(['"])(.*)\1$/.exec(value);
+    // A quoted value may be followed by a comment, as dotenv allows.
+    const quoted = /^(['"])(.*?)\1(?:\s+#.*)?$/.exec(value);
     if (quoted) value = quoted[2];
     else value = value.replace(/\s+#.*$/, '');
     lines.push(`${match[1]}=${value}`);
@@ -112,13 +113,38 @@ export function dockerEnv(text) {
  * inspect`): the URL without it, and a pgpass line that holds it. Null without a DATABASE_URL.
  */
 export function pgConnection(envText) {
-  const line = dockerEnv(envText).split('\n').find((l) => l.startsWith('DATABASE_URL='));
+  // The last assignment wins, as when dotenv or the shell reads the file.
+  const line = dockerEnv(envText).split('\n').findLast((l) => l.startsWith('DATABASE_URL='));
   const value = line?.slice('DATABASE_URL='.length);
   if (!value) return null;
-  const url = new URL(value);
-  const password = decodeURIComponent(url.password).replace(/[\\:]/g, '\\$&');
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    // Node's own error carries the input — the whole URL, password included — and prints it, into the backup
+    // log or a public CI log. Say what is wrong without it.
+    throw new Error('DATABASE_URL is not a valid URL (a password with / # ? must be percent-encoded)');
+  }
+  // libpq also takes the password as a query parameter; it leaves the URL either way.
+  const raw = url.password ? decodeURIComponent(url.password) : (url.searchParams.get('password') ?? '');
+  const password = raw.replace(/[\\:]/g, '\\$&');
   url.password = '';
+  url.searchParams.delete('password');
   return { url: url.toString(), pgpass: `*:*:*:*:${password}\n` };
+}
+
+// The server jobs' variables (.env.example, "Operations on the VPS"): backups and health pings read them from
+// the checkout's .env; the app never does. Kept out of its container, where `docker inspect` would show them —
+// DATABASE_URL carries the database password, a ping URL lets anyone report for the job.
+const JOB_ONLY = ['DATABASE_URL', 'ANTELACUS_DATA_DIR', 'BACKUP_KEEP_DAYS', 'PG_MAJOR'];
+
+/** The app container's env file: the env file as docker reads it, without the server jobs' variables. */
+export function appEnv(text) {
+  const kept = dockerEnv(text).split('\n').filter(Boolean).filter((line) => {
+    const name = line.slice(0, line.indexOf('='));
+    return !JOB_ONLY.includes(name) && !name.startsWith('HC_PING_');
+  });
+  return kept.length ? `${kept.join('\n')}\n` : '';
 }
 
 /** Whether a PR body ticks the signed-in look at staging (REQ §5.4-d): a checked box naming staging and the admin. */
@@ -191,7 +217,7 @@ export function afterAdopt({ state, entry }) {
   };
 }
 
-const DECISIONS = { afterAdopt, keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, checklistTicked, stagingEnvProblems, pgConnection, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
+const DECISIONS = { afterAdopt, keptOf, tagFor, purgeTargets, authSettingsProblems, rollbackTarget, afterRollback, dockerEnv, appEnv, checklistTicked, stagingEnvProblems, pgConnection, migrationProblems, shouldDeploy, afterVerified, afterDeploy, mayPromote, pruneImages };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const [name, input] = process.argv.slice(2);

@@ -11,7 +11,8 @@ const decide = (input: Pick<LocaleRouteInput, 'pathname'> & Partial<LocaleRouteI
 
 const redirectTo = (pathname: string): LocaleRouteDecision => ({ kind: 'redirect', pathname });
 const pass: LocaleRouteDecision = { kind: 'pass' };
-const notFound: LocaleRouteDecision = { kind: 'not-found' };
+const notFound: LocaleRouteDecision = { kind: 'not-found', locale: null };
+const notFoundIn = (locale: string) => ({ kind: 'not-found', locale }) as LocaleRouteDecision;
 
 test('acceptance §5.2-a supported locale prefixes pass through', () => {
   assert.deepEqual(decide({ pathname: '/en/posts' }), pass);
@@ -37,8 +38,46 @@ test('acceptance §5.2-d unknown first segments are a direct 404, decided here a
     assert.deepEqual(decide({ pathname, acceptLanguage: 'es', preferredLocale: 'fr' }), notFound, pathname);
   }
   for (const pathname of ['/en--US/about', '/zh-/posts']) assert.deepEqual(decide({ pathname }), notFound, pathname);
-  // Under a supported locale the router decides: an unknown section there matches no route.
-  assert.deepEqual(decide({ pathname: '/en/garbage' }), pass);
+  // Under a supported locale an unknown section is decided here too, in that language (rule 8).
+  assert.deepEqual(decide({ pathname: '/en/garbage' }), notFoundIn('en'));
+});
+
+test('routing-slimdown §5.2 rule 8 under a language, an address that cannot exist is a 404 in that language', () => {
+  for (const pathname of ['/fr/no-such-section', '/fr/about/extra', '/fr/posts/Bad_Slug', '/fr/notes/a.b', '/fr/posts/ok-slug/extra',
+    '/fr/posts/ok-slug/og.png', '/fr/no-such-section/og.png', '/fr/tags/a/b', '/fr/tags/%E0%A4%A', '/fr/gallery/' + 'x'.repeat(81)]) {
+    assert.deepEqual(decide({ pathname }), notFoundIn('fr'), pathname);
+  }
+  assert.deepEqual(decide({ pathname: '/zh-HK/garbage' }), notFoundIn('zh-HK'));
+  // The home page and every section's list pass; whether a piece, a tag or the about page exists is looked up.
+  for (const pathname of ['/fr', '/fr/', '/fr/posts', '/fr/posts/', '/fr/tags', '/fr/tags/']) assert.deepEqual(decide({ pathname }), pass, pathname);
+  const lookup = (item: object) => ({ kind: 'lookup', locale: 'fr', item });
+  assert.deepEqual(decide({ pathname: '/fr/about' }), lookup({ section: 'about' }));
+  assert.deepEqual(decide({ pathname: '/fr/about/' }), lookup({ section: 'about' }));
+  for (const section of ['posts', 'notes', 'gallery', 'projects']) {
+    assert.deepEqual(decide({ pathname: `/fr/${section}/ok-slug` }), lookup({ section, slug: 'ok-slug' }), section);
+  }
+  // A tag is decoded once, as the tag page decodes it.
+  assert.deepEqual(decide({ pathname: '/fr/tags/Some%20Tag' }), lookup({ section: 'tags', tag: 'Some Tag' }));
+  assert.deepEqual(decide({ pathname: '/fr/tags/%E4%B8%AD%E6%96%87' }), lookup({ section: 'tags', tag: '中文' }));
+  assert.deepEqual(decide({ pathname: '/fr/tags/a%2Fb' }), lookup({ section: 'tags', tag: 'a/b' }));
+  assert.deepEqual(decide({ pathname: '/fr/tags/100%25' }), lookup({ section: 'tags', tag: '100%' }));
+});
+
+test('routing-slimdown §5.2 rule 8 whether looked-up content exists is read from the content index', async () => {
+  const { isPublished, parseRouteIndex } = await import('../src/i18n/route-decision');
+  const index = { posts: ['a-post'], notes: [], gallery: ['an-album'], projects: [], tags: ['中文', 'a/b'], about: false };
+  assert.equal(isPublished({ section: 'posts', slug: 'a-post' }, index), true);
+  assert.equal(isPublished({ section: 'posts', slug: 'an-album' }, index), false, 'a slug of another type');
+  assert.equal(isPublished({ section: 'gallery', slug: 'an-album' }, index), true);
+  assert.equal(isPublished({ section: 'tags', tag: '中文' }, index), true);
+  assert.equal(isPublished({ section: 'tags', tag: 'a' }, index), false);
+  assert.equal(isPublished({ section: 'about' }, index), false);
+  assert.equal(isPublished({ section: 'about' }, { ...index, about: true }), true);
+  // An index of the wrong shape is no index: the proxy then lets the page answer (DESIGN §6).
+  assert.deepEqual(parseRouteIndex(index), index);
+  for (const bad of [null, {}, 'html', [], { ...index, posts: null }, { ...index, tags: [1] }, { ...index, about: 'yes' }]) {
+    assert.equal(parseRouteIndex(bad), null, JSON.stringify(bad));
+  }
 });
 
 test('acceptance §5.2 rule 5 paths outside /<locale>/ are recognised by whole segment, look-alikes are 404', () => {

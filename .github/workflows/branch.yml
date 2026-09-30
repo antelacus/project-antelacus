@@ -67,12 +67,20 @@ jobs:
           curl --silent --fail --output /dev/null --retry 30 --retry-connrefused --retry-delay 1 http://localhost:3917/og.png
           BASE_URL=http://localhost:3917 npm run test:runtime
 
-  # 界面闸门（visual-upgrade DESIGN §2.5）：本地 Supabase 栈 + 合成内容 + 浏览器检查 + 有库运行时套件，本机与这里同一份脚本
+  # 界面闸门（visual-upgrade DESIGN §2.5）：本地 Supabase 栈 + 合成内容 + 浏览器检查 + 有库运行时套件，本机与这里同一份脚本。
+  # 两台机器各跑一份（tests/ui/manifest.mjs 的 SHARDS），staging-check 等两份都通过
   ui:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
+    strategy:
+      # A failure on one machine keeps the other running: both reports are needed to fix a push.
+      fail-fast: false
+      matrix:
+        shard: [public, admin]
+    env:
+      UI_SHARD: ${{ matrix.shard }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
