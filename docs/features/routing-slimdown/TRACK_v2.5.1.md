@@ -34,6 +34,8 @@
   - 2026-09-30 · 发布前审查 22 条按 Claude 提议处置（第三区）；P1-M2、P2-M2、P2-S1 经实测不成立（Next 交给页面的参数未解码） · Jason
   - 2026-09-30 · `/code-review` 10 条按 Claude 提议处置（第三区）；修完开版本 PR · Jason
   - 2026-09-30 · GitGuardian 对 `5972e40` 的「通用密码」报告为误报（测试里编造的值，VPS 上比对与真实密钥均不同），Jason 已在 GitGuardian 关闭；测试值改为 example.com 上的假值 · Jason
+  - 2026-09-30 · CI 暂不再提速（5 分钟可接受） · Jason
+  - 2026-09-30 · 生产 `.env` 及其备份改为 600 · Jason · 级联：`docs/DEPLOYMENT.md` 首次设置
 
 ## 二、批次
 
@@ -127,6 +129,10 @@
 - R-9 · SHOULD：`tsconfig.json` 残留本机构建写入的 `.next-b1` 两行 —— status: fixed：删掉两行、`.gitignore` 加 `/.next-*/`；本机构建改用已在 include 里的 `.next-ui`，Next 便不再改写 `tsconfig`
 - R-10 · SHOULD：关于页的索引判定与页面的语言回退可能不一致 —— status: accepted：同 P2-S2
 
+- 真实发布（运行 36651491499）：合并提交 `2e0882d` 的键 `b3d944ad…` 即预发布验过的那个；`verify` 构建标识一致、有库运行时 26 项全过（含 §5.2-i、§5.4-a 于生产真实内容）；`v2.5.1` 已打；`purge` 按改动判定无需清缓存；`auth` 通过
+- S-1：生产容器 `docker inspect` 中数据库密码 0 处、运维变量 0 个，service-role 密钥在（应用需要）——在 VPS 上比对、只回报次数
+- 收缩步：`.env` 的 `SUPABASE_ADMIN_EMAILS` 1 → 0 行（`.env.staging` 本无），两环境 `restart` 后仍为 `b3d944ad…`，公网 200；Jason 登录生产后台并保存成功。顺带发现生产 `.env` 为 664，经 Jason 同意改为 600（备份同改）；能登录的只有 root 与部署用户、家目录 750，此前实际未暴露
+
 **本版自查发现**（Claude）：
 - S-1 · SHOULD：`release.sh` 把整份 `.env` 交给应用容器，`DATABASE_URL`（含数据库密码）因此进了应用的环境、`docker inspect` 可见；应用不用它，只有备份与发布脚本用 —— status: fixed（Jason 裁定本版修）：`appEnv` 剔掉运维任务的变量（`DATABASE_URL`、备份设置、`HC_PING_*`）再交给容器，单元测试；`.env.staging` 本无这些变量，证据在真实发布
 
@@ -135,14 +141,20 @@
 - 耗时（DESIGN §10 Q2，VPS 上直连容器，各 30 次中位数）：`/api/route-index` 5.6 毫秒；文章详情预发布（有查找）约 13 毫秒、生产（v2.5.0，无查找）7.8 毫秒；首页两边相同（6.6–6.8）；两边 `x-nextjs-cache: HIT`。首轮测得详情 66.7 毫秒，连续复测为 11–21 毫秒，首轮属刚替换容器后的预热
 
 **Phase 6 boxes**（合并 ≠ 发布）：
-- [ ] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并
-- [ ] 真实发布：*Production* 全绿，公网构建标识 = 合并提交的键，打出 `v2.5.1`
-- [ ] S-1 的证据：发布后生产容器 `antelacus` 的 `docker inspect` 里数据库密码 0 处（在 VPS 上比对、只回报次数），`verify` 全绿
-- [ ] 收缩步（release-pipeline §5.8-e）：删生产 `.env` 与 `.env.staging` 里的 `SUPABASE_ADMIN_EMAILS`（只删这一行、不读其他值）→ 两个环境 `restart` → Jason 登录生产后台并保存一次 → 删 TD-023
-- [ ] CHANGELOG 条目
-- [ ] TECHNICAL_DEBT 定稿：TD-023…TD-026 删除；Batch 2 的临时方案在册
-- [ ] 常新文档扫尾：各 REQ / DESIGN 与交付一致；项目 `CLAUDE.md`（Routing and languages 一节的 404 规则）、README 仍属实
-- [ ] FEEDBACK 扫尾 · 路线图
-- [ ] 各门读数：运行次数 / 改变了输出的拦截次数
-- [ ] 文档预算为绿 · 记忆修剪
-- [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.5.1.md`
+- [x] 版本 PR：Claude 开 PR、跑 `/code-review` 并登记处置 → Jason 审结构与范围后合并（#16，合并提交 `2e0882d`）
+- [x] 真实发布：*Production* 全绿，公网构建标识 = 合并提交的键，打出 `v2.5.1`
+- [x] S-1 的证据：发布后生产容器 `antelacus` 的 `docker inspect` 里数据库密码 0 处（在 VPS 上比对、只回报次数），`verify` 全绿
+- [x] 收缩步（release-pipeline §5.8-e）：删生产 `.env` 与 `.env.staging` 里的 `SUPABASE_ADMIN_EMAILS`（只删这一行、不读其他值）→ 两个环境 `restart` → Jason 登录生产后台并保存一次 → 删 TD-023
+- [x] CHANGELOG 条目
+- [x] TECHNICAL_DEBT 定稿：TD-023…TD-026 删除；TD-027（Batch 2 的临时方案）在册
+- [x] 常新文档扫尾：release-pipeline DESIGN §9 改为收缩后的现状并删去过渡期一条；`DEPLOYMENT.md` 首次设置加 `chmod 600`；项目 `CLAUDE.md` 的 404 规则（Batch 2）与本地构建目录一条；README 属实
+- [x] FEEDBACK 扫尾 · 路线图：没有 FEEDBACK 条目；登记册只余 TD-027，其退役条件是上游 #62228；CI 再提速的候选（Supabase 镜像、Playwright 容器）Jason 裁定暂不做
+- [x] 各门读数（运行次数 / 改变了输出的拦截次数）：
+  - *Branch* 闸门：8 次 + 同一运行重跑 4 次 / 0（5 绿、3 次被更新的推送取消）——缺陷都在本机测试与审查阶段拦下；不空转由植入违例与不变量的植入证明，不退役
+  - Codex 设计门：2 个任务 / 采纳并改设计 8 条（索引形状校验、标签解码、超时、日志、标题、`UI_SHARD` 失败关闭、临时文件清理、实跑加查）
+  - Codex 发布前：3 个任务 / 11 条修复（其中查询串密码、备份并发、重复 `DATABASE_URL`、proxy 放行测试、20 个未知 slug 测试）；3 条经实测推翻
+  - `/code-review`：1 次 / 7 条修复，含 R-1（解析失败时密码进公开 CI 日志）
+  - GitGuardian：1 次报告 / 0（误报；测试值改为 example.com 上的假值）
+  - `pr-checklist`：1 次 / 0 · *Production*：1 次 / 0 · 迁移 lint：每次推送 / 0（本版无迁移）
+- [x] 文档预算为绿 · 记忆修剪
+- [x] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.5.1.md`

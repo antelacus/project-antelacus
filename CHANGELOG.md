@@ -4,6 +4,16 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.5.1 - 2026-09-30
+
+### Fixed
+- An address that leads nowhere — a post, note, album, project or tag that does not exist, or a section that does not — now shows the site's own "page not found" at once, in the language of the address, with the navigation. Before, an unknown piece showed a blank page for several seconds (for good, without JavaScript), and other unknown addresses answered in English whatever the language.
+
+### Changed
+- A push reaches the verified staging site in about 5 minutes instead of 8: the interface checks run on two machines at once.
+- The daily backup and the running site hold the database password and the service-role key more tightly: never on a command line, never in a container's configuration unless the site itself needs them, and the configuration file on the server is readable by its owner only.
+- Admins are known only by the role on their account; the old email list in the server's configuration is gone.
+
 ## v2.5.0 - 2026-09-29
 
 ### Added
