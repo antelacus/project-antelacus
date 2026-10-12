@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { locales, localizedSections } from '../src/i18n/routing';
 import { buildSitemapEntries, renderSitemapXml } from '../src/lib/sitemap-entries';
+import { SITE_ORIGIN } from '../src/lib/site';
 
 // REQ §5.11-a — the sitemap's locale expansion and XML escaping, on the pure functions.
 
@@ -39,4 +41,11 @@ test('acceptance visual-upgrade §5.3 the about page is listed only while some l
   const about = (entries: ReturnType<typeof buildSitemapEntries>) => entries.filter((e) => /\/about$/.test(e.url)).length;
   assert.equal(about(buildSitemapEntries(data)), locales.length);
   assert.equal(about(buildSitemapEntries({ ...data, about: false })), 0);
+});
+
+test('robots.txt names the sitemap on the public origin and keeps crawlers out of /api/', () => {
+  const robots = readFileSync('public/robots.txt', 'utf8');
+  assert.match(robots, new RegExp(`^Sitemap: ${SITE_ORIGIN.replace(/\./g, '\\.')}/sitemap\\.xml$`, 'm'));
+  // The language switcher's links go through /api/locale, a redirect; crawled, every page adds five of them.
+  assert.match(robots, /^Disallow: \/api\/$/m);
 });
