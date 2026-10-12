@@ -217,7 +217,7 @@
 #### 1. 技术基础配置
 - **Sitemap 管理**：
   - 使用 App Router 的动态 `/sitemap.xml`（`src/app/sitemap.ts`）自动生成并包含多语言 `hreflang`
-  - `robots.txt` 已指向 `https://antelacus.com/sitemap.xml`
+  - `public/robots.txt` 指向 `/sitemap.xml`，并挡住 `/api/`（地址以文件为准）
 - **Robots.txt 优化**：
   - 正确配置爬虫访问规则
   - 包含 sitemap 链接

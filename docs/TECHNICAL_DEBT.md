@@ -31,6 +31,13 @@ Update this file when:
 - Context: GHSA-vfj7-8cjw-p6xm covers every version of `braces`, reached only through `eslint-config-next` → `fast-glob` → `micromatch`. It is a development dependency: it never ships in the image, and the gate's `npm audit --omit=dev` does not see it. It runs only on this repository's own files and patterns.
 - Retire when: `braces` publishes a fixed release — then `npm update` and delete this item.
 
+### TD-030 - Tag addresses are case-sensitive; the lowercase ones of earlier versions answer 404
+
+- Status: `Accepted` (won't fix) · Severity: `Low` · Area: `routing` · Identified: `2026-10-12` (Search Console coverage triage)
+- Context: earlier versions lowercased tag addresses (`/en/tags/llm`); tags now keep their own case (`/en/tags/LLM`), so Google still revisits about thirty old lowercase addresses and reports them as 404. Nothing on the site links to them and none is in the sitemap. A 301 to the cased address was rejected: the site has almost no search traffic for those addresses to carry, 404 is the correct answer for an address that no longer exists, and a permanent compatibility rule would ride along every future change to tag routing.
+- Revisit if: an old lowercase tag address turns out to be linked from outside, or Search Console shows clicks on one.
+- Scope of that triage: Search Console's coverage report and its drill-downs (404, soft 404, redirect, duplicate canonical), each URL rechecked on the live site. The `goodman.` and `white.` subdomains it also listed are other applications and were not examined.
+
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.

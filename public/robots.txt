@@ -1,3 +1,5 @@
 User-agent: *
 Allow: /
-Sitemap: https://antelacus.com/sitemap.xml 
+Disallow: /api/
+
+Sitemap: https://www.antelacus.com/sitemap.xml

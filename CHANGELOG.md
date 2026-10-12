@@ -4,6 +4,11 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.5.3 - 2026-10-12
+
+### Fixed
+- Search engines no longer crawl the language switcher's links: each one is a redirect through `/api/locale`, and Google had been reporting about fifty of them as pages. `robots.txt` now keeps crawlers out of `/api/`, and names the sitemap at its real address (`www.`) instead of one that redirects there.
+
 ## v2.5.2 - 2026-10-12
 
 ### Security
