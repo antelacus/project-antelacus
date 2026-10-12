@@ -4,6 +4,12 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.5.2 - 2026-10-12
+
+### Security
+- Next.js 16.4.0 closes the advisories published against 16.3.7, among them cache poisoning of pre-rendered pages on self-hosted sites and a server-side request forgery in image optimization. `sharp` (an image library) and `source-map-js` move to their fixed releases too.
+- KaTeX, which draws the formulas in posts, moves to 0.19, past a low-severity advisory. The two Markdown plugins that use it still ask for 0.16, so the project pins them to the same 0.19.
+
 ## v2.5.1 - 2026-09-30
 
 ### Fixed
