@@ -38,6 +38,20 @@ Update this file when:
 - Revisit if: an old lowercase tag address turns out to be linked from outside, or Search Console shows clicks on one.
 - Scope of that triage: Search Console's coverage report and its drill-downs (404, soft 404, redirect, duplicate canonical), each URL rechecked on the live site. The `goodman.` and `white.` subdomains it also listed are other applications and were not examined.
 
+### TD-031 - The image is scanned only when it is built
+
+- Status: `Open` · Severity: `Medium` · Area: `ci` · Identified: `2026-10-29` (v2.5.4)
+- Context: the `image` job runs Trivy on each newly built image, so a vulnerability published after a release goes unseen for as long as no new image is built, and a quiet month leaves production unscanned. The image exists only on the VPS (no registry), so a scheduled scan has to fetch it from there — the `vps` action already gives CI that connection.
+- Plan: a scheduled workflow (weekly) that saves the production image over SSH and scans it with the same pinned Trivy, failing on HIGH/CRITICAL with a fix. Repo-infra change.
+- Ruled on at: the next version's Phase 0.
+
+### TD-032 - Nothing checks that the Node version is consistent and supported
+
+- Status: `Open` · Severity: `Low` · Area: `ci` · Identified: `2026-10-29` (v2.5.4)
+- Context: Node's major is written in three places — the `Dockerfile` base image and `node-version` in both workflows — with no `.nvmrc` as a single source, and nothing fails when they disagree or when the major reaches end of life. The production image ran 24.21.0 for two weeks after a Node security release only because no new image was built (TD-031).
+- Plan: `.nvmrc` as the one home, read by both workflows; a CI check that the `Dockerfile` major matches it and is not past end of life.
+- Ruled on at: the next version's Phase 0.
+
 ## Findings of the 2026-09-21 scan
 
 Scope of that scan: dependency audit and freshness, lint/types/tests/fresh build, secrets across all 103 commits, app security (auth, server actions, RLS migrations, content rendering, headers), code structure, infrastructure files, and read-only probes of the live site. Not covered: `globals.css`, line-by-line reads of the large components, the live Supabase project settings, in-browser behaviour, the VPS itself. The admin-notes exposure found by the same scan was fixed in v2.1.3 and is not listed.
