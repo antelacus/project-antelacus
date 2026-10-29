@@ -42,6 +42,10 @@ COPY --chown=node:node --from=builder /app/.next/static ./.next/static
 # A file, not an env var: an env file given to the container cannot override what /api/build reports.
 COPY --from=keycalc /BUILD_KEY ./BUILD_KEY
 RUN mkdir -p .next/cache && chown -R node:node .next/cache
+# The runtime is `node server.js` alone. The base image's package managers carry their own dependency trees,
+# whose advisories the image scan would otherwise report against a server that never runs them.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* \
+      /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 USER node
 
 EXPOSE 3000

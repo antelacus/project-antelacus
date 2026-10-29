@@ -4,6 +4,13 @@ All notable changes to `project-antelacus` are documented in this file.
 
 The format follows a simple project-specific version history.
 
+## v2.5.4 - 2026-10-29
+
+### Security
+- Next.js 16.4.3 closes a remote-code-execution flaw in cached functions that needs no sign-in, a memory flaw in image optimization, and a denial of service in server actions. The site now also runs on a Node.js release that fixes a flaw in decoding compressed responses.
+- `zod`, the library that checks form input, moves to version 4 for a fix against oversized submissions exhausting memory.
+- Every release image is now scanned for known vulnerabilities before it reaches the server; a serious one with a fix available stops the release.
+
 ## v2.5.3 - 2026-10-12
 
 ### Fixed
