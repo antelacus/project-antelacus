@@ -26,12 +26,12 @@
 
 **Phase 6 boxes**：
 - [x] CHANGELOG 条目（Security）
-- [ ] TECHNICAL_DEBT 定稿
+- [x] TECHNICAL_DEBT 定稿：TD-031（只在构建时扫描镜像）、TD-032（Node 版本无单一来源、无 EOL 检查）登记，由下一版 Phase 0 裁定
 - [x] 旧值扫尾：`16.4.0` 在 CHANGELOG 与冻结文档之外无出处；各 DESIGN 里的「对象 Next 16.3.5」是实测时的版本记录，保持原样
-- [ ] staging：`staging-check` 绿 ✅ 40806590621；Jason 在手机上看过 staging（`pr-checklist`）
-- [ ] 生产部署 + 核对 served key；容器内 `next` 16.4.3、Node ≥ 24.22.1
-- [ ] tag `v2.5.4`
-- [ ] 各门读数：运行次数 / 改变了输出的拦截次数（Trivy 首次运行单列）
-- [ ] 文档预算为绿（`python3 scripts/check_doc_budget.py`）
-- [ ] 每周扫描已部署镜像：repo-infra 改动已开出，或在 TECHNICAL_DEBT 登记触发条件
-- [ ] **关版（最后一项）**：未了事项各归其位 → `git mv TRACK.md TRACK_v2.5.4.md`
+- [x] staging：`staging-check` 绿（40806590621、40807204983）；Jason 看过 staging 并勾选 `pr-checklist`，PR #20 合并 `970032d`
+- [x] 生产部署 + 核对 served key：production 40807857793 全绿、未回滚；`/api/build` 报 `a00dec17…`，即 staging 验证过的镜像；容器内 Node v24.22.2、next 16.4.3、无 npm
+- [x] tag `v2.5.4`（production 工作流的 `tag` 任务）
+- [x] 各门读数（运行 / 改变了输出的拦截）：本地 `npm audit --omit=dev` 1 / 1（zod）；`check` 4 / 0；`ui` 两个分片各 4 / 0；`image` 的 Trivy 2 / 1（首次运行，npm 移出运行镜像；其后两次复用镜像未扫）；`staging-check` 3 / 1（宿主机缺 `node`，见 Phase 4 证据）；production `verify` 1 / 0
+- [x] 文档预算为绿：budgeted 10 · exempt 0 · 0 violation(s)
+- [x] 每周扫描已部署镜像：登记为 TD-031
+- [x] **关版（最后一项）**：未了事项已归位（TD-031、TD-032；宿主机 `node` 的约束在 release-pipeline DESIGN §8）→ `git mv TRACK.md TRACK_v2.5.4.md`
