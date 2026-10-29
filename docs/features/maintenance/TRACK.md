@@ -21,6 +21,7 @@
 
 **Phase 4 证据**：
 - Trivy（`image` 任务）首次运行 40805198427：红，6 个 HIGH，全在基础镜像自带的 npm 里 → 运行阶段删去包管理器。检查非空转，得到证明
+- `staging-check` 第二次运行 40805762883：红，`release.sh` 报状态文件 damaged。原因不在本版：同日 VPS 维护卸掉了已 EOL 的系统 Node 20（依据是没有 apt 包依赖它），而 `release.sh` 在宿主机上直接调用 `node`。已装回系统级 Node 24（nodesource 24.x），`release.sh production status` 恢复；这条依赖写进 release-pipeline DESIGN §8（VPS）与 `docs/DEPLOYMENT.md` 首次部署
 
 **Phase 6 boxes**：
 - [x] CHANGELOG 条目（Security）

@@ -147,13 +147,14 @@ push 分支 ─► branch.yml
   - deploy 用户读不了证书，也改不了 nginx，这两件事要用 root；deploy 用户能读 `/etc/nginx/sites-enabled/`；
   - `DATABASE_URL` 是会话池（session pooler）连接串，因为直连地址只有 IPv6；
   - 防火墙对 SSH 限频（`ufw LIMIT`：同一地址 30 秒内第 6 次新连接被丢弃，客户端要重试半分钟），所以 CI 每个任务只做一次 keyscan、所有 `ssh vps` 复用一条连接（`.github/actions/vps`）。限频是有意保留的；
-  - 从 GitHub 的机器把镜像传到 VPS 只要十几秒，不需要只传变化层。
+  - 从 GitHub 的机器把镜像传到 VPS 只要十几秒，不需要只传变化层；
+  - `release.sh` 在宿主机上用 `node` 读状态文件、跑 `decide.mjs`，所以 deploy 用户的非交互 PATH 上必须有 `node`（系统级安装，nodesource 的 24.x 源；nvm 装的不在这个 PATH 上）。没有时状态文件被报为「damaged」，staging、生产与回滚都停。
 - **GitHub**：
   - 必需检查按**任务名**匹配，所以 `staging-check` 和 `pr-checklist` 这两个任务名一旦定下就不能改；
   - 分支保护可以要求分支与 main 同步；私有仓库在免费档上用不了分支保护（也用不了规则集），所以仓库是公开的；设置为：必需 `staging-check` 与 `pr-checklist`、分支须同步、必须经 PR、管理员也不能绕过、禁止强推与删除；
   - 用 `GITHUB_TOKEN` 打 tag 需要 `contents: write`；
   - 推送 tag 不会触发 `branches` 过滤的工作流。
-- **Docker**：29.8.1。
+- **Docker**：29.9.2。
 
 ## 9 其他设计
 - **后台读取的先扩后缩**：迁移先加 `is_admin()` 和策略（扩），管理员账号标上 `role`；`SUPABASE_ADMIN_EMAILS` 在下一版从 VPS 的 `.env` 删除（缩，REQ §5.8-e）。生产保留的回滚目标里若还有 v2.4.1 的镜像（adopt 记下的 legacy），退回它时后台会被锁、公开站点照常——接受；需要时把这一行加回 `.env` 再 `restart`。
