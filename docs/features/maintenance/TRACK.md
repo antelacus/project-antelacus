@@ -22,12 +22,13 @@
 **Phase 4 证据**：
 - Trivy（`image` 任务）首次运行 40805198427：红，6 个 HIGH，全在基础镜像自带的 npm 里 → 运行阶段删去包管理器。检查非空转，得到证明
 - `staging-check` 第二次运行 40805762883：红，`release.sh` 报状态文件 damaged。原因不在本版：同日 VPS 维护卸掉了已 EOL 的系统 Node 20（依据是没有 apt 包依赖它），而 `release.sh` 在宿主机上直接调用 `node`。已装回系统级 Node 24（nodesource 24.x），`release.sh production status` 恢复；这条依赖写进 release-pipeline DESIGN §8（VPS）与 `docs/DEPLOYMENT.md` 首次部署
+- 第三次运行 40806590621（`b21c2b3`）全绿：`check`、`ui` 两个分片（含 admin 的登录、保存、发布，即 zod 4 的证明）、`image`、`staging-check`。镜像 `a00dec17…` 由第二次运行构建，Trivy 校验和 OK、Debian 0、退出码 0；staging 容器内 Node v24.22.2、next 16.4.3、无 npm
 
 **Phase 6 boxes**：
 - [x] CHANGELOG 条目（Security）
 - [ ] TECHNICAL_DEBT 定稿
 - [x] 旧值扫尾：`16.4.0` 在 CHANGELOG 与冻结文档之外无出处；各 DESIGN 里的「对象 Next 16.3.5」是实测时的版本记录，保持原样
-- [ ] staging：`staging-check` 绿；Jason 在手机上看过 staging（`pr-checklist`）
+- [ ] staging：`staging-check` 绿 ✅ 40806590621；Jason 在手机上看过 staging（`pr-checklist`）
 - [ ] 生产部署 + 核对 served key；容器内 `next` 16.4.3、Node ≥ 24.22.1
 - [ ] tag `v2.5.4`
 - [ ] 各门读数：运行次数 / 改变了输出的拦截次数（Trivy 首次运行单列）
