@@ -142,6 +142,21 @@ jobs:
           # (a key output written into the checkout did exactly that) would make them differ.
           inside="$(docker run --rm --entrypoint cat "antelacus:${{ steps.key.outputs.key }}" /app/BUILD_KEY)"
           [[ "$inside" == "${{ steps.key.outputs.key }}" ]] || { echo "the image says $inside, its tag ${{ steps.key.outputs.key }}" >&2; exit 1; }
+      # A high or critical vulnerability that has a fixed release stops the image here, before the VPS sees it.
+      # The binary, not trivy-action: that action's tags were repointed at malicious commits in 2026-03. The hash
+      # is pinned here, not read from the release's checksums file, which a tampered release would change too.
+      - name: Vulnerability scan
+        if: steps.present.outputs.present == 'false'
+        env:
+          TRIVY_VERSION: 0.76.1
+          TRIVY_SHA256: c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
+        run: |
+          tarball="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$tarball" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/$tarball"
+          echo "$TRIVY_SHA256  $RUNNER_TEMP/$tarball" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" trivy
+          "$RUNNER_TEMP/trivy" image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+            --exit-code 1 --no-progress "antelacus:${{ steps.key.outputs.key }}"
       - name: Send it to the VPS
         if: steps.present.outputs.present == 'false'
         run: |
